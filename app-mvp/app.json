@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "GRINDSET",
+    "slug": "grindset",
+    "version": "0.1.0",
+    "scheme": "grindset",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#0d0f14",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0d0f14"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-asset"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

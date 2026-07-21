@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Expo / React Native
+.expo/
+dist/
+web-build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Env files (secrets)
+.env
+.env.local
+.env.*.local

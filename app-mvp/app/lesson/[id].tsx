@@ -1,0 +1,237 @@
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LESSONS } from '../../src/data/lessons';
+import { useStore, ENERGY_PER_LESSON } from '../../src/store';
+import { C } from '../../src/theme';
+import { Grindyk } from '../../src/components/Grindyk';
+import { Button } from '../../src/components/Button';
+
+export default function LessonScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const spendEnergy = useStore((s) => s.spendEnergy);
+
+  const lesson = useMemo(() => LESSONS.find((l) => l.id === id), [id]);
+
+  const [idx, setIdx] = useState(0);
+  const [selected, setSelected] = useState<number | null>(null);
+  const [answered, setAnswered] = useState(false);
+  const [combo, setCombo] = useState(0);
+  const [maxBonus, setMaxBonus] = useState(0);
+  const [correct, setCorrect] = useState(0);
+  const [errors, setErrors] = useState(0);
+
+  if (!lesson) {
+    return (
+      <View style={[styles.screen, { paddingTop: insets.top + 40 }]}>
+        <Text style={styles.q}>Урок не знайдено</Text>
+        <Button title="Назад" onPress={() => router.replace('/home')} />
+      </View>
+    );
+  }
+
+  const step = lesson.steps[idx];
+  const total = lesson.steps.length;
+  const isTeach = step.type === 'teach';
+  const isCorrect = !isTeach && selected === step.answer;
+  const canContinue = isTeach || answered;
+
+  function onAnswer(k: number) {
+    if (answered || step.type === 'teach') return;
+    setSelected(k);
+    setAnswered(true);
+    if (k === step.answer) {
+      const nextCombo = combo + 1;
+      const bonus = Math.min(20, nextCombo * 2);
+      setCombo(nextCombo);
+      setMaxBonus((m) => Math.max(m, bonus));
+      setCorrect((c) => c + 1);
+    } else {
+      setCombo(0);
+      setErrors((e) => e + 1);
+    }
+  }
+
+  function onContinue() {
+    if (idx + 1 >= total) {
+      spendEnergy(ENERGY_PER_LESSON);
+      const base = 20;
+      const bonusCoins = Math.round((base * maxBonus) / 100);
+      const coins = base + bonusCoins + correct * 5;
+      router.replace({
+        pathname: '/results',
+        params: {
+          id: lesson.id,
+          correct: String(correct),
+          errors: String(errors),
+          maxBonus: String(maxBonus),
+          coins: String(coins),
+        },
+      });
+      return;
+    }
+    setIdx(idx + 1);
+    setSelected(null);
+    setAnswered(false);
+  }
+
+  const mood = isTeach
+    ? 'think'
+    : !answered
+    ? 'neutral'
+    : isCorrect
+    ? combo >= 3
+      ? 'fire'
+      : 'happy'
+    : 'oops';
+
+  return (
+    <View style={[styles.screen, { paddingTop: insets.top + 8 }]}>
+      <View style={styles.head}>
+        <Pressable onPress={() => router.replace('/home')}>
+          <Text style={styles.x}>✕</Text>
+        </Pressable>
+        <View style={styles.pbar}>
+          <View style={[styles.fill, { width: `${(idx / total) * 100}%` }]} />
+        </View>
+        <Text style={styles.combo}>{combo > 0 ? `🔥 x${combo}` : ''}</Text>
+      </View>
+
+      <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+        {isTeach ? (
+          <>
+            <Text style={[styles.layer, { color: C.gold }]}>ТЕОРІЯ</Text>
+            <View style={styles.teachHero}>
+              <Grindyk mood="think" size={64} />
+            </View>
+            <Text style={styles.teachTitle}>{step.title}</Text>
+            <Text style={styles.teachBody}>{step.body}</Text>
+            {step.example && (
+              <View style={styles.example}>
+                <Text style={styles.exampleLabel}>ПРИКЛАД</Text>
+                <Text style={styles.exampleTxt}>{step.example}</Text>
+              </View>
+            )}
+          </>
+        ) : (
+          <>
+            <Text style={styles.layer}>
+              {step.layer === 1 ? 'ШАР 1 · РОЗУМІННЯ' : 'ШАР 2 · ЗАСТОСУВАННЯ'}
+            </Text>
+            <View style={styles.qRow}>
+              <Grindyk mood={mood} size={40} />
+              <Text style={styles.q}>{step.q}</Text>
+            </View>
+
+            {step.type === 'choice' && step.scenario && (
+              <View style={styles.scenario}>
+                <Text style={styles.scenarioTxt}>{step.scenario}</Text>
+              </View>
+            )}
+
+            {step.type === 'fill' && (
+              <Text style={styles.fillLine}>
+                {step.before}
+                <Text style={styles.blank}>{answered ? step.options[step.answer] : '____'}</Text>
+                {step.after}
+              </Text>
+            )}
+
+            <View style={{ marginTop: 12 }}>
+              {step.options.map((o, k) => {
+                const showCorrect = answered && k === step.answer;
+                const showWrong = answered && k === selected && k !== step.answer;
+                return (
+                  <Pressable
+                    key={k}
+                    disabled={answered}
+                    onPress={() => onAnswer(k)}
+                    style={[styles.opt, showCorrect && styles.optCorrect, showWrong && styles.optWrong]}
+                  >
+                    <Text style={styles.optTxt}>{o}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </>
+        )}
+      </ScrollView>
+
+      {!isTeach && answered && (
+        <View style={[styles.fb, isCorrect ? styles.fbOk : styles.fbNo]}>
+          <Text style={styles.fbBig}>{isCorrect ? (combo >= 3 ? '🔥' : '👍') : '👀'}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.fbTxt, { color: isCorrect ? C.accent : C.red }]}>
+              {isCorrect ? step.okMsg : step.noMsg}
+            </Text>
+            {step.explain && <Text style={styles.explain}>{step.explain}</Text>}
+          </View>
+        </View>
+      )}
+
+      <View style={{ paddingTop: 12, paddingBottom: insets.bottom + 12 }}>
+        <Button
+          title={isTeach ? 'Зрозумів' : idx + 1 >= total ? 'Завершити' : 'Далі'}
+          onPress={onContinue}
+          disabled={!canContinue}
+        />
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: C.bg, paddingHorizontal: 22 },
+  head: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 10 },
+  x: { color: C.muted, fontSize: 22 },
+  pbar: { flex: 1, height: 14, backgroundColor: C.line, borderRadius: 8, overflow: 'hidden' },
+  fill: { height: '100%', backgroundColor: C.accent },
+  combo: { color: C.fire, fontWeight: '800', fontSize: 15, minWidth: 50, textAlign: 'right' },
+  layer: { color: C.blue, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginVertical: 8 },
+  qRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  q: { color: C.txt, fontSize: 20, fontWeight: '700', flex: 1, marginTop: 4 },
+  teachHero: { alignItems: 'center', marginVertical: 8 },
+  teachTitle: { color: C.txt, fontSize: 22, fontWeight: '800', marginTop: 4, marginBottom: 12 },
+  teachBody: { color: C.txt, fontSize: 16, lineHeight: 25 },
+  example: {
+    backgroundColor: C.panel2,
+    borderLeftColor: C.gold,
+    borderLeftWidth: 3,
+    borderRadius: 10,
+    padding: 14,
+    marginTop: 16,
+  },
+  exampleLabel: { color: C.gold, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginBottom: 6 },
+  exampleTxt: { color: C.txt, fontSize: 15, lineHeight: 22 },
+  scenario: {
+    backgroundColor: C.panel2,
+    borderLeftColor: C.blue,
+    borderLeftWidth: 3,
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 10,
+  },
+  scenarioTxt: { color: C.txt, fontSize: 14, lineHeight: 20 },
+  fillLine: { color: C.txt, fontSize: 17, lineHeight: 30, marginTop: 12 },
+  blank: { color: C.accent, fontWeight: '800' },
+  opt: {
+    backgroundColor: C.panel,
+    borderColor: C.line,
+    borderWidth: 2,
+    borderRadius: 16,
+    padding: 15,
+    marginBottom: 10,
+  },
+  optCorrect: { borderColor: C.accent, backgroundColor: 'rgba(54,226,122,0.14)' },
+  optWrong: { borderColor: C.red, backgroundColor: 'rgba(255,92,92,0.12)' },
+  optTxt: { color: C.txt, fontSize: 16 },
+  fb: { flexDirection: 'row', gap: 10, borderRadius: 14, padding: 14, alignItems: 'flex-start' },
+  fbOk: { backgroundColor: 'rgba(54,226,122,0.12)' },
+  fbNo: { backgroundColor: 'rgba(255,92,92,0.12)' },
+  fbBig: { fontSize: 26 },
+  fbTxt: { fontSize: 15, fontWeight: '600', lineHeight: 20 },
+  explain: { color: C.txt, fontSize: 13, marginTop: 6, lineHeight: 18 },
+});
