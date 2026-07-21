@@ -1,0 +1,6 @@
+{
+  "name": "nextjs-supabase-starter",
+  "version": "1.0.0",
+  "description": "Next.js starter app with Supabase (auth, profiles, RLS, declarative schemas, setup script)",
+  "bestPracticesScore": 70
+}
