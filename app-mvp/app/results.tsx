@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, Animated } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LESSONS } from '../src/data/lessons';
@@ -17,38 +17,88 @@ export default function Results() {
     errors: string;
     maxBonus: string;
     coins: string;
+    xp: string;
+    practice: string;
+    checkpoint: string;
+    passed: string;
   }>();
 
   const correct = Number(params.correct ?? 0);
   const errors = Number(params.errors ?? 0);
   const maxBonus = Number(params.maxBonus ?? 0);
   const coins = Number(params.coins ?? 0);
+  const xp = Number(params.xp ?? 0);
   const id = params.id ?? '';
+  const isPractice = params.practice === '1';
+  const isCheckpoint = params.checkpoint === '1';
+  const passed = params.passed !== '0';
+
+  const [leveledUp, setLeveledUp] = useState(false);
+  const scale = useRef(new Animated.Value(0)).current;
 
   const saved = useRef(false);
   useEffect(() => {
     if (!saved.current && id) {
       saved.current = true;
-      completeLesson(id, coins);
+      const before = useStore.getState().level;
+      if (passed) {
+        completeLesson(id, coins, xp);
+      }
+      const after = useStore.getState().level;
+      if (after > before) {
+        setLeveledUp(true);
+        Animated.spring(scale, { toValue: 1, friction: 4, useNativeDriver: true }).start();
+      }
     }
-  }, [id, coins, completeLesson]);
+  }, [id, coins, xp, passed, completeLesson, scale]);
 
   const perfect = errors === 0;
   const accuracy = correct + errors > 0 ? Math.round((correct / (correct + errors)) * 100) : 0;
+  const level = useStore((s) => s.level);
 
   const curIndex = LESSONS.findIndex((l) => l.id === id);
   const next = LESSONS[curIndex + 1];
 
+  const failedCheckpoint = isCheckpoint && !passed;
+
+  const h1 = failedCheckpoint
+    ? 'Ще не корона'
+    : isCheckpoint
+    ? '👑 Корона твоя!'
+    : perfect
+    ? 'Ідеально!'
+    : isPractice
+    ? 'Повторення залічено'
+    : 'Урок пройдено';
+
+  const sub = failedCheckpoint
+    ? `Потрібно 80%, у тебе ${accuracy}%. Буває. Повтори уроки і повертайся.`
+    : isCheckpoint
+    ? 'Модуль 01 закрито на корону. Це фундамент — далі цікавіше.'
+    : perfect
+    ? 'Жодної помилки. Ростеш, красава.'
+    : isPractice
+    ? 'Повторення — половина нагороди, але пам’ять дякує.'
+    : 'Норм. Помилки — частина процесу.';
+
   return (
     <View style={[styles.screen, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20 }]}>
       <View style={styles.center}>
-        <Text style={styles.emoji}>{perfect ? '🎉' : '✅'}</Text>
-        <Text style={styles.h1}>{perfect ? 'Ідеально!' : 'Урок пройдено'}</Text>
-        <Text style={styles.muted}>
-          {perfect ? 'Жодної помилки. Ростеш, красава.' : 'Норм. Помилки — частина процесу.'}
-        </Text>
+        <Text style={styles.emoji}>{failedCheckpoint ? '🫠' : isCheckpoint ? '👑' : perfect ? '🎉' : '✅'}</Text>
+        <Text style={styles.h1}>{h1}</Text>
+        <Text style={styles.muted}>{sub}</Text>
 
-        {perfect && (
+        {leveledUp && (
+          <Animated.View style={[styles.levelUp, { transform: [{ scale }] }]}>
+            <Text style={{ fontSize: 34 }}>🚀</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.levelUpTitle}>LEVEL UP! Тепер Lvl {level}</Text>
+              <Text style={styles.achSub}>Гріндік прокачався. Так тримати.</Text>
+            </View>
+          </Animated.View>
+        )}
+
+        {perfect && !failedCheckpoint && !isPractice && (
           <View style={styles.ach}>
             <Text style={{ fontSize: 36 }}>😎</Text>
             <View style={{ flex: 1 }}>
@@ -58,7 +108,12 @@ export default function Results() {
           </View>
         )}
 
-        <Text style={styles.reward}>🪙 +{coins}</Text>
+        {!failedCheckpoint && (
+          <View style={styles.rewardRow}>
+            <Text style={styles.reward}>🪙 +{coins}</Text>
+            <Text style={[styles.reward, { color: C.blue }]}>⭐ +{xp} XP</Text>
+          </View>
+        )}
       </View>
 
       <View style={{ width: '100%' }}>
@@ -70,11 +125,18 @@ export default function Results() {
 
       <View style={styles.nextBox}>
         <Text style={styles.nextTxt}>
-          {next ? `Наступний: ${next.code} · ${next.title}` : 'Модуль 01 завершено! 🎯'}
+          {failedCheckpoint
+            ? 'Повтори будь-який урок (🔁 practice) і спробуй знову.'
+            : next
+            ? `Наступний: ${next.code} · ${next.title}`
+            : 'Модуль 01 завершено! 🎯'}
         </Text>
       </View>
 
-      <Button title={`Забрати ${coins} 🪙`} onPress={() => router.replace('/home')} />
+      <Button
+        title={failedCheckpoint ? 'Повернутись' : `Забрати ${coins} 🪙 + ${xp} ⭐`}
+        onPress={() => router.replace('/home')}
+      />
     </View>
   );
 }
@@ -94,21 +156,39 @@ const styles = StyleSheet.create({
   emoji: { fontSize: 60 },
   h1: { color: C.txt, fontSize: 26, fontWeight: '800', marginTop: 8 },
   muted: { color: C.muted, fontSize: 14, marginTop: 6, textAlign: 'center' },
+  levelUp: {
+    flexDirection: 'row',
+    gap: 14,
+    alignItems: 'center',
+    backgroundColor: 'rgba(90,167,255,0.12)',
+    borderColor: C.blue,
+    borderWidth: 2,
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 16,
+    width: '100%',
+    borderBottomWidth: 5,
+    borderBottomColor: C.blueEdge,
+  },
+  levelUpTitle: { color: C.blue, fontWeight: '800', fontSize: 15 },
   ach: {
     flexDirection: 'row',
     gap: 14,
     alignItems: 'center',
     backgroundColor: C.panel,
     borderColor: C.gold,
-    borderWidth: 1,
+    borderWidth: 2,
     borderRadius: 16,
     padding: 16,
     marginTop: 16,
     width: '100%',
+    borderBottomWidth: 5,
+    borderBottomColor: C.goldEdge,
   },
   achTitle: { color: C.txt, fontWeight: '800', fontSize: 15 },
   achSub: { color: C.muted, fontSize: 13, marginTop: 2 },
-  reward: { color: C.gold, fontSize: 30, fontWeight: '800', marginVertical: 16 },
+  rewardRow: { flexDirection: 'row', gap: 18, marginVertical: 16 },
+  reward: { color: C.gold, fontSize: 26, fontWeight: '800' },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -121,10 +201,11 @@ const styles = StyleSheet.create({
   nextBox: {
     backgroundColor: C.panel,
     borderColor: C.line,
-    borderWidth: 1,
+    borderWidth: 2,
     borderRadius: 16,
     padding: 16,
     marginVertical: 14,
+    borderBottomWidth: 5,
   },
   nextTxt: { color: C.txt, fontSize: 15, textAlign: 'center' },
 });

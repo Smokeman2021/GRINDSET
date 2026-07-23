@@ -13,8 +13,11 @@ export default function LessonScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const spendEnergy = useStore((s) => s.spendEnergy);
+  const completed = useStore((s) => s.completed);
 
   const lesson = useMemo(() => LESSONS.find((l) => l.id === id), [id]);
+  const isCheckpoint = lesson?.kind === 'checkpoint';
+  const alreadyDone = lesson ? completed.includes(lesson.id) : false;
 
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -33,8 +36,9 @@ export default function LessonScreen() {
     );
   }
 
-  const step = lesson.steps[idx];
-  const total = lesson.steps.length;
+  const lsn = lesson;
+  const step = lsn.steps[idx];
+  const total = lsn.steps.length;
   const isTeach = step.type === 'teach';
   const isCorrect = !isTeach && selected === step.answer;
   const canContinue = isTeach || answered;
@@ -58,17 +62,36 @@ export default function LessonScreen() {
   function onContinue() {
     if (idx + 1 >= total) {
       spendEnergy(ENERGY_PER_LESSON);
-      const base = 20;
-      const bonusCoins = Math.round((base * maxBonus) / 100);
-      const coins = base + bonusCoins + correct * 5;
+
+      const accuracy = correct + errors > 0 ? correct / (correct + errors) : 1;
+      const passed = !isCheckpoint || accuracy >= (lsn.passThreshold ?? 0.8);
+
+      const baseCoins = isCheckpoint ? 40 : 20;
+      const baseXp = isCheckpoint ? 50 : 10;
+      let coins = baseCoins + Math.round((baseCoins * maxBonus) / 100) + correct * 5;
+      let xp = baseXp + correct * 3;
+
+      if (alreadyDone) {
+        coins = Math.round(coins / 2);
+        xp = Math.round(xp / 2);
+      }
+      if (isCheckpoint && !passed) {
+        coins = 0;
+        xp = 0;
+      }
+
       router.replace({
         pathname: '/results',
         params: {
-          id: lesson.id,
+          id: lsn.id,
           correct: String(correct),
           errors: String(errors),
           maxBonus: String(maxBonus),
           coins: String(coins),
+          xp: String(xp),
+          practice: alreadyDone ? '1' : '0',
+          checkpoint: isCheckpoint ? '1' : '0',
+          passed: passed ? '1' : '0',
         },
       });
       return;
@@ -99,6 +122,12 @@ export default function LessonScreen() {
         </View>
         <Text style={styles.combo}>{combo > 0 ? `🔥 x${combo}` : ''}</Text>
       </View>
+
+      {(isCheckpoint || alreadyDone) && (
+        <Text style={[styles.mode, isCheckpoint && { color: C.gold }]}>
+          {isCheckpoint ? '👑 ТЕСТ НА КОРОНУ · потрібно 80%' : '🔁 ПОВТОРЕННЯ · нагорода ½'}
+        </Text>
+      )}
 
       <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
         {isTeach ? (
@@ -149,7 +178,12 @@ export default function LessonScreen() {
                     key={k}
                     disabled={answered}
                     onPress={() => onAnswer(k)}
-                    style={[styles.opt, showCorrect && styles.optCorrect, showWrong && styles.optWrong]}
+                    style={({ pressed }) => [
+                      styles.opt,
+                      showCorrect && styles.optCorrect,
+                      showWrong && styles.optWrong,
+                      pressed && !answered && styles.optPressed,
+                    ]}
                   >
                     <Text style={styles.optTxt}>{o}</Text>
                   </Pressable>
@@ -187,9 +221,10 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.bg, paddingHorizontal: 22 },
   head: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 10 },
   x: { color: C.muted, fontSize: 22 },
-  pbar: { flex: 1, height: 14, backgroundColor: C.line, borderRadius: 8, overflow: 'hidden' },
-  fill: { height: '100%', backgroundColor: C.accent },
+  pbar: { flex: 1, height: 16, backgroundColor: '#191e28', borderRadius: 10, overflow: 'hidden' },
+  fill: { height: '100%', backgroundColor: C.accent, borderRadius: 10 },
   combo: { color: C.fire, fontWeight: '800', fontSize: 15, minWidth: 50, textAlign: 'right' },
+  mode: { color: C.blue, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginBottom: 4 },
   layer: { color: C.blue, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginVertical: 8 },
   qRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   q: { color: C.txt, fontSize: 20, fontWeight: '700', flex: 1, marginTop: 4 },
@@ -223,10 +258,20 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: 16,
     padding: 15,
-    marginBottom: 10,
+    marginBottom: 12,
+    borderBottomWidth: 5,
   },
-  optCorrect: { borderColor: C.accent, backgroundColor: 'rgba(54,226,122,0.14)' },
-  optWrong: { borderColor: C.red, backgroundColor: 'rgba(255,92,92,0.12)' },
+  optPressed: { transform: [{ translateY: 3 }], borderBottomWidth: 2 },
+  optCorrect: {
+    borderColor: C.accent,
+    backgroundColor: 'rgba(54,226,122,0.14)',
+    borderBottomColor: C.accentEdge,
+  },
+  optWrong: {
+    borderColor: C.red,
+    backgroundColor: 'rgba(255,92,92,0.12)',
+    borderBottomColor: C.redEdge,
+  },
   optTxt: { color: C.txt, fontSize: 16 },
   fb: { flexDirection: 'row', gap: 10, borderRadius: 14, padding: 14, alignItems: 'flex-start' },
   fbOk: { backgroundColor: 'rgba(54,226,122,0.12)' },
