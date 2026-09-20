@@ -36,7 +36,7 @@ export default function Onboarding() {
   const [stepIdx, setStepIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [goal, setGoal] = useState<DailyGoal | null>(null);
-  const [name, setName] = useState('Гріндік');
+  const [name, setName] = useState('');
 
   const pad = { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20 };
 
@@ -95,17 +95,19 @@ export default function Onboarding() {
         <View style={styles.avatarLg}>
           <Image source={BUST} style={styles.avatarImg} />
         </View>
-        <Text style={styles.h2}>Як мене звати?</Text>
-        <Text style={styles.muted}>Дай мені ім'я. Гріндимо разом.</Text>
+        <Text style={styles.h2}>А тебе як звати?</Text>
+        <Text style={styles.muted}>Ім'я або нік — так тебе бачитимуть у застосунку.</Text>
         <TextInput
           style={styles.input}
           value={name}
           onChangeText={setName}
           maxLength={14}
+          placeholder="Твій нік"
           placeholderTextColor={C.muted}
         />
         <Button
           title="Готово"
+          disabled={name.trim().length === 0}
           onPress={() => {
             finishOnboarding(name, goal ?? 'regular');
             router.replace('/home');

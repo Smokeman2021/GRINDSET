@@ -2,9 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LESSONS } from '../src/data/lessons';
+import { LESSONS, QUIZZES } from '../src/data/lessons';
 import { useStore } from '../src/store';
 import { Button } from '../src/components/Button';
+import { Icon } from '../src/components/Icon';
 import { C } from '../src/theme';
 
 export default function Results() {
@@ -56,8 +57,9 @@ export default function Results() {
   const accuracy = correct + errors > 0 ? Math.round((correct / (correct + errors)) * 100) : 0;
   const level = useStore((s) => s.level);
 
+  const isQuiz = QUIZZES.some((q) => q.id === id);
   const curIndex = LESSONS.findIndex((l) => l.id === id);
-  const next = LESSONS[curIndex + 1];
+  const next = isQuiz ? undefined : LESSONS[curIndex + 1];
 
   const failedCheckpoint = isCheckpoint && !passed;
 
@@ -69,6 +71,8 @@ export default function Results() {
     ? 'Ідеально!'
     : isPractice
     ? 'Повторення залічено'
+    : isQuiz
+    ? 'Квіз пройдено'
     : 'Урок пройдено';
 
   const sub = failedCheckpoint
@@ -110,8 +114,14 @@ export default function Results() {
 
         {!failedCheckpoint && (
           <View style={styles.rewardRow}>
-            <Text style={styles.reward}>🪙 +{coins}</Text>
-            <Text style={[styles.reward, { color: C.blue }]}>⭐ +{xp} XP</Text>
+            <View style={styles.rewardItem}>
+              <Icon name="coin" size={34} />
+              <Text style={styles.reward}>+{coins}</Text>
+            </View>
+            <View style={styles.rewardItem}>
+              <Icon name="xp" size={34} />
+              <Text style={[styles.reward, { color: C.blue }]}>+{xp} XP</Text>
+            </View>
           </View>
         )}
       </View>
@@ -127,6 +137,8 @@ export default function Results() {
         <Text style={styles.nextTxt}>
           {failedCheckpoint
             ? 'Повтори будь-який урок (🔁 practice) і спробуй знову.'
+            : isQuiz
+            ? 'Квіз пройдено. Повертайся на шлях і продовжуй!'
             : next
             ? `Наступний: ${next.code} · ${next.title}`
             : 'Модуль 01 завершено! 🎯'}
@@ -134,7 +146,7 @@ export default function Results() {
       </View>
 
       <Button
-        title={failedCheckpoint ? 'Повернутись' : `Забрати ${coins} 🪙 + ${xp} ⭐`}
+        title={failedCheckpoint ? 'Повернутись' : 'Забрати нагороду'}
         onPress={() => router.replace('/home')}
       />
     </View>
@@ -187,7 +199,8 @@ const styles = StyleSheet.create({
   },
   achTitle: { color: C.txt, fontWeight: '800', fontSize: 15 },
   achSub: { color: C.muted, fontSize: 13, marginTop: 2 },
-  rewardRow: { flexDirection: 'row', gap: 18, marginVertical: 16 },
+  rewardRow: { flexDirection: 'row', gap: 22, marginVertical: 16 },
+  rewardItem: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   reward: { color: C.gold, fontSize: 26, fontWeight: '800' },
   row: {
     flexDirection: 'row',

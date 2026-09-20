@@ -39,8 +39,9 @@ export type Lesson = {
   title: string;
   minutes: number;
   steps: Step[];
-  kind?: 'checkpoint';
+  kind?: 'checkpoint' | 'quiz';
   passThreshold?: number; // 0-1, потрібна точність аби пройти (тільки checkpoint)
+  requires?: string[]; // id уроків, які мають бути пройдені, щоб відкрити (квізи)
 };
 
 export const MODULE_TITLE = 'Модуль 01 · Що таке арбітраж';
@@ -540,3 +541,51 @@ export const LESSONS: Lesson[] = [
     ],
   },
 ];
+
+// ── Квізи: закріплення пройденого. Питання беруться з уроків, нового контенту не потрібно. ──
+type Question = Exclude<Step, { type: 'teach' }>;
+
+function buildQuiz(id: string, title: string, sourceIds: string[]): Lesson {
+  const pools: Question[][] = sourceIds.map((sid) => {
+    const lesson = LESSONS.find((l) => l.id === sid);
+    return (lesson?.steps ?? []).filter((s): s is Question => s.type !== 'teach');
+  });
+  const flat = pools.flat();
+  const picked: Question[] = [];
+  // по одному сценарному питанню (шар 2) з кожного уроку, далі добираємо шар 1 по колу
+  pools.forEach((pool) => {
+    const scenario = pool.find((q) => q.layer === 2);
+    if (scenario) picked.push(scenario);
+  });
+  for (let round = 0; round < 6 && picked.length < 6; round++) {
+    pools.forEach((pool) => {
+      const q = pool.filter((x) => x.layer === 1)[round];
+      if (q && picked.length < 6) picked.push(q);
+    });
+  }
+  picked.sort((a, b) => flat.indexOf(a) - flat.indexOf(b));
+
+  return {
+    id,
+    code: '?',
+    title,
+    minutes: 4,
+    kind: 'quiz',
+    requires: sourceIds,
+    steps: [
+      {
+        type: 'teach',
+        title: 'Квіз: перевірка пройденого',
+        body: 'Швидкі питання за матеріалом останніх уроків. Це закріплення, без штрафів: помилився — Гріндік підкаже, як правильно.',
+      },
+      ...picked,
+    ],
+  };
+}
+
+export const QUIZZES: Lesson[] = [
+  buildQuiz('q1', 'Квіз 1 · Основи', ['l1', 'l2', 'l3']),
+  buildQuiz('q2', 'Квіз 2 · Гроші й канал', ['l4', 'l5', 'l6']),
+];
+
+export const ALL_LESSONS: Lesson[] = [...LESSONS, ...QUIZZES];

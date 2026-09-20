@@ -2,11 +2,12 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LESSONS } from '../../src/data/lessons';
+import { ALL_LESSONS } from '../../src/data/lessons';
 import { useStore, ENERGY_PER_LESSON } from '../../src/store';
 import { C } from '../../src/theme';
 import { Grindyk } from '../../src/components/Grindyk';
 import { Button } from '../../src/components/Button';
+import { Icon } from '../../src/components/Icon';
 
 export default function LessonScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -15,7 +16,7 @@ export default function LessonScreen() {
   const spendEnergy = useStore((s) => s.spendEnergy);
   const completed = useStore((s) => s.completed);
 
-  const lesson = useMemo(() => LESSONS.find((l) => l.id === id), [id]);
+  const lesson = useMemo(() => ALL_LESSONS.find((l) => l.id === id), [id]);
   const isCheckpoint = lesson?.kind === 'checkpoint';
   const alreadyDone = lesson ? completed.includes(lesson.id) : false;
 
@@ -120,12 +121,23 @@ export default function LessonScreen() {
         <View style={styles.pbar}>
           <View style={[styles.fill, { width: `${(idx / total) * 100}%` }]} />
         </View>
-        <Text style={styles.combo}>{combo > 0 ? `🔥 x${combo}` : ''}</Text>
+        <View style={styles.comboBox}>
+          {combo > 0 && (
+            <>
+              <Icon name="streak" size={22} />
+              <Text style={styles.combo}>x{combo}</Text>
+            </>
+          )}
+        </View>
       </View>
 
-      {(isCheckpoint || alreadyDone) && (
+      {(isCheckpoint || alreadyDone || lesson.kind === 'quiz') && (
         <Text style={[styles.mode, isCheckpoint && { color: C.gold }]}>
-          {isCheckpoint ? '👑 ТЕСТ НА КОРОНУ · потрібно 80%' : '🔁 ПОВТОРЕННЯ · нагорода ½'}
+          {isCheckpoint
+            ? '👑 ТЕСТ НА КОРОНУ · потрібно 80%'
+            : alreadyDone
+            ? '🔁 ПОВТОРЕННЯ · нагорода ½'
+            : '❓ КВІЗ · закріплення пройденого'}
         </Text>
       )}
 
@@ -223,7 +235,8 @@ const styles = StyleSheet.create({
   x: { color: C.muted, fontSize: 22 },
   pbar: { flex: 1, height: 16, backgroundColor: '#191e28', borderRadius: 10, overflow: 'hidden' },
   fill: { height: '100%', backgroundColor: C.accent, borderRadius: 10 },
-  combo: { color: C.fire, fontWeight: '800', fontSize: 15, minWidth: 50, textAlign: 'right' },
+  comboBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 3, minWidth: 56 },
+  combo: { color: C.fire, fontWeight: '800', fontSize: 15 },
   mode: { color: C.blue, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginBottom: 4 },
   layer: { color: C.blue, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginVertical: 8 },
   qRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },

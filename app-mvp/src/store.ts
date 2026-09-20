@@ -16,7 +16,8 @@ type QuizAnswers = {
 type State = {
   hydrated: boolean;
   onboarded: boolean;
-  charName: string;
+  playerName: string;
+  playerPhoto: string | null; // фото гравця (uri / data-uri); поки null — плейсхолдер з ініціалом
   charStart: CharStart;
   energy: number;
   coins: number;
@@ -33,6 +34,7 @@ type State = {
   setHydrated: () => void;
   setQuizAnswer: (key: keyof QuizAnswers, value: string) => void;
   finishOnboarding: (name: string, goal: DailyGoal) => void;
+  setPlayerName: (name: string) => void;
   checkStreak: () => void;
   completeLesson: (id: string, coinsEarned: number, xpEarned: number) => void;
   spendEnergy: (n: number) => void;
@@ -93,7 +95,8 @@ export const useStore = create<State>()(
     (set, get) => ({
       hydrated: false,
       onboarded: false,
-      charName: 'Гріндік',
+      playerName: '',
+      playerPhoto: null,
       charStart: 'caveman',
       energy: MAX_ENERGY,
       coins: 0,
@@ -115,11 +118,13 @@ export const useStore = create<State>()(
       finishOnboarding: (name, goal) =>
         set((s) => ({
           onboarded: true,
-          charName: name.trim() || 'Гріндік',
+          playerName: name.trim() || 'Гравець',
           charStart: startFromExp(s.quiz.exp),
           dailyGoal: goal,
           lastActiveDate: todayStr(),
         })),
+
+      setPlayerName: (name) => set({ playerName: name.trim().slice(0, 14) }),
 
       checkStreak: () =>
         set((s) => {
@@ -172,7 +177,8 @@ export const useStore = create<State>()(
       reset: () =>
         set({
           onboarded: false,
-          charName: 'Гріндік',
+          playerName: '',
+          playerPhoto: null,
           charStart: 'caveman',
           energy: MAX_ENERGY,
           coins: 0,
