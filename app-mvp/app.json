@@ -6,11 +6,6 @@
     "scheme": "grindset",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": true,
-    "splash": {
-      "backgroundColor": "#0d0f14",
-      "resizeMode": "contain"
-    },
     "ios": {
       "supportsTablet": false
     },
@@ -30,7 +25,9 @@
         {
           "photosPermission": "GRINDSET використовує твоє фото як аватар гравця."
         }
-      ]
+      ],
+      "expo-font",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true
