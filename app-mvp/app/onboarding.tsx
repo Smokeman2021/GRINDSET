@@ -76,7 +76,7 @@ export default function Onboarding() {
           >
             <Text style={styles.optEmoji}>{g.emoji}</Text>
             <View style={{ flex: 1 }}>
-              <Text style={styles.optTxt}>
+              <Text style={styles.optTitle}>
                 {GOAL_LABEL[g.key]} · {GOAL_XP[g.key]} XP
               </Text>
               <Text style={styles.optDesc}>{g.desc}</Text>
@@ -218,6 +218,8 @@ const styles = StyleSheet.create({
   },
   optEmoji: { fontSize: 24 },
   optTxt: { color: C.txt, fontSize: 16, flex: 1 },
+  // без flex: 1, інакше в колонці на телефоні текст стискається до нуля висоти й обрізається
+  optTitle: { color: C.txt, fontSize: 16, fontWeight: '700' },
   optDesc: { color: C.muted, fontSize: 13, marginTop: 2 },
   input: {
     width: '100%',

@@ -555,9 +555,9 @@ export function shuffleQuestion(q: Question): Question {
   return { ...q, options: order.map((i) => q.options[i]), answer: order.indexOf(q.answer) };
 }
 
-function buildQuiz(id: string, title: string, sourceIds: string[]): Lesson {
+export function buildQuiz(id: string, title: string, sourceIds: string[], source: Lesson[] = LESSONS): Lesson {
   const pools: Question[][] = sourceIds.map((sid) => {
-    const lesson = LESSONS.find((l) => l.id === sid);
+    const lesson = source.find((l) => l.id === sid);
     return (lesson?.steps ?? []).filter((s): s is Question => s.type !== 'teach');
   });
   const flat = pools.flat();
@@ -597,5 +597,3 @@ export const QUIZZES: Lesson[] = [
   buildQuiz('q1', 'Квіз 1 · Основи', ['l1', 'l2', 'l3']),
   buildQuiz('q2', 'Квіз 2 · Гроші й канал', ['l4', 'l5', 'l6']),
 ];
-
-export const ALL_LESSONS: Lesson[] = [...LESSONS, ...QUIZZES];

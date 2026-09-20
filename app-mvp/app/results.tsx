@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LESSONS, QUIZZES } from '../src/data/lessons';
+import { isQuizId, nextAfter } from '../src/data/modules';
 import { useStore } from '../src/store';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
@@ -59,9 +59,8 @@ export default function Results() {
   const accuracy = correct + errors > 0 ? Math.round((correct / (correct + errors)) * 100) : 0;
   const level = useStore((s) => s.level);
 
-  const isQuiz = QUIZZES.some((q) => q.id === id);
-  const curIndex = LESSONS.findIndex((l) => l.id === id);
-  const next = isQuiz ? undefined : LESSONS[curIndex + 1];
+  const isQuiz = isQuizId(id);
+  const next = isQuiz ? undefined : nextAfter(id);
 
   const failedCheckpoint = isCheckpoint && !passed;
 
@@ -80,7 +79,7 @@ export default function Results() {
   const sub = failedCheckpoint
     ? `Потрібно 80%, у тебе ${accuracy}%. Буває. Повтори уроки і повертайся.`
     : isCheckpoint
-    ? 'Модуль 01 закрито на корону. Це фундамент — далі цікавіше.'
+    ? 'Модуль закрито на корону. Це фундамент — далі цікавіше.'
     : perfect
     ? 'Жодної помилки. Ростеш, красава.'
     : isPractice
@@ -144,7 +143,7 @@ export default function Results() {
             ? 'Квіз пройдено. Повертайся на шлях і продовжуй!'
             : next
             ? `Наступний: ${next.code} · ${next.title}`
-            : 'Модуль 01 завершено! 🎯'}
+            : 'Усі доступні модулі пройдено! Нові — скоро 🎯'}
         </Text>
       </View>
 

@@ -14,7 +14,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LESSONS, QUIZZES, MODULE_TITLE } from '../src/data/lessons';
+import type { Lesson } from '../src/data/lessons';
+import { MODULES, PATH } from '../src/data/modules';
 import { GOAL_XP, GOAL_LABEL, MAX_STREAK_FREEZES, STREAK_FREEZE_COST, useStore } from '../src/store';
 import { C } from '../src/theme';
 import { Icon, IconName } from '../src/components/Icon';
@@ -34,47 +35,63 @@ const LEVEL_TITLES = [
   'Злив перший бюджет на навчання',
 ];
 
-const MODULE_LESSONS = LESSONS.filter((l) => l.kind !== 'checkpoint');
-const CHECKPOINT = LESSONS.find((l) => l.kind === 'checkpoint');
-const PATH_ITEMS = CHECKPOINT ? [...MODULE_LESSONS, CHECKPOINT] : MODULE_LESSONS;
-const LAST = PATH_ITEMS.length - 1;
+const LAST = PATH.length - 1;
 
 // Геометрія шляху: вузли лежать на плавній синусоїді (змійка зверху вниз)
 const NODE = 74;
 const QUIZ_NODE = 84;
 const STEP = 118;
-const TOP = 30;
+const TOP = 64; // місце під заголовок першого модуля
+const GAP = 84; // додатковий простір на переході між модулями, туди стає заголовок
 const PHASE = 0.95; // радіан на вузол: вигин приблизно кожні 3.3 вузла
 const POSE_H = 150;
 
+// Індекси на шляху, з яких починається кожен модуль
+const MODULE_START = MODULES.map((_, mi) => PATH.findIndex((p) => p.moduleIndex === mi));
+const BREAKS = MODULE_START.slice(1);
+
+// Проміжок між останнім вузлом модуля і першим вузлом наступного плавно розтягується на GAP
+const stretch = (t: number) => {
+  let extra = 0;
+  for (const b of BREAKS) {
+    if (t >= b) extra += GAP;
+    else if (t > b - 1) extra += GAP * (t - (b - 1));
+  }
+  return extra;
+};
+const yAt = (t: number) => TOP + NODE / 2 + t * STEP + stretch(t);
+
 // Вигини змійки: тут у "кишені" з протилежного боку стоять квіз і Гріндік
-const BENDS: { t: number; pocketSide: -1 | 1 }[] = [];
+type Bend = { t: number; pocketSide: -1 | 1 };
+const BENDS: Bend[] = [];
 for (let k = 0; ; k++) {
   const t = (Math.PI / 2 + k * Math.PI) / PHASE;
   if (t > LAST + 0.4) break;
   BENDS.push({ t, pocketSide: k % 2 === 0 ? -1 : 1 });
 }
 
-// Кожен квіз стає в найближчий до своїх уроків вигин
+// Кожен квіз стає в найближчий до своїх уроків вільний вигин
 const QUIZ_SLOTS = (() => {
   const used = new Set<number>();
-  const slots: { quiz: (typeof QUIZZES)[number]; bend: (typeof BENDS)[number] }[] = [];
-  QUIZZES.forEach((quiz) => {
-    const target = Math.max(...(quiz.requires ?? []).map((id) => PATH_ITEMS.findIndex((l) => l.id === id)));
-    let best = -1;
-    let bestD = Infinity;
-    BENDS.forEach((b, k) => {
-      const d = Math.abs(b.t - target);
-      if (!used.has(k) && d < bestD) {
-        bestD = d;
-        best = k;
+  const slots: { quiz: Lesson; bend: Bend }[] = [];
+  MODULES.forEach((m) =>
+    m.quizzes.forEach((quiz) => {
+      const target = Math.max(...(quiz.requires ?? []).map((id) => PATH.findIndex((p) => p.lesson.id === id)));
+      let best = -1;
+      let bestD = Infinity;
+      BENDS.forEach((b, k) => {
+        const d = Math.abs(b.t - target);
+        if (!used.has(k) && d < bestD) {
+          bestD = d;
+          best = k;
+        }
+      });
+      if (best >= 0) {
+        used.add(best);
+        slots.push({ quiz, bend: BENDS[best] });
       }
-    });
-    if (best >= 0) {
-      used.add(best);
-      slots.push({ quiz, bend: BENDS[best] });
-    }
-  });
+    })
+  );
   return slots;
 })();
 
@@ -103,10 +120,9 @@ export default function Home() {
   const [draft, setDraft] = useState('');
 
   const lvlTitle = LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)];
-  const nextIndex = MODULE_LESSONS.findIndex((l) => !completed.includes(l.id));
-  const moduleDone = nextIndex === -1;
-  const checkpointDone = CHECKPOINT ? completed.includes(CHECKPOINT.id) : false;
-  const currentIdx = moduleDone ? LAST : nextIndex;
+  const firstOpen = PATH.findIndex((p) => !completed.includes(p.lesson.id));
+  const allDone = firstOpen === -1;
+  const currentIdx = allDone ? LAST : firstOpen;
 
   const goalTarget = GOAL_XP[dailyGoal];
   const goalPct = Math.min(1, xpToday / goalTarget);
@@ -120,7 +136,6 @@ export default function Home() {
   const cx = W / 2;
   const A = Math.min(96, (W - NODE) / 2 - 8);
   const xAt = (t: number) => cx + A * Math.sin(t * PHASE);
-  const yAt = (t: number) => TOP + NODE / 2 + t * STEP;
   const H = yAt(LAST) + NODE / 2 + 70;
 
   const pathD = (toT: number) => {
@@ -237,8 +252,6 @@ export default function Home() {
           )}
         </Pressable>
 
-        <Text style={styles.modtag}>{MODULE_TITLE}</Text>
-
         <View style={{ width: W, height: H, alignSelf: 'center' }}>
           {/* течія: русло + пройдена частина */}
           <Svg width={W} height={H} style={StyleSheet.absoluteFill}>
@@ -248,6 +261,17 @@ export default function Home() {
               <Path d={pathD(currentIdx)} stroke={C.accent} strokeOpacity={0.9} strokeWidth={10} strokeLinecap="round" strokeLinejoin="round" fill="none" />
             )}
           </Svg>
+
+          {/* заголовки модулів: перший угорі, решта на розтягнутих переходах між модулями */}
+          {MODULES.map((m, mi) => {
+            const yc = mi === 0 ? TOP / 2 : yAt(MODULE_START[mi] - 0.5);
+            const lockedMod = !allDone && firstOpen < MODULE_START[mi];
+            return (
+              <View key={m.id} style={[styles.modHead, { top: yc - 20, width: W }, lockedMod && { opacity: 0.55 }]}>
+                <Text style={[styles.modChip, { maxWidth: W - 8 }]}>{m.title}</Text>
+              </View>
+            );
+          })}
 
           {/* кишені між вигинами: квіз + Гріндік у різних позах */}
           {QUIZ_SLOTS.map(({ quiz, bend }) => {
@@ -294,11 +318,10 @@ export default function Home() {
           })}
 
           {/* вузли уроків на течії */}
-          {PATH_ITEMS.map((l, i) => {
-            const isCrown = l.kind === 'checkpoint';
+          {PATH.map(({ lesson: l, isCrown }, i) => {
             const done = completed.includes(l.id);
-            const current = isCrown ? moduleDone && !checkpointDone : i === nextIndex;
-            const locked = isCrown ? !moduleDone : !done && !current;
+            const current = !allDone && i === firstOpen;
+            const locked = !done && !current;
             const x = xAt(i);
             const y = yAt(i);
             return (
@@ -316,10 +339,12 @@ export default function Home() {
                   ]}
                 >
                   <Text style={[styles.nodeTxt, !isCrown && (done || current) && styles.nodeTxtOn]}>
-                    {isCrown ? (moduleDone ? '👑' : '🔒') : done ? '✓' : current ? '▶' : '🔒'}
+                    {isCrown ? (locked ? '🔒' : '👑') : done ? '✓' : current ? '▶' : '🔒'}
                   </Text>
                 </Pressable>
-                <Text style={[styles.code, { left: x - 30, top: y + NODE / 2 + 4 }]}>{isCrown ? 'КОРОНА' : l.code}</Text>
+                <View style={[styles.codeWrap, { left: x - 40, top: y + NODE / 2 + 3 }]}>
+                  <Text style={styles.code}>{isCrown ? 'КОРОНА' : l.code}</Text>
+                </View>
                 {current && (
                   <Text
                     style={[
@@ -336,9 +361,9 @@ export default function Home() {
           })}
         </View>
 
-        {checkpointDone && (
+        {allDone && (
           <View style={styles.doneBox}>
-            <Text style={styles.doneTxt}>👑 Корона Модуля 01 твоя. Красава.</Text>
+            <Text style={styles.doneTxt}>🏁 Усі доступні модулі пройдено. Нові — скоро. Красава.</Text>
           </View>
         )}
       </ScrollView>
@@ -443,17 +468,17 @@ const styles = StyleSheet.create({
   buyRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   freezeBuy: { color: C.accent, fontSize: 12, fontWeight: '800' },
   freezeBuyOff: { color: C.muted },
-  modtag: {
-    alignSelf: 'flex-start',
+  modHead: { position: 'absolute', left: 0, alignItems: 'center' },
+  modChip: {
     color: C.accent,
     fontSize: 11,
     fontWeight: '800',
-    letterSpacing: 1,
-    backgroundColor: 'rgba(54,226,122,0.1)',
-    paddingVertical: 5,
-    paddingHorizontal: 12,
+    letterSpacing: 0.6,
+    textAlign: 'center',
+    backgroundColor: '#0f2419',
+    paddingVertical: 7,
+    paddingHorizontal: 14,
     borderRadius: 20,
-    marginBottom: 6,
     overflow: 'hidden',
   },
   node: {
@@ -474,7 +499,17 @@ const styles = StyleSheet.create({
   nodePressed: { transform: [{ translateY: 4 }], borderBottomWidth: 3 },
   nodeTxt: { fontSize: 26, color: C.txt },
   nodeTxtOn: { color: '#05140a' },
-  code: { position: 'absolute', width: 60, textAlign: 'center', color: C.muted, fontSize: 11, fontWeight: '800' },
+  codeWrap: { position: 'absolute', width: 80, alignItems: 'center' },
+  code: {
+    color: C.muted,
+    fontSize: 11,
+    fontWeight: '800',
+    backgroundColor: C.bg,
+    borderRadius: 6,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    overflow: 'hidden',
+  },
   chip: {
     position: 'absolute',
     width: 150,
