@@ -1,13 +1,18 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ALL_LESSONS } from '../../src/data/lessons';
+import { ALL_LESSONS, shuffleQuestion, Step } from '../../src/data/lessons';
 import { useStore, ENERGY_PER_LESSON } from '../../src/store';
 import { C } from '../../src/theme';
 import { Grindyk } from '../../src/components/Grindyk';
 import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
+
+const SECONDS_L1 = 20;
+const SECONDS_L2 = 30;
+const QUIZ_BASE_COINS = 40;
+const QUIZ_BASE_XP = 30;
 
 export default function LessonScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -18,7 +23,13 @@ export default function LessonScreen() {
 
   const lesson = useMemo(() => ALL_LESSONS.find((l) => l.id === id), [id]);
   const isCheckpoint = lesson?.kind === 'checkpoint';
+  const isQuiz = lesson?.kind === 'quiz';
   const alreadyDone = lesson ? completed.includes(lesson.id) : false;
+
+  const steps: Step[] = useMemo(() => {
+    if (!lesson) return [];
+    return isQuiz ? lesson.steps.map((s) => (s.type === 'teach' ? s : shuffleQuestion(s))) : lesson.steps;
+  }, [lesson, isQuiz]);
 
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -27,6 +38,35 @@ export default function LessonScreen() {
   const [maxBonus, setMaxBonus] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [errors, setErrors] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [timedOut, setTimedOut] = useState(false);
+  const [speedPts, setSpeedPts] = useState(0);
+  const leftRef = useRef(0);
+
+  // Квіз іде на час: 20 с на питання, 30 с на сценарну задачу
+  const cur = steps[idx];
+  const limit = isQuiz && cur && cur.type !== 'teach' ? (cur.layer === 2 ? SECONDS_L2 : SECONDS_L1) : 0;
+
+  useEffect(() => {
+    if (!limit || answered) return;
+    const deadline = Date.now() + limit * 1000;
+    leftRef.current = limit;
+    setTimeLeft(limit);
+    const timer = setInterval(() => {
+      const left = Math.max(0, (deadline - Date.now()) / 1000);
+      leftRef.current = left;
+      setTimeLeft(left);
+      if (left <= 0) {
+        clearInterval(timer);
+        setSelected(-1);
+        setTimedOut(true);
+        setAnswered(true);
+        setCombo(0);
+        setErrors((e) => e + 1);
+      }
+    }, 200);
+    return () => clearInterval(timer);
+  }, [idx, limit, answered]);
 
   if (!lesson) {
     return (
@@ -38,8 +78,8 @@ export default function LessonScreen() {
   }
 
   const lsn = lesson;
-  const step = lsn.steps[idx];
-  const total = lsn.steps.length;
+  const step = steps[idx];
+  const total = steps.length;
   const isTeach = step.type === 'teach';
   const isCorrect = !isTeach && selected === step.answer;
   const canContinue = isTeach || answered;
@@ -54,6 +94,7 @@ export default function LessonScreen() {
       setCombo(nextCombo);
       setMaxBonus((m) => Math.max(m, bonus));
       setCorrect((c) => c + 1);
+      if (limit) setSpeedPts((p) => p + Math.round(5 * (leftRef.current / limit)));
     } else {
       setCombo(0);
       setErrors((e) => e + 1);
@@ -67,10 +108,10 @@ export default function LessonScreen() {
       const accuracy = correct + errors > 0 ? correct / (correct + errors) : 1;
       const passed = !isCheckpoint || accuracy >= (lsn.passThreshold ?? 0.8);
 
-      const baseCoins = isCheckpoint ? 40 : 20;
-      const baseXp = isCheckpoint ? 50 : 10;
-      let coins = baseCoins + Math.round((baseCoins * maxBonus) / 100) + correct * 5;
-      let xp = baseXp + correct * 3;
+      const baseCoins = isCheckpoint ? 40 : isQuiz ? QUIZ_BASE_COINS : 20;
+      const baseXp = isCheckpoint ? 50 : isQuiz ? QUIZ_BASE_XP : 10;
+      let coins = baseCoins + Math.round((baseCoins * maxBonus) / 100) + correct * 5 + speedPts;
+      let xp = baseXp + correct * 3 + Math.round(speedPts * 0.6);
 
       if (alreadyDone) {
         coins = Math.round(coins / 2);
@@ -93,6 +134,7 @@ export default function LessonScreen() {
           practice: alreadyDone ? '1' : '0',
           checkpoint: isCheckpoint ? '1' : '0',
           passed: passed ? '1' : '0',
+          speed: String(speedPts),
         },
       });
       return;
@@ -100,6 +142,7 @@ export default function LessonScreen() {
     setIdx(idx + 1);
     setSelected(null);
     setAnswered(false);
+    setTimedOut(false);
   }
 
   const mood = isTeach
@@ -131,14 +174,33 @@ export default function LessonScreen() {
         </View>
       </View>
 
-      {(isCheckpoint || alreadyDone || lesson.kind === 'quiz') && (
+      {(isCheckpoint || alreadyDone || isQuiz) && (
         <Text style={[styles.mode, isCheckpoint && { color: C.gold }]}>
           {isCheckpoint
             ? '👑 ТЕСТ НА КОРОНУ · потрібно 80%'
             : alreadyDone
             ? '🔁 ПОВТОРЕННЯ · нагорода ½'
-            : '❓ КВІЗ · закріплення пройденого'}
+            : '⏱ КВІЗ НА ЧАС · бонусна нагорода'}
         </Text>
+      )}
+
+      {limit > 0 && (
+        <View style={styles.timerRow}>
+          <Text style={[styles.timerTxt, timeLeft <= 5 && !answered && { color: C.red }]}>
+            ⏱ {Math.ceil(timeLeft)} с
+          </Text>
+          <View style={styles.timerBar}>
+            <View
+              style={[
+                styles.timerFill,
+                {
+                  width: `${Math.min(100, (timeLeft / limit) * 100)}%`,
+                  backgroundColor: timeLeft <= 5 && !answered ? C.red : C.blue,
+                },
+              ]}
+            />
+          </View>
+        </View>
       )}
 
       <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
@@ -211,7 +273,7 @@ export default function LessonScreen() {
           <Text style={styles.fbBig}>{isCorrect ? (combo >= 3 ? '🔥' : '👍') : '👀'}</Text>
           <View style={{ flex: 1 }}>
             <Text style={[styles.fbTxt, { color: isCorrect ? C.accent : C.red }]}>
-              {isCorrect ? step.okMsg : step.noMsg}
+              {timedOut ? '⏱ Час вийшов. Правильна відповідь підсвічена зеленим.' : isCorrect ? step.okMsg : step.noMsg}
             </Text>
             {step.explain && <Text style={styles.explain}>{step.explain}</Text>}
           </View>
@@ -220,7 +282,7 @@ export default function LessonScreen() {
 
       <View style={{ paddingTop: 12, paddingBottom: insets.bottom + 12 }}>
         <Button
-          title={isTeach ? 'Зрозумів' : idx + 1 >= total ? 'Завершити' : 'Далі'}
+          title={isTeach ? (isQuiz && idx === 0 ? 'Старт' : 'Зрозумів') : idx + 1 >= total ? 'Завершити' : 'Далі'}
           onPress={onContinue}
           disabled={!canContinue}
         />
@@ -236,6 +298,10 @@ const styles = StyleSheet.create({
   pbar: { flex: 1, height: 16, backgroundColor: '#191e28', borderRadius: 10, overflow: 'hidden' },
   fill: { height: '100%', backgroundColor: C.accent, borderRadius: 10 },
   comboBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 3, minWidth: 56 },
+  timerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 6 },
+  timerTxt: { color: C.blue, fontSize: 13, fontWeight: '800', minWidth: 52 },
+  timerBar: { flex: 1, height: 8, backgroundColor: '#191e28', borderRadius: 6, overflow: 'hidden' },
+  timerFill: { height: '100%', borderRadius: 6 },
   combo: { color: C.fire, fontWeight: '800', fontSize: 15 },
   mode: { color: C.blue, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginBottom: 4 },
   layer: { color: C.blue, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginVertical: 8 },

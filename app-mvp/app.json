@@ -24,7 +24,13 @@
     },
     "plugins": [
       "expo-router",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "GRINDSET використовує твоє фото як аватар гравця."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

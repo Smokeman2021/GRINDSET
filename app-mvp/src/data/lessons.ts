@@ -543,7 +543,17 @@ export const LESSONS: Lesson[] = [
 ];
 
 // ── Квізи: закріплення пройденого. Питання беруться з уроків, нового контенту не потрібно. ──
-type Question = Exclude<Step, { type: 'teach' }>;
+export type Question = Exclude<Step, { type: 'teach' }>;
+
+// Перемішує варіанти (і відповідно індекс правильної), щоб квіз не збігався з порядком в уроці
+export function shuffleQuestion(q: Question): Question {
+  const order = q.options.map((_, i) => i);
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  return { ...q, options: order.map((i) => q.options[i]), answer: order.indexOf(q.answer) };
+}
 
 function buildQuiz(id: string, title: string, sourceIds: string[]): Lesson {
   const pools: Question[][] = sourceIds.map((sid) => {
@@ -575,8 +585,8 @@ function buildQuiz(id: string, title: string, sourceIds: string[]): Lesson {
     steps: [
       {
         type: 'teach',
-        title: 'Квіз: перевірка пройденого',
-        body: 'Швидкі питання за матеріалом останніх уроків. Це закріплення, без штрафів: помилився — Гріндік підкаже, як правильно.',
+        title: 'Квіз на час',
+        body: 'Питання за матеріалом останніх уроків, варіанти перемішані. На кожне 20 секунд, на задачу з цифрами 30. Чим швидше відповідаєш, тим більший бонус до нагороди. Не встиг — питання рахується помилкою.',
       },
       ...picked,
     ],

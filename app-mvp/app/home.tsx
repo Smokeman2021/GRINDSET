@@ -10,6 +10,8 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import * as ImagePicker from 'expo-image-picker';
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LESSONS, QUIZZES, MODULE_TITLE } from '../src/data/lessons';
@@ -94,6 +96,7 @@ export default function Home() {
     completed,
     buyStreakFreeze,
     setPlayerName,
+    setPlayerPhoto,
   } = useStore();
 
   const [editing, setEditing] = useState(false);
@@ -128,6 +131,24 @@ export default function Home() {
     return d;
   };
 
+  // Фото з галереї стискаємо до 320 px і зберігаємо як data-uri: так воно переживає перезапуск і працює на вебі
+  const pickPhoto = async () => {
+    try {
+      const res = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+      if (res.canceled || !res.assets?.[0]) return;
+      const small = await ImageManipulator.manipulate(res.assets[0].uri).resize({ width: 320 }).renderAsync();
+      const saved = await small.saveAsync({ format: SaveFormat.JPEG, compress: 0.7, base64: true });
+      if (saved.base64) setPlayerPhoto(`data:image/jpeg;base64,${saved.base64}`);
+    } catch (e) {
+      console.warn('Не вдалося вибрати фото', e);
+    }
+  };
+
   const saveName = () => {
     if (draft.trim()) setPlayerName(draft);
     setEditing(false);
@@ -145,13 +166,18 @@ export default function Home() {
 
       <ScrollView contentContainerStyle={{ padding: 22, paddingBottom: insets.bottom + 30 }}>
         <View style={styles.hero}>
-          <View style={styles.avatar}>
-            {playerPhoto ? (
-              <Image source={{ uri: playerPhoto }} style={styles.avatarImg} />
-            ) : (
-              <Text style={styles.avatarInitial}>{initial}</Text>
-            )}
-          </View>
+          <Pressable onPress={pickPhoto}>
+            <View style={styles.avatar}>
+              {playerPhoto ? (
+                <Image source={{ uri: playerPhoto }} style={styles.avatarImg} />
+              ) : (
+                <Text style={styles.avatarInitial}>{initial}</Text>
+              )}
+            </View>
+            <View style={styles.avatarBadge}>
+              <Text style={styles.avatarBadgeTxt}>{playerPhoto ? '✎' : '+'}</Text>
+            </View>
+          </Pressable>
           {editing ? (
             <TextInput
               style={styles.nameInput}
@@ -261,6 +287,7 @@ export default function Home() {
                 </Pressable>
                 <Text style={[styles.quizLabel, { left: qx + QUIZ_NODE / 2 - 55, top: qTop + QUIZ_NODE + 4 }]} numberOfLines={2}>
                   {quiz.title}
+                  {'\n'}⏱ на час · бонус
                 </Text>
               </React.Fragment>
             );
@@ -366,6 +393,20 @@ const styles = StyleSheet.create({
   },
   avatarImg: { width: '100%', height: '100%' },
   avatarInitial: { color: C.accent, fontSize: 42, fontWeight: '900' },
+  avatarBadge: {
+    position: 'absolute',
+    right: -2,
+    bottom: 2,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: C.accent,
+    borderBottomWidth: 4,
+    borderBottomColor: C.accentEdge,
+  },
+  avatarBadgeTxt: { color: '#05140a', fontSize: 18, fontWeight: '900', marginTop: -2 },
   name: { color: C.txt, fontWeight: '800', fontSize: 18, marginTop: 8 },
   nameEdit: { color: C.muted, fontSize: 13, fontWeight: '600' },
   nameInput: {

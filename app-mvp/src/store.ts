@@ -35,6 +35,7 @@ type State = {
   setQuizAnswer: (key: keyof QuizAnswers, value: string) => void;
   finishOnboarding: (name: string, goal: DailyGoal) => void;
   setPlayerName: (name: string) => void;
+  setPlayerPhoto: (uri: string | null) => void;
   checkStreak: () => void;
   completeLesson: (id: string, coinsEarned: number, xpEarned: number) => void;
   spendEnergy: (n: number) => void;
@@ -125,6 +126,8 @@ export const useStore = create<State>()(
         })),
 
       setPlayerName: (name) => set({ playerName: name.trim().slice(0, 14) }),
+
+      setPlayerPhoto: (uri) => set({ playerPhoto: uri }),
 
       checkStreak: () =>
         set((s) => {

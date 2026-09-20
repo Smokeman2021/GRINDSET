@@ -17,6 +17,7 @@ export default function Results() {
     correct: string;
     errors: string;
     maxBonus: string;
+    speed: string;
     coins: string;
     xp: string;
     practice: string;
@@ -27,6 +28,7 @@ export default function Results() {
   const correct = Number(params.correct ?? 0);
   const errors = Number(params.errors ?? 0);
   const maxBonus = Number(params.maxBonus ?? 0);
+  const speed = Number(params.speed ?? 0);
   const coins = Number(params.coins ?? 0);
   const xp = Number(params.xp ?? 0);
   const id = params.id ?? '';
@@ -131,6 +133,7 @@ export default function Results() {
         <Row label="Помилок" value={`${errors}`} color={errors ? C.red : C.accent} />
         <Row label="Точність" value={`${accuracy}%`} color={C.txt} />
         <Row label="Макс. комбо-бонус" value={`+${maxBonus}%`} color={C.fire} />
+        {isQuiz && <Row label="Бонус за швидкість" value={`+${speed} 🪙`} color={C.blue} />}
       </View>
 
       <View style={styles.nextBox}>
