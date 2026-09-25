@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -79,13 +79,18 @@ const QUIZ_SLOTS = (() => {
       const target = Math.max(...(quiz.requires ?? []).map((id) => PATH.findIndex((p) => p.lesson.id === id)));
       let best = -1;
       let bestD = Infinity;
-      BENDS.forEach((b, k) => {
-        const d = Math.abs(b.t - target);
-        if (!used.has(k) && d < bestD) {
-          bestD = d;
-          best = k;
-        }
-      });
+      // спершу шукаємо вигини, що не збігаються із заголовками модулів; якщо таких нема, беремо будь-який вільний
+      for (const avoidChips of [true, false]) {
+        BENDS.forEach((b, k) => {
+          if (avoidChips && BREAKS.some((br) => Math.abs(b.t - (br - 0.5)) < 1.0)) return;
+          const d = Math.abs(b.t - target);
+          if (!used.has(k) && d < bestD) {
+            bestD = d;
+            best = k;
+          }
+        });
+        if (best >= 0) break;
+      }
       if (best >= 0) {
         used.add(best);
         slots.push({ quiz, bend: BENDS[best] });
@@ -118,6 +123,9 @@ export default function Home() {
 
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
+  const scrollRef = useRef<ScrollView>(null);
+  const [pathTop, setPathTop] = useState<number | null>(null);
+  const scrolled = useRef(false);
 
   const lvlTitle = LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)];
   const firstOpen = PATH.findIndex((p) => !completed.includes(p.lesson.id));
@@ -137,6 +145,13 @@ export default function Home() {
   const A = Math.min(96, (W - NODE) / 2 - 8);
   const xAt = (t: number) => cx + A * Math.sin(t * PHASE);
   const H = yAt(LAST) + NODE / 2 + 70;
+
+  // Шлях довгий: одразу прокручуємо до поточного уроку
+  useEffect(() => {
+    if (pathTop === null || scrolled.current) return;
+    scrolled.current = true;
+    scrollRef.current?.scrollTo({ y: Math.max(0, pathTop + yAt(currentIdx) - 260), animated: false });
+  }, [pathTop, currentIdx]);
 
   const pathD = (toT: number) => {
     let d = '';
@@ -179,7 +194,7 @@ export default function Home() {
         <Stat color={C.accent} icon="energy" value={energy} />
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 22, paddingBottom: insets.bottom + 30 }}>
+      <ScrollView ref={scrollRef} contentContainerStyle={{ padding: 22, paddingBottom: insets.bottom + 30 }}>
         <View style={styles.hero}>
           <Pressable onPress={pickPhoto}>
             <View style={styles.avatar}>
@@ -252,7 +267,7 @@ export default function Home() {
           )}
         </Pressable>
 
-        <View style={{ width: W, height: H, alignSelf: 'center' }}>
+        <View style={{ width: W, height: H, alignSelf: 'center' }} onLayout={(e) => setPathTop(e.nativeEvent.layout.y)}>
           {/* течія: русло + пройдена частина */}
           <Svg width={W} height={H} style={StyleSheet.absoluteFill}>
             <Path d={pathD(LAST)} stroke="#151a23" strokeWidth={28} strokeLinecap="round" strokeLinejoin="round" fill="none" />
@@ -349,9 +364,9 @@ export default function Home() {
                   <Text
                     style={[
                       styles.chip,
-                      { left: Math.max(0, Math.min(W - 150, x - 75)), top: y + NODE / 2 + 22 },
+                      { width: Math.min(W - 16, 300), left: Math.max(0, Math.min(W - Math.min(W - 16, 300), x - Math.min(W - 16, 300) / 2)), top: y + NODE / 2 + 21 },
                     ]}
-                    numberOfLines={2}
+                    numberOfLines={1}
                   >
                     {l.title}
                   </Text>
@@ -512,7 +527,6 @@ const styles = StyleSheet.create({
   },
   chip: {
     position: 'absolute',
-    width: 150,
     textAlign: 'center',
     color: C.txt,
     fontSize: 12,

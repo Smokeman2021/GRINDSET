@@ -9,6 +9,8 @@ import { C } from '../../src/theme';
 import { Grindyk } from '../../src/components/Grindyk';
 import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
+import { Markdown } from '../../src/components/Markdown';
+import { MatchStep, MultiStep, NumericStep, OrderStep } from '../../src/components/steps';
 
 const SECONDS_L1 = 20;
 const SECONDS_L2 = 30;
@@ -34,6 +36,7 @@ export default function LessonScreen() {
 
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
+  const [extCorrect, setExtCorrect] = useState<boolean | null>(null); // результат завдань з власним інтерфейсом
   const [answered, setAnswered] = useState(false);
   const [combo, setCombo] = useState(0);
   const [maxBonus, setMaxBonus] = useState(0);
@@ -82,14 +85,12 @@ export default function LessonScreen() {
   const step = steps[idx];
   const total = steps.length;
   const isTeach = step.type === 'teach';
-  const isCorrect = !isTeach && selected === step.answer;
+  const isChoiceLike = step.type === 'choice' || step.type === 'fill';
+  const isCorrect = step.type === 'teach' ? false : isChoiceLike ? selected === step.answer : extCorrect === true;
   const canContinue = isTeach || answered;
 
-  function onAnswer(k: number) {
-    if (answered || step.type === 'teach') return;
-    setSelected(k);
-    setAnswered(true);
-    if (k === step.answer) {
+  function record(ok: boolean) {
+    if (ok) {
       const nextCombo = combo + 1;
       const bonus = Math.min(20, nextCombo * 2);
       setCombo(nextCombo);
@@ -100,6 +101,20 @@ export default function LessonScreen() {
       setCombo(0);
       setErrors((e) => e + 1);
     }
+  }
+
+  function onAnswer(k: number) {
+    if (answered || (step.type !== 'choice' && step.type !== 'fill')) return;
+    setSelected(k);
+    setAnswered(true);
+    record(k === step.answer);
+  }
+
+  function onExternal(ok: boolean) {
+    if (answered) return;
+    setExtCorrect(ok);
+    setAnswered(true);
+    record(ok);
   }
 
   function onContinue() {
@@ -142,6 +157,7 @@ export default function LessonScreen() {
     }
     setIdx(idx + 1);
     setSelected(null);
+    setExtCorrect(null);
     setAnswered(false);
     setTimedOut(false);
   }
@@ -212,7 +228,7 @@ export default function LessonScreen() {
               <Grindyk mood="think" size={64} />
             </View>
             <Text style={styles.teachTitle}>{step.title}</Text>
-            <Text style={styles.teachBody}>{step.body}</Text>
+            <Markdown text={step.body} />
             {step.example && (
               <View style={styles.example}>
                 <Text style={styles.exampleLabel}>ПРИКЛАД</Text>
@@ -230,9 +246,9 @@ export default function LessonScreen() {
               <Text style={styles.q}>{step.q}</Text>
             </View>
 
-            {step.type === 'choice' && step.scenario && (
+            {step.type !== 'fill' && step.scenario && (
               <View style={styles.scenario}>
-                <Text style={styles.scenarioTxt}>{step.scenario}</Text>
+                <Markdown text={step.scenario} small />
               </View>
             )}
 
@@ -245,25 +261,38 @@ export default function LessonScreen() {
             )}
 
             <View style={{ marginTop: 12 }}>
-              {step.options.map((o, k) => {
-                const showCorrect = answered && k === step.answer;
-                const showWrong = answered && k === selected && k !== step.answer;
-                return (
-                  <Pressable
-                    key={k}
-                    disabled={answered}
-                    onPress={() => onAnswer(k)}
-                    style={({ pressed }) => [
-                      styles.opt,
-                      showCorrect && styles.optCorrect,
-                      showWrong && styles.optWrong,
-                      pressed && !answered && styles.optPressed,
-                    ]}
-                  >
-                    <Text style={styles.optTxt}>{o}</Text>
-                  </Pressable>
-                );
-              })}
+              {(step.type === 'choice' || step.type === 'fill') &&
+                step.options.map((o, k) => {
+                  const showCorrect = answered && k === step.answer;
+                  const showWrong = answered && k === selected && k !== step.answer;
+                  return (
+                    <Pressable
+                      key={k}
+                      disabled={answered}
+                      onPress={() => onAnswer(k)}
+                      style={({ pressed }) => [
+                        styles.opt,
+                        showCorrect && styles.optCorrect,
+                        showWrong && styles.optWrong,
+                        pressed && !answered && styles.optPressed,
+                      ]}
+                    >
+                      <Text style={styles.optTxt}>{o}</Text>
+                    </Pressable>
+                  );
+                })}
+              {step.type === 'multi' && (
+                <MultiStep key={`${idx}`} step={step} resolution={answered ? { correct: isCorrect } : null} onResolve={onExternal} />
+              )}
+              {step.type === 'order' && (
+                <OrderStep key={`${idx}`} step={step} resolution={answered ? { correct: isCorrect } : null} onResolve={onExternal} />
+              )}
+              {step.type === 'match' && (
+                <MatchStep key={`${idx}`} step={step} resolution={answered ? { correct: isCorrect } : null} onResolve={onExternal} />
+              )}
+              {step.type === 'numeric' && (
+                <NumericStep key={`${idx}`} step={step} resolution={answered ? { correct: isCorrect } : null} onResolve={onExternal} />
+              )}
             </View>
           </>
         )}

@@ -31,6 +31,51 @@ export type Step =
       okMsg: string;
       noMsg: string;
       explain?: string;
+    }
+  // кілька правильних відповідей
+  | {
+      type: 'multi';
+      layer: 1 | 2;
+      q: string;
+      scenario?: string;
+      options: string[];
+      answers: number[];
+      okMsg: string;
+      noMsg: string;
+      explain?: string;
+    }
+  // розставити елементи в правильному порядку (items уже в правильному порядку)
+  | {
+      type: 'order';
+      layer: 1 | 2;
+      q: string;
+      scenario?: string;
+      items: string[];
+      okMsg: string;
+      noMsg: string;
+      explain?: string;
+    }
+  // з'єднати пари (ліві елементи фіксовані, праві перемішуються)
+  | {
+      type: 'match';
+      layer: 1 | 2;
+      q: string;
+      scenario?: string;
+      pairs: [string, string][];
+      okMsg: string;
+      noMsg: string;
+      explain?: string;
+    }
+  // вписати число (одне або кілька полів)
+  | {
+      type: 'numeric';
+      layer: 1 | 2;
+      q: string;
+      scenario?: string;
+      fields: { label: string; answer: number; unit?: string; tolerance?: number }[];
+      okMsg: string;
+      noMsg: string;
+      explain?: string;
     };
 
 export type Lesson = {
@@ -545,20 +590,31 @@ export const LESSONS: Lesson[] = [
 // ── Квізи: закріплення пройденого. Питання беруться з уроків, нового контенту не потрібно. ──
 export type Question = Exclude<Step, { type: 'teach' }>;
 
+// До квізу на час беремо лише питання з варіантами: їх можна перемішати й швидко відповісти
+export type Quizzable = Extract<Question, { type: 'choice' | 'fill' | 'multi' }>;
+export const isQuizzable = (s: Step): s is Quizzable => s.type === 'choice' || s.type === 'fill' || s.type === 'multi';
+
 // Перемішує варіанти (і відповідно індекс правильної), щоб квіз не збігався з порядком в уроці
 export function shuffleQuestion(q: Question): Question {
-  const order = q.options.map((_, i) => i);
-  for (let i = order.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [order[i], order[j]] = [order[j], order[i]];
+  if (q.type === 'choice' || q.type === 'fill' || q.type === 'multi') {
+    const order = q.options.map((_, i) => i);
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    const options = order.map((i) => q.options[i]);
+    if (q.type === 'multi') {
+      return { ...q, options, answers: q.answers.map((a) => order.indexOf(a)) };
+    }
+    return { ...q, options, answer: order.indexOf(q.answer) };
   }
-  return { ...q, options: order.map((i) => q.options[i]), answer: order.indexOf(q.answer) };
+  return q;
 }
 
 export function buildQuiz(id: string, title: string, sourceIds: string[], source: Lesson[] = LESSONS): Lesson {
   const pools: Question[][] = sourceIds.map((sid) => {
     const lesson = source.find((l) => l.id === sid);
-    return (lesson?.steps ?? []).filter((s): s is Question => s.type !== 'teach');
+    return (lesson?.steps ?? []).filter(isQuizzable);
   });
   const flat = pools.flat();
   const picked: Question[] = [];
@@ -597,3 +653,29 @@ export const QUIZZES: Lesson[] = [
   buildQuiz('q1', 'Квіз 1 · Основи', ['l1', 'l2', 'l3']),
   buildQuiz('q2', 'Квіз 2 · Гроші й канал', ['l4', 'l5', 'l6']),
 ];
+
+// Корона модуля: підсумок + фінальна задача автора + добір питань шару 2 з уроків (проходження від 80%)
+export function buildCrown(opts: {
+  id: string;
+  title: string;
+  intro: { title: string; body: string };
+  final: Question[];
+  source: Lesson[];
+  target?: number;
+}): Lesson {
+  const target = opts.target ?? 8;
+  const picked: Question[] = [...opts.final];
+  const pool = opts.source.flatMap((l) => l.steps.filter(isQuizzable)).filter((q) => q.layer === 2);
+  // рівномірно по всьому модулю, без повторів
+  const stepSize = Math.max(1, Math.floor(pool.length / Math.max(1, target - picked.length)));
+  for (let i = 0; i < pool.length && picked.length < target; i += stepSize) picked.push(pool[i]);
+  return {
+    id: opts.id,
+    code: '👑',
+    title: opts.title,
+    minutes: 8,
+    kind: 'checkpoint',
+    passThreshold: 0.8,
+    steps: [{ type: 'teach', title: opts.intro.title, body: opts.intro.body }, ...picked],
+  };
+}
