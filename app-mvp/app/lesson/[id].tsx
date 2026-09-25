@@ -7,6 +7,7 @@ import { ALL_LESSONS } from '../../src/data/modules';
 import { useStore, ENERGY_PER_LESSON } from '../../src/store';
 import { C } from '../../src/theme';
 import { Grindyk } from '../../src/components/Grindyk';
+import { say, PhraseKind } from '../../src/data/phrases';
 import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
 import { Markdown } from '../../src/components/Markdown';
@@ -306,6 +307,7 @@ export default function LessonScreen() {
               {timedOut ? '⏱ Час вийшов. Правильна відповідь підсвічена зеленим.' : isCorrect ? step.okMsg : step.noMsg}
             </Text>
             {step.explain && <Text style={styles.explain}>{step.explain}</Text>}
+            <Quip kind={timedOut ? 'timeout' : isCorrect ? (combo >= 5 ? 'combo5' : combo >= 3 ? 'combo3' : 'correct') : 'wrong'} />
           </View>
         </View>
       )}
@@ -321,12 +323,19 @@ export default function LessonScreen() {
   );
 }
 
+// Репліка Гріндіка під відповідь: одна на показ фідбеку, не змінюється при перерендері
+function Quip({ kind }: { kind: PhraseKind }) {
+  const text = useMemo(() => say(kind).text, []); // eslint-disable-line react-hooks/exhaustive-deps
+  return <Text style={styles.quip}>Гріндік: {text}</Text>;
+}
+
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.bg, paddingHorizontal: 22 },
   head: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 10 },
   x: { color: C.muted, fontSize: 22 },
   pbar: { flex: 1, height: 16, backgroundColor: '#191e28', borderRadius: 10, overflow: 'hidden' },
   fill: { height: '100%', backgroundColor: C.accent, borderRadius: 10 },
+  quip: { color: C.muted, fontSize: 13, fontStyle: 'italic', marginTop: 6 },
   comboBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 3, minWidth: 56 },
   timerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 6 },
   timerTxt: { color: C.blue, fontSize: 13, fontWeight: '800', minWidth: 52 },

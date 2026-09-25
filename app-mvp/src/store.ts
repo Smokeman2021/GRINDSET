@@ -26,6 +26,7 @@ type State = {
   streak: number;
   streakFreezes: number;
   lastActiveDate: string | null; // YYYY-MM-DD, local
+  daysAway: number; // скільки днів гравця не було на момент останнього входу (для реплік Гріндіка)
   dailyGoal: DailyGoal;
   level: number;
   completed: string[]; // ids пройдених уроків (включно з 'checkpoint')
@@ -106,6 +107,7 @@ export const useStore = create<State>()(
       streak: 1,
       streakFreezes: 0,
       lastActiveDate: null,
+      daysAway: 0,
       dailyGoal: 'regular',
       level: 1,
       completed: [],
@@ -133,14 +135,16 @@ export const useStore = create<State>()(
         set((s) => {
           const today = todayStr();
           if (!s.lastActiveDate) return { lastActiveDate: today };
-          if (s.lastActiveDate === today) return {};
+          if (s.lastActiveDate === today) return s.daysAway ? { daysAway: 0 } : {};
 
           const gap = daysBetween(s.lastActiveDate, today);
+          const away = { daysAway: gap };
           if (gap === 1) {
-            return { streak: s.streak + 1, lastActiveDate: today, xpToday: 0 };
+            return { ...away, streak: s.streak + 1, lastActiveDate: today, xpToday: 0 };
           }
           if (gap === 2 && s.streakFreezes > 0) {
             return {
+              ...away,
               streak: s.streak + 1,
               lastActiveDate: today,
               xpToday: 0,
@@ -148,7 +152,7 @@ export const useStore = create<State>()(
             };
           }
           if (gap > 1) {
-            return { streak: 1, lastActiveDate: today, xpToday: 0 };
+            return { ...away, streak: 1, lastActiveDate: today, xpToday: 0 };
           }
           return { lastActiveDate: today, xpToday: 0 };
         }),
@@ -190,6 +194,7 @@ export const useStore = create<State>()(
           streak: 1,
           streakFreezes: 0,
           lastActiveDate: null,
+          daysAway: 0,
           dailyGoal: 'regular',
           level: 1,
           completed: [],

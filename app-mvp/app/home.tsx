@@ -19,15 +19,10 @@ import { MODULES, PATH } from '../src/data/modules';
 import { GOAL_XP, GOAL_LABEL, MAX_STREAK_FREEZES, STREAK_FREEZE_COST, useStore } from '../src/store';
 import { C } from '../src/theme';
 import { Icon, IconName } from '../src/components/Icon';
+import { GrindykSay } from '../src/components/GrindykSay';
+import { pose as poseFile, PoseName } from '../src/data/poses';
+import { homeSay } from '../src/data/phrases';
 
-// Пози Гріндіка (вирізані з 3D-рендера); ширина/висота нарізаних файлів
-const POSES = {
-  stand: require('../assets/character/pose-stand.png'),
-  think: require('../assets/character/pose-think.png'),
-  cheer: require('../assets/character/pose-cheer.png'),
-} as const;
-const POSE_RATIO = { stand: 0.374, think: 0.405, cheer: 0.549 } as const;
-type PoseName = keyof typeof POSES;
 
 const LEVEL_TITLES = [
   'Щойно дізнався що є арбітраж',
@@ -119,6 +114,7 @@ export default function Home() {
     buyStreakFreeze,
     setPlayerName,
     setPlayerPhoto,
+    daysAway,
   } = useStore();
 
   const [editing, setEditing] = useState(false);
@@ -133,6 +129,9 @@ export default function Home() {
   const currentIdx = allDone ? LAST : firstOpen;
 
   const goalTarget = GOAL_XP[dailyGoal];
+  const [talk, setTalk] = useState(() =>
+    homeSay({ daysAway, energy, goalDone: xpToday >= GOAL_XP[dailyGoal], fresh: true })
+  );
   const goalPct = Math.min(1, xpToday / goalTarget);
   const canBuyFreeze = coins >= STREAK_FREEZE_COST && streakFreezes < MAX_STREAK_FREEZES;
 
@@ -267,6 +266,17 @@ export default function Home() {
           )}
         </Pressable>
 
+        <View style={{ marginTop: 16, marginBottom: 6 }}>
+          <GrindykSay
+            text={talk.text}
+            pose={talk.pose}
+            height={120}
+            onPress={() =>
+              setTalk(homeSay({ daysAway: 0, energy, goalDone: xpToday >= goalTarget, fresh: false }))
+            }
+          />
+        </View>
+
         <View style={{ width: W, height: H, alignSelf: 'center' }} onLayout={(e) => setPathTop(e.nativeEvent.layout.y)}>
           {/* течія: русло + пройдена частина */}
           <Svg width={W} height={H} style={StyleSheet.absoluteFill}>
@@ -293,7 +303,7 @@ export default function Home() {
             const unlocked = (quiz.requires ?? []).every((id) => completed.includes(id));
             const done = completed.includes(quiz.id);
             const pose: PoseName = done ? 'cheer' : unlocked ? 'stand' : 'think';
-            const gw = POSE_H * POSE_RATIO[pose];
+            const gw = POSE_H * poseFile(pose).ratio;
             const yc = yAt(bend.t);
             const pathX = xAt(bend.t);
             const left = bend.pocketSide < 0 ? 4 : pathX + NODE / 2 + 20;
@@ -304,7 +314,7 @@ export default function Home() {
             return (
               <React.Fragment key={quiz.id}>
                 <Image
-                  source={POSES[pose]}
+                  source={poseFile(pose).src}
                   style={{ position: 'absolute', left: gx, top: yc + 62 - POSE_H, width: gw, height: POSE_H }}
                   resizeMode="contain"
                 />

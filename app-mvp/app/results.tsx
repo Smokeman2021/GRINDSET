@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,6 +7,8 @@ import { useStore } from '../src/store';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
 import { C } from '../src/theme';
+import { GrindykSay } from '../src/components/GrindykSay';
+import { say, PhraseKind } from '../src/data/phrases';
 
 export default function Results() {
   const insets = useSafeAreaInsets();
@@ -64,6 +66,21 @@ export default function Results() {
 
   const failedCheckpoint = isCheckpoint && !passed;
 
+  const talkKind: PhraseKind = failedCheckpoint
+    ? 'crownFail'
+    : isCheckpoint
+    ? 'crownPass'
+    : leveledUp
+    ? 'levelUp'
+    : isPractice
+    ? 'lessonPractice'
+    : isQuiz
+    ? 'quizDone'
+    : perfect
+    ? 'lessonPerfect'
+    : 'lessonDone';
+  const talk = useMemo(() => say(talkKind), [talkKind]);
+
   const h1 = failedCheckpoint
     ? 'Ще не корона'
     : isCheckpoint
@@ -89,7 +106,9 @@ export default function Results() {
   return (
     <View style={[styles.screen, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20 }]}>
       <View style={styles.center}>
-        <Text style={styles.emoji}>{failedCheckpoint ? '🫠' : isCheckpoint ? '👑' : perfect ? '🎉' : '✅'}</Text>
+        <View style={{ width: '100%', marginBottom: 6 }}>
+          <GrindykSay text={talk.text} pose={talk.pose} height={120} />
+        </View>
         <Text style={styles.h1}>{h1}</Text>
         <Text style={styles.muted}>{sub}</Text>
 
