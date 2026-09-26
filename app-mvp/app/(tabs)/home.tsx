@@ -165,6 +165,14 @@ export default function Home() {
 
         <Quests />
 
+        <Pressable onPress={() => router.push('/sim')} style={({ pressed }) => [styles.practice, { borderColor: C.gold, borderBottomColor: C.goldEdge }, pressed && { transform: [{ translateY: 2 }] }]}>
+          <Text style={{ fontSize: 26 }}>📊</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.practiceTitle}>Симулятор кампанії</Text>
+            <Text style={styles.practiceSub}>5 днів однієї зв'язки. Керуй бюджетом за правилами курсу</Text>
+          </View>
+        </Pressable>
+
         {completed.length >= 2 && (
           <Pressable onPress={() => router.push('/lesson/practice')} style={({ pressed }) => [styles.practice, pressed && { transform: [{ translateY: 2 }] }]}>
             <Text style={{ fontSize: 26 }}>🏋️</Text>

@@ -11,6 +11,7 @@ import { Grindyk } from '../../src/components/Grindyk';
 import { say, PhraseKind } from '../../src/data/phrases';
 import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
+import { Reaction } from '../../src/components/Reaction';
 import { Markdown } from '../../src/components/Markdown';
 import { MatchStep, MultiStep, NumericStep, OrderStep } from '../../src/components/steps';
 
@@ -373,7 +374,7 @@ export default function LessonScreen() {
 
       {!isTeach && answered && (
         <View style={[styles.fb, isCorrect ? styles.fbOk : styles.fbNo]}>
-          <Text style={styles.fbBig}>{isCorrect ? (combo >= 3 ? '🔥' : '👍') : '👀'}</Text>
+          <Reaction key={`r-${idx}`} kind={timedOut ? 'timeout' : isCorrect ? (combo >= 3 ? 'fire' : 'good') : 'bad'} size={58} />
           <View style={{ flex: 1 }}>
             <Text style={[styles.fbTxt, { color: isCorrect ? C.accent : C.red }]}>
               {timedOut ? '⏱ Час вийшов. Правильна відповідь підсвічена зеленим.' : isCorrect ? step.okMsg : step.noMsg}

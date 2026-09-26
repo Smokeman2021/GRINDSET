@@ -65,6 +65,10 @@ type State = {
   mistakes: MistakeRef[];
   unlocked: string[]; // відкриті досягнення
 
+  // симулятор кампанії
+  simDate: string;
+  simRuns: number;
+
   // щоденні завдання
   questsDate: string;
   questProgress: Partial<Record<Metric, number>>;
@@ -93,6 +97,7 @@ type State = {
   ) => void;
   recordAnswers: (results: AnswerResult[]) => void;
   claimQuest: (id: string) => void;
+  finishSim: (stars: number) => { coins: number; xp: number };
   spendEnergy: (n: number) => void;
   useComboShield: () => boolean;
   useHint: () => boolean;
@@ -248,6 +253,8 @@ const FRESH = {
   history: [] as HistoryItem[],
   mistakes: [] as MistakeRef[],
   unlocked: [] as string[],
+  simDate: '',
+  simRuns: 0,
   questsDate: '',
   questProgress: {} as Partial<Record<Metric, number>>,
   questsClaimed: [] as string[],
@@ -376,6 +383,36 @@ export const useStore = create<State>()(
           const qp = fixed ? bump(q0.questProgress ?? s.questProgress, 'fixed', fixed) : q0.questProgress ?? s.questProgress;
           return withAchievements(s, { ...q0, questProgress: qp, mistakes: mistakes.slice(0, 80), mistakesFixed: s.mistakesFixed + fixed });
         }),
+
+      // Нагорода симулятора: повна за перший запуск дня, далі 30% (щоб не фармити коїни)
+      finishSim: (stars) => {
+        const s = get();
+        const today = todayStr();
+        const runs = s.simDate === today ? s.simRuns : 0;
+        const k = runs === 0 ? 1 : 0.3;
+        const coins = Math.round([0, 15, 30, 50][stars] * k);
+        const xp = Math.round([3, 8, 14, 20][stars] * k);
+        set((st) => {
+          const week = rolloverWeek(st);
+          const q0 = questsRoll(st);
+          const nxp = st.xp + xp;
+          return withAchievements(st, {
+            ...week,
+            ...q0,
+            questProgress: bump(q0.questProgress ?? st.questProgress, 'xp', xp),
+            simDate: today,
+            simRuns: runs + 1,
+            coins: st.coins + coins,
+            xp: nxp,
+            level: levelForXp(nxp),
+            xpToday: st.xpToday + xp,
+            weekXp: (week.weekXp ?? st.weekXp) + xp,
+            totalCoinsEarned: st.totalCoinsEarned + coins,
+            history: [{ id: 'sim', date: new Date().toISOString(), correct: stars, errors: 0, xp, coins }, ...st.history].slice(0, 60),
+          });
+        });
+        return { coins, xp };
+      },
 
       claimQuest: (id) =>
         set((s) => {

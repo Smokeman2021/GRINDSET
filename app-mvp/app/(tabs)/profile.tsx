@@ -20,6 +20,8 @@ const GOALS: DailyGoal[] = ['casual', 'regular', 'intense'];
 
 function lessonTitle(id: string): string {
   if (id === 'mistakes') return 'Надолуження помилок';
+  if (id === 'sim') return 'Симулятор кампанії';
+  if (id === 'practice') return 'Швидке тренування';
   const l = ALL_LESSONS.find((x) => x.id === id);
   return l ? `${l.code} ${l.title}` : id;
 }
