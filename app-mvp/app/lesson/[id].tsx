@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { shuffleQuestion, Step } from '../../src/data/lessons';
 import { ALL_LESSONS } from '../../src/data/modules';
-import { buildDiagnostic, buildMistakes, DIAGNOSTIC_ID, MISTAKES_ID, VirtualLesson } from '../../src/data/virtual';
+import { buildDiagnostic, buildMistakes, buildPractice, DIAGNOSTIC_ID, MISTAKES_ID, PRACTICE_ID, VirtualLesson } from '../../src/data/virtual';
 import { useStore, ENERGY_PER_LESSON, AnswerResult } from '../../src/store';
 import { C } from '../../src/theme';
 import { Grindyk } from '../../src/components/Grindyk';
@@ -35,6 +35,7 @@ export default function LessonScreen() {
   const virtual: VirtualLesson | null = useMemo(() => {
     if (id === MISTAKES_ID) return buildMistakes(useStore.getState().mistakes);
     if (id === DIAGNOSTIC_ID) return buildDiagnostic();
+    if (id === PRACTICE_ID) return buildPractice(useStore.getState().completed);
     return null;
   }, [id]);
   const isDiagnostic = id === DIAGNOSTIC_ID;
@@ -42,7 +43,7 @@ export default function LessonScreen() {
   const lesson = useMemo(() => virtual?.lesson ?? ALL_LESSONS.find((l) => l.id === id), [id, virtual]);
   const isCheckpoint = lesson?.kind === 'checkpoint';
   const isQuiz = lesson?.kind === 'quiz';
-  const alreadyDone = lesson ? completed.includes(lesson.id) || id === MISTAKES_ID : false;
+  const alreadyDone = lesson ? completed.includes(lesson.id) || id === MISTAKES_ID || id === PRACTICE_ID : false;
 
   const steps: Step[] = useMemo(() => {
     if (!lesson) return [];
@@ -160,7 +161,7 @@ export default function LessonScreen() {
   function onContinue() {
     if (idx + 1 >= total) {
       recordAnswers(resultsRef.current);
-      if (!isDiagnostic && id !== MISTAKES_ID) spendEnergy(ENERGY_PER_LESSON);
+      if (!isDiagnostic && id !== MISTAKES_ID && id !== PRACTICE_ID) spendEnergy(ENERGY_PER_LESSON);
 
       const accuracy = correct + errors > 0 ? correct / (correct + errors) : 1;
       const passed = !isCheckpoint || accuracy >= (lsn.passThreshold ?? 0.8);
@@ -258,6 +259,8 @@ export default function LessonScreen() {
             ? '🧪 ДІАГНОСТИКА · без нагород, лише рівень'
             : id === MISTAKES_ID
             ? '🩹 НАДОЛУЖЕННЯ ПОМИЛОК · нагорода ½'
+            : id === PRACTICE_ID
+            ? '🏋️ ШВИДКЕ ТРЕНУВАННЯ · нагорода ½'
             : alreadyDone
             ? '🔁 ПОВТОРЕННЯ · нагорода ½'
             : '⏱ КВІЗ НА ЧАС · бонусна нагорода'}

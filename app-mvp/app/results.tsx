@@ -10,7 +10,7 @@ import { C } from '../src/theme';
 import { GrindykSay } from '../src/components/GrindykSay';
 import { say, PhraseKind } from '../src/data/phrases';
 import { ACHIEVEMENTS } from '../src/data/achievements';
-import { DIAGNOSTIC_ID, MISTAKES_ID, skippableUpTo } from '../src/data/virtual';
+import { DIAGNOSTIC_ID, MISTAKES_ID, PRACTICE_ID, skippableUpTo } from '../src/data/virtual';
 import { MODULES } from '../src/data/modules';
 import { MemeCard } from '../src/components/MemeCard';
 import { MEMES } from '../src/data/memes';
@@ -45,7 +45,7 @@ export default function Results() {
   const passed = params.passed !== '0';
 
   const isDiagnostic = id === DIAGNOSTIC_ID;
-  const isMistakes = id === MISTAKES_ID;
+  const isMistakes = id === MISTAKES_ID || id === PRACTICE_ID;
   const doubled = params.doubled === '1';
   const [leveledUp, setLeveledUp] = useState(false);
   const [newAch, setNewAch] = useState<string[]>([]);
@@ -205,7 +205,9 @@ export default function Results() {
           {failedCheckpoint
             ? 'Повтори будь-який урок (🔁 practice) і спробуй знову.'
             : isMistakes
-            ? 'Помилки, які ти виправив, зникли зі списку.'
+            ? id === PRACTICE_ID
+              ? 'Тренування залічено. Так знання й закріплюються.'
+              : 'Помилки, які ти виправив, зникли зі списку.'
             : isQuiz
             ? 'Квіз пройдено. Повертайся на шлях і продовжуй!'
             : next

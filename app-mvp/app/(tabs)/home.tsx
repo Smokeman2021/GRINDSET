@@ -165,6 +165,16 @@ export default function Home() {
 
         <Quests />
 
+        {completed.length >= 2 && (
+          <Pressable onPress={() => router.push('/lesson/practice')} style={({ pressed }) => [styles.practice, pressed && { transform: [{ translateY: 2 }] }]}>
+            <Text style={{ fontSize: 26 }}>🏋️</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.practiceTitle}>Швидке тренування</Text>
+              <Text style={styles.practiceSub}>8 питань із пройденого · без витрат енергії · ½ нагороди</Text>
+            </View>
+          </Pressable>
+        )}
+
         <View style={{ marginTop: 16, marginBottom: 6 }}>
           <GrindykSay
             text={talk.text}
@@ -296,6 +306,21 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
+  practice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 12,
+    backgroundColor: C.panel,
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 2,
+    borderBottomWidth: 4,
+    borderColor: C.blue,
+    borderBottomColor: C.blueEdge,
+  },
+  practiceTitle: { color: C.txt, fontWeight: '800', fontSize: 15 },
+  practiceSub: { color: C.muted, fontSize: 12, marginTop: 2 },
   topbar: {
     flexDirection: 'row',
     alignItems: 'center',
