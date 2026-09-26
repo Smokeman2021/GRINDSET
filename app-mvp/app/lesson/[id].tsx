@@ -14,7 +14,7 @@ import { Icon } from '../../src/components/Icon';
 import { Reaction } from '../../src/components/Reaction';
 import { boostLeftMs } from '../../src/notifications';
 import { Markdown } from '../../src/components/Markdown';
-import { MatchStep, MultiStep, NumericStep, OrderStep } from '../../src/components/steps';
+import { BundleStep, MatchStep, MultiStep, NumericStep, OrderStep, StoryStep } from '../../src/components/steps';
 
 const SECONDS_L1 = 20;
 const SECONDS_L2 = 30;
@@ -302,6 +302,19 @@ export default function LessonScreen() {
             </View>
             <Text style={styles.teachTitle}>{step.title}</Text>
             <Markdown text={step.body} />
+            {step.cards && (
+              <View style={styles.cards}>
+                {step.cards.map((c, i) => (
+                  <View key={i} style={styles.card}>
+                    <Text style={styles.cardIcon}>{c.icon}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.cardTitle}>{c.title}</Text>
+                      <Text style={styles.cardTxt}>{c.text}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
             {step.example && (
               <View style={styles.example}>
                 <Text style={styles.exampleLabel}>ПРИКЛАД</Text>
@@ -370,6 +383,12 @@ export default function LessonScreen() {
               {step.type === 'match' && (
                 <MatchStep key={`${idx}`} step={step} resolution={answered ? { correct: isCorrect } : null} onResolve={onExternal} />
               )}
+              {step.type === 'bundle' && (
+                <BundleStep key={`${idx}`} step={step} resolution={answered ? { correct: isCorrect } : null} onResolve={onExternal} />
+              )}
+              {step.type === 'story' && (
+                <StoryStep key={`${idx}`} step={step} resolution={answered ? { correct: isCorrect } : null} onResolve={onExternal} />
+              )}
               {step.type === 'numeric' && (
                 <NumericStep key={`${idx}`} step={step} resolution={answered ? { correct: isCorrect } : null} onResolve={onExternal} />
               )}
@@ -419,6 +438,11 @@ const styles = StyleSheet.create({
   hintBtn: { alignSelf: 'flex-start', backgroundColor: C.panel2, borderRadius: 12, paddingVertical: 7, paddingHorizontal: 12, borderWidth: 2, borderColor: C.gold, marginTop: 6 },
   hintTxt: { color: C.gold, fontWeight: '800', fontSize: 13 },
   shield: { color: C.blue, fontWeight: '800', fontSize: 13, marginTop: 6 },
+  cards: { gap: 10, marginBottom: 14 },
+  card: { flexDirection: 'row', gap: 12, alignItems: 'center', backgroundColor: C.panel, borderRadius: 14, padding: 12, borderWidth: 2, borderBottomWidth: 4, borderColor: C.line },
+  cardIcon: { fontSize: 30 },
+  cardTitle: { color: C.txt, fontWeight: '800', fontSize: 15 },
+  cardTxt: { color: C.muted, fontSize: 13, lineHeight: 19, marginTop: 2 },
   quip: { color: C.muted, fontSize: 13, fontStyle: 'italic', marginTop: 6 },
   comboBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 3, minWidth: 56 },
   timerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 6 },

@@ -8,6 +8,8 @@ export type Step =
       title: string;
       body: string;
       example?: string;
+      // візуальні картки: коротко й наочно замість абзаців
+      cards?: { icon: string; title: string; text: string }[];
     }
   | {
       type: 'choice';
@@ -62,6 +64,30 @@ export type Step =
       q: string;
       scenario?: string;
       pairs: [string, string][];
+      okMsg: string;
+      noMsg: string;
+      explain?: string;
+    }
+  // «збери зв'язку»: по одному варіанту на кожен слот
+  | {
+      type: 'bundle';
+      layer: 1 | 2;
+      q: string;
+      scenario?: string;
+      slots: { label: string; options: string[]; answer: number }[];
+      okMsg: string;
+      noMsg: string;
+      explain?: string;
+    }
+  // історія-кейс: послідовні рішення, кожне з відгуком
+  | {
+      type: 'story';
+      layer: 1 | 2;
+      q: string;
+      intro: string;
+      scenario?: string;
+      scenes: { text: string; options: { label: string; good: boolean; feedback: string }[] }[];
+      passRatio?: number; // частка вдалих рішень для зарахування (за замовчуванням 0.7)
       okMsg: string;
       noMsg: string;
       explain?: string;

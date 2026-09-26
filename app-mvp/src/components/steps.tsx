@@ -67,6 +67,109 @@ export function MultiStep({ step, resolution, onResolve }: Props<'multi'>) {
   );
 }
 
+// ─── Збери зв'язку: по одному варіанту на кожен слот ───
+export function BundleStep({ step, resolution, onResolve }: Props<'bundle'>) {
+  const [sel, setSel] = useState<(number | null)[]>(() => step.slots.map(() => null));
+  const done = resolution !== null;
+  const all = sel.every((v) => v !== null);
+  const check = () => onResolve(step.slots.every((s, i) => sel[i] === s.answer));
+  return (
+    <View>
+      <Text style={styles.hint}>Збери зв'язку: обери по одному варіанту в кожному пункті</Text>
+      {step.slots.map((slot, si) => (
+        <View key={si} style={{ marginBottom: 12 }}>
+          <Text style={styles.slotLabel}>{slot.label}</Text>
+          {slot.options.map((o, oi) => {
+            const isSel = sel[si] === oi;
+            const right = slot.answer === oi;
+            return (
+              <Pressable
+                key={oi}
+                disabled={done}
+                onPress={() => setSel((p) => p.map((v, i) => (i === si ? oi : v)))}
+                style={({ pressed }) => [
+                  styles.opt,
+                  !done && isSel && styles.optSel,
+                  done && right && styles.optOk,
+                  done && isSel && !right && styles.optNo,
+                  pressed && !done && styles.optPressed,
+                ]}
+              >
+                <Text style={styles.box}>{done ? (right ? '✓' : isSel ? '✕' : '') : isSel ? '●' : '○'}</Text>
+                <Text style={styles.optTxt}>{o}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      ))}
+      {!done && <Button title="Перевірити" disabled={!all} onPress={check} />}
+    </View>
+  );
+}
+
+// ─── Історія-кейс: послідовні рішення ───
+export function StoryStep({ step, resolution, onResolve }: Props<'story'>) {
+  const [scene, setScene] = useState(0);
+  const [picked, setPicked] = useState<number | null>(null);
+  const [goods, setGoods] = useState(0);
+  const done = resolution !== null;
+  const cur = step.scenes[Math.min(scene, step.scenes.length - 1)];
+  const choose = (i: number) => {
+    if (picked !== null) return;
+    setPicked(i);
+    if (cur.options[i].good) setGoods((g) => g + 1);
+  };
+  const advance = () => {
+    if (scene + 1 >= step.scenes.length) {
+      onResolve(goods / step.scenes.length >= (step.passRatio ?? 0.7));
+    } else {
+      setScene(scene + 1);
+      setPicked(null);
+    }
+  };
+  if (done) {
+    return (
+      <View style={styles.storyBox}>
+        <Text style={styles.hint}>
+          Вдалих рішень: {goods} з {step.scenes.length}
+        </Text>
+      </View>
+    );
+  }
+  return (
+    <View>
+      {scene === 0 && picked === null && <Text style={styles.storyIntro}>{step.intro}</Text>}
+      <Text style={styles.hint}>
+        Крок {scene + 1} з {step.scenes.length}
+      </Text>
+      <View style={styles.storyBox}>
+        <Text style={styles.storyTxt}>{cur.text}</Text>
+      </View>
+      {cur.options.map((o, i) => (
+        <Pressable
+          key={i}
+          disabled={picked !== null}
+          onPress={() => choose(i)}
+          style={({ pressed }) => [
+            styles.opt,
+            picked === i && (o.good ? styles.optOk : styles.optNo),
+            picked !== null && picked !== i && o.good && styles.optOk,
+            pressed && picked === null && styles.optPressed,
+          ]}
+        >
+          <Text style={styles.optTxt}>{o.label}</Text>
+        </Pressable>
+      ))}
+      {picked !== null && (
+        <View style={{ marginTop: 8 }}>
+          <Text style={[styles.storyFb, { color: cur.options[picked].good ? C.accent : C.red }]}>{cur.options[picked].feedback}</Text>
+          <Button title={scene + 1 >= step.scenes.length ? 'Підсумок' : 'Далі'} onPress={advance} />
+        </View>
+      )}
+    </View>
+  );
+}
+
 // ─── Послідовність ───
 export function OrderStep({ step, resolution, onResolve }: Props<'order'>) {
   const pool = useMemo(
@@ -234,6 +337,11 @@ export function NumericStep({ step, resolution, onResolve }: Props<'numeric'>) {
 }
 
 const styles = StyleSheet.create({
+  slotLabel: { color: C.gold, fontWeight: '800', fontSize: 13, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },
+  storyIntro: { color: C.muted, fontSize: 14, lineHeight: 21, marginBottom: 10 },
+  storyBox: { backgroundColor: C.panel, borderRadius: 14, padding: 14, marginBottom: 10, borderLeftWidth: 4, borderLeftColor: C.blue },
+  storyTxt: { color: C.txt, fontSize: 15, lineHeight: 22 },
+  storyFb: { fontWeight: '700', fontSize: 14, lineHeight: 20, marginBottom: 8 },
   hint: { color: C.muted, fontSize: 12, fontWeight: '700', marginBottom: 10, letterSpacing: 0.3 },
   opt: {
     flexDirection: 'row',
