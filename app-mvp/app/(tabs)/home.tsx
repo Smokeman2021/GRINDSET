@@ -21,6 +21,7 @@ import { Quests } from '../../src/components/Quests';
 import { GrindykSay } from '../../src/components/GrindykSay';
 import { pose as poseFile, PoseName } from '../../src/data/poses';
 import { homeSay, say } from '../../src/data/phrases';
+import { dueKeys } from '../../src/data/srs';
 
 
 const LAST = PATH.length - 1;
@@ -92,7 +93,8 @@ export default function Home() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width: winW } = useWindowDimensions();
-  const { energy, xpToday, dailyGoal, completed, daysAway, strictEnergy, refreshEnergy } = useStore();
+  const { energy, xpToday, dailyGoal, completed, daysAway, strictEnergy, refreshEnergy, srs } = useStore();
+  const dueCount = dueKeys(srs).length;
 
   useFocusEffect(
     React.useCallback(() => {
@@ -178,7 +180,9 @@ export default function Home() {
             <Text style={{ fontSize: 26 }}>🏋️</Text>
             <View style={{ flex: 1 }}>
               <Text style={styles.practiceTitle}>Швидке тренування</Text>
-              <Text style={styles.practiceSub}>8 питань із пройденого · без витрат енергії · ½ нагороди</Text>
+              <Text style={styles.practiceSub}>
+                {dueCount > 0 ? `Пора повторити: ${dueCount} · ` : ''}8 питань із пройденого · без енергії · ½ нагороди
+              </Text>
             </View>
           </Pressable>
         )}

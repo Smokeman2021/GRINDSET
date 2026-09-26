@@ -13,6 +13,7 @@ import { MEMES } from '../../src/data/memes';
 import { levelProgress, levelTitle } from '../../src/data/levels';
 import { ALL_LESSONS } from '../../src/data/modules';
 import { say } from '../../src/data/phrases';
+import { masteredCount } from '../../src/data/srs';
 import { GOAL_LABEL, GOAL_XP, DailyGoal, statsOf, useStore } from '../../src/store';
 import { C } from '../../src/theme';
 
@@ -112,6 +113,7 @@ export default function Profile() {
           <StatBox label="Ідеальних" value={String(s.perfectLessons)} />
           <StatBox label="Коїнів за час" value={String(s.totalCoinsEarned)} />
           <StatBox label="Корон" value={`${stats.crowns} 👑`} />
+          <StatBox label="Засвоєно міцно" value={String(masteredCount(s.srs))} />
         </View>
 
         <Text style={styles.h}>НАДОЛУЖЕННЯ ПОМИЛОК</Text>

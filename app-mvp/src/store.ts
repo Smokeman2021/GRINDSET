@@ -5,6 +5,7 @@ import { ACHIEVEMENTS, Stats } from './data/achievements';
 import { levelForXp } from './data/levels';
 import { ITEMS } from './data/shop';
 import { Metric, questsForDay } from './data/quests';
+import { reviewed, srsKey, SrsMap } from './data/srs';
 import { outcomeFor, rankOf, standings, weekStartStr, LeagueOutcome } from './data/league';
 
 export type CharStart = 'caveman' | 'sapiens' | 'early';
@@ -64,6 +65,9 @@ type State = {
   history: HistoryItem[];
   mistakes: MistakeRef[];
   unlocked: string[]; // відкриті досягнення
+
+  // розумні повтори
+  srs: SrsMap;
 
   // симулятор кампанії
   simDate: string;
@@ -253,6 +257,7 @@ const FRESH = {
   history: [] as HistoryItem[],
   mistakes: [] as MistakeRef[],
   unlocked: [] as string[],
+  srs: {} as SrsMap,
   simDate: '',
   simRuns: 0,
   questsDate: '',
@@ -370,7 +375,11 @@ export const useStore = create<State>()(
         set((s) => {
           let mistakes = s.mistakes;
           let fixed = 0;
+          const srs = { ...s.srs };
+          const now = Date.now();
           for (const r of results) {
+            const key = srsKey(r.lessonId, r.idx);
+            srs[key] = reviewed(srs[key], r.ok, now);
             const at = mistakes.findIndex((m) => m.lessonId === r.lessonId && m.idx === r.idx);
             if (r.ok && at >= 0) {
               mistakes = mistakes.filter((_, i) => i !== at);
@@ -381,7 +390,7 @@ export const useStore = create<State>()(
           }
           const q0 = questsRoll(s);
           const qp = fixed ? bump(q0.questProgress ?? s.questProgress, 'fixed', fixed) : q0.questProgress ?? s.questProgress;
-          return withAchievements(s, { ...q0, questProgress: qp, mistakes: mistakes.slice(0, 80), mistakesFixed: s.mistakesFixed + fixed });
+          return withAchievements(s, { ...q0, srs, questProgress: qp, mistakes: mistakes.slice(0, 80), mistakesFixed: s.mistakesFixed + fixed });
         }),
 
       // Нагорода симулятора: повна за перший запуск дня, далі 30% (щоб не фармити коїни)

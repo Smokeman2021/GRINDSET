@@ -3,6 +3,7 @@
 import { isQuizzable, Lesson, Step } from './lessons';
 import { ALL_LESSONS, MODULES } from './modules';
 import type { MistakeRef } from '../store';
+import { dueKeys, parseKey, SrsMap } from './srs';
 
 export type VirtualLesson = { lesson: Lesson; refs: MistakeRef[] };
 
@@ -56,20 +57,38 @@ export function skippableUpTo(moduleCount: number): string[] {
   return MODULES.slice(0, moduleCount).flatMap((m) => [...m.lessons.map((l) => l.id), m.checkpoint.id]);
 }
 
-// Швидке тренування: випадкові питання першого шару з уже пройдених уроків
-export function buildPractice(completed: string[], count = 8): VirtualLesson {
-  const pool: MistakeRef[] = [];
-  for (const l of ALL_LESSONS) {
-    if (l.kind || !completed.includes(l.id)) continue;
-    l.steps.forEach((st, idx) => {
-      if (isQuizzable(st)) pool.push({ lessonId: l.id, idx });
-    });
+// Швидке тренування: спершу питання, які пора повторити за системою розумних повторів,
+// далі випадкові з пройдених уроків
+export function buildPractice(completed: string[], srs: SrsMap = {}, count = 8): VirtualLesson {
+  const pick: MistakeRef[] = [];
+  const seen = new Set<string>();
+  const valid = (r: MistakeRef) => {
+    const l = ALL_LESSONS.find((x) => x.id === r.lessonId);
+    const st = l?.steps[r.idx];
+    return !!st && isQuizzable(st) && !l?.kind;
+  };
+  for (const k of dueKeys(srs)) {
+    const r = parseKey(k);
+    if (pick.length >= count) break;
+    if (valid(r)) {
+      pick.push(r);
+      seen.add(k);
+    }
   }
-  for (let i = pool.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [pool[i], pool[j]] = [pool[j], pool[i]];
+  if (pick.length < count) {
+    const pool: MistakeRef[] = [];
+    for (const l of ALL_LESSONS) {
+      if (l.kind || !completed.includes(l.id)) continue;
+      l.steps.forEach((st, idx) => {
+        if (isQuizzable(st) && !seen.has(`${l.id}#${idx}`)) pool.push({ lessonId: l.id, idx });
+      });
+    }
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    pick.push(...pool.slice(0, count - pick.length));
   }
-  const refs = pool.slice(0, count);
-  const steps = refs.map((r) => ALL_LESSONS.find((x) => x.id === r.lessonId)!.steps[r.idx]);
-  return { lesson: { id: PRACTICE_ID, code: '🏋️', title: 'Швидке тренування', minutes: 4, steps }, refs };
+  const steps = pick.map((r) => ALL_LESSONS.find((x) => x.id === r.lessonId)!.steps[r.idx]);
+  return { lesson: { id: PRACTICE_ID, code: '🏋️', title: 'Швидке тренування', minutes: 4, steps }, refs: pick };
 }

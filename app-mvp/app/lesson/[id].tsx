@@ -36,7 +36,7 @@ export default function LessonScreen() {
   const virtual: VirtualLesson | null = useMemo(() => {
     if (id === MISTAKES_ID) return buildMistakes(useStore.getState().mistakes);
     if (id === DIAGNOSTIC_ID) return buildDiagnostic();
-    if (id === PRACTICE_ID) return buildPractice(useStore.getState().completed);
+    if (id === PRACTICE_ID) return buildPractice(useStore.getState().completed, useStore.getState().srs);
     return null;
   }, [id]);
   const isDiagnostic = id === DIAGNOSTIC_ID;
