@@ -1,6 +1,10 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ACHIEVEMENTS, Stats } from './data/achievements';
+import { levelForXp } from './data/levels';
+import { ITEMS } from './data/shop';
+import { outcomeFor, rankOf, standings, weekStartStr, LeagueOutcome } from './data/league';
 
 export type CharStart = 'caveman' | 'sapiens' | 'early';
 export type DailyGoal = 'casual' | 'regular' | 'intense';
@@ -13,6 +17,11 @@ type QuizAnswers = {
   mode?: string;
 };
 
+export type HistoryItem = { id: string; date: string; correct: number; errors: number; xp: number; coins: number };
+export type MistakeRef = { lessonId: string; idx: number };
+export type AnswerResult = MistakeRef & { ok: boolean };
+export type LastWeek = { tier: number; rank: number; outcome: LeagueOutcome; weekId: string };
+
 type State = {
   hydrated: boolean;
   onboarded: boolean;
@@ -20,6 +29,9 @@ type State = {
   playerPhoto: string | null; // фото гравця (uri / data-uri); поки null — плейсхолдер з ініціалом
   charStart: CharStart;
   energy: number;
+  energyAt: number; // мс: від якого моменту рахуємо відновлення енергії
+  lastBonusDate: string | null; // дата останнього щоденного бонусу енергії
+  strictEnergy: boolean; // true: без енергії нові уроки закриті
   coins: number;
   xp: number;
   xpToday: number;
@@ -32,20 +44,62 @@ type State = {
   completed: string[]; // ids пройдених уроків (включно з 'checkpoint')
   quiz: QuizAnswers;
 
+  // бустери з магазину
+  comboShields: number;
+  hints: number;
+  doubleCoins: number;
+  frames: string[]; // куплені рамки аватара (крім класичної)
+  frame: string;
+
+  // статистика
+  totalCorrect: number;
+  totalErrors: number;
+  perfectLessons: number;
+  totalCoinsEarned: number;
+  purchases: number;
+  mistakesFixed: number;
+  goldenGlasses: boolean;
+  diagnosticDone: boolean;
+  history: HistoryItem[];
+  mistakes: MistakeRef[];
+  unlocked: string[]; // відкриті досягнення
+
+  // ліга
+  weekId: string;
+  weekXp: number;
+  tier: number;
+  lastWeek: LastWeek | null;
+
   setHydrated: () => void;
   setQuizAnswer: (key: keyof QuizAnswers, value: string) => void;
   finishOnboarding: (name: string, goal: DailyGoal) => void;
   setPlayerName: (name: string) => void;
   setPlayerPhoto: (uri: string | null) => void;
+  setDailyGoal: (goal: DailyGoal) => void;
+  setStrictEnergy: (v: boolean) => void;
   checkStreak: () => void;
-  completeLesson: (id: string, coinsEarned: number, xpEarned: number) => void;
+  refreshEnergy: () => void;
+  completeLesson: (
+    id: string,
+    coinsEarned: number,
+    xpEarned: number,
+    extra?: { correct: number; errors: number; doubled?: boolean; practiceOnly?: boolean }
+  ) => void;
+  recordAnswers: (results: AnswerResult[]) => void;
   spendEnergy: (n: number) => void;
-  buyStreakFreeze: () => void;
+  useComboShield: () => boolean;
+  useHint: () => boolean;
+  buyItem: (id: string) => 'ok' | 'poor' | 'max' | 'owned';
+  equipFrame: (frame: string) => void;
+  finishDiagnostic: (perfect: boolean, skipTo: string[]) => void;
   reset: () => void;
 };
 
-const MAX_ENERGY = 50;
+export const MAX_ENERGY = 50;
 export const ENERGY_PER_LESSON = 10;
+export const ENERGY_REGEN_MS = 4 * 3600 * 1000; // +10 кожні 4 години
+export const ENERGY_REGEN_AMOUNT = 10;
+export const DAILY_ENERGY_BONUS = 10;
 
 export const GOAL_XP: Record<DailyGoal, number> = {
   casual: 10,
@@ -61,18 +115,6 @@ export const GOAL_LABEL: Record<DailyGoal, string> = {
 
 export const STREAK_FREEZE_COST = 150;
 export const MAX_STREAK_FREEZES = 2;
-
-// Пороги XP для рівня (кумулятивно). Рівень = найвищий поріг, який досягнуто.
-const LEVEL_THRESHOLDS = [0, 40, 90, 150, 220, 300, 400, 520, 660, 820];
-
-function levelForXp(xp: number): number {
-  let lvl = 1;
-  for (let i = 1; i < LEVEL_THRESHOLDS.length; i++) {
-    if (xp >= LEVEL_THRESHOLDS[i]) lvl = i + 1;
-    else break;
-  }
-  return lvl;
-}
 
 function todayStr(): string {
   const d = new Date();
@@ -92,31 +134,118 @@ function startFromExp(exp?: string): CharStart {
   return 'caveman';
 }
 
+const isCrownId = (id: string) => id.startsWith('checkpoint');
+const isQuizLessonId = (id: string) => /q\d+$/.test(id);
+
+export function statsOf(s: State): Stats {
+  const real = s.completed;
+  return {
+    lessons: real.filter((id) => !isCrownId(id) && !isQuizLessonId(id)).length,
+    streak: s.streak,
+    level: s.level,
+    perfectLessons: s.perfectLessons,
+    totalCoinsEarned: s.totalCoinsEarned,
+    purchases: s.purchases,
+    mistakesFixed: s.mistakesFixed,
+    goldenGlasses: s.goldenGlasses,
+    crowns: real.filter(isCrownId).length,
+    quizzes: real.filter(isQuizLessonId).length,
+  };
+}
+
+function withAchievements(s: State, patch: Partial<State>): Partial<State> {
+  const merged = { ...s, ...patch } as State;
+  const st = statsOf(merged);
+  const now = ACHIEVEMENTS.filter((a) => a.test(st)).map((a) => a.id);
+  const fresh = now.filter((id) => !s.unlocked.includes(id));
+  return fresh.length ? { ...patch, unlocked: [...s.unlocked, ...fresh] } : patch;
+}
+
+// Якщо почався новий тиждень: підбиваємо підсумки минулого і оновлюємо лігу
+function rolloverWeek(s: State): Partial<State> {
+  const cur = weekStartStr();
+  if (s.weekId === cur) return {};
+  if (!s.weekId) return { weekId: cur, weekXp: 0 };
+  const list = standings(s.weekId, s.tier, s.playerName, s.weekXp, 1);
+  const rank = rankOf(list);
+  const outcome = outcomeFor(rank, s.tier);
+  const tier = outcome === 'up' ? s.tier + 1 : outcome === 'down' ? s.tier - 1 : s.tier;
+  return { weekId: cur, weekXp: 0, tier, lastWeek: { tier: s.tier, rank, outcome, weekId: s.weekId } };
+}
+
+// Відновлення енергії за минулий час
+function energyPatch(s: State, now: number): Partial<State> {
+  let energy = s.energy;
+  let energyAt = s.energyAt || now;
+  if (energy >= MAX_ENERGY) {
+    energyAt = now;
+  } else {
+    const ticks = Math.floor((now - energyAt) / ENERGY_REGEN_MS);
+    if (ticks > 0) {
+      energy = Math.min(MAX_ENERGY, energy + ticks * ENERGY_REGEN_AMOUNT);
+      energyAt = energy >= MAX_ENERGY ? now : energyAt + ticks * ENERGY_REGEN_MS;
+    }
+  }
+  const today = todayStr();
+  let lastBonusDate = s.lastBonusDate;
+  if (s.onboarded && lastBonusDate !== today) {
+    lastBonusDate = today;
+    if (energy < MAX_ENERGY) energy = Math.min(MAX_ENERGY, energy + DAILY_ENERGY_BONUS);
+  }
+  return { energy, energyAt, lastBonusDate };
+}
+
+const FRESH = {
+  onboarded: false,
+  playerName: '',
+  playerPhoto: null,
+  charStart: 'caveman' as CharStart,
+  energy: MAX_ENERGY,
+  energyAt: 0,
+  lastBonusDate: null,
+  strictEnergy: false,
+  coins: 0,
+  xp: 0,
+  xpToday: 0,
+  streak: 1,
+  streakFreezes: 0,
+  lastActiveDate: null,
+  daysAway: 0,
+  dailyGoal: 'regular' as DailyGoal,
+  level: 1,
+  completed: [] as string[],
+  quiz: {} as QuizAnswers,
+  comboShields: 0,
+  hints: 0,
+  doubleCoins: 0,
+  frames: [] as string[],
+  frame: 'green',
+  totalCorrect: 0,
+  totalErrors: 0,
+  perfectLessons: 0,
+  totalCoinsEarned: 0,
+  purchases: 0,
+  mistakesFixed: 0,
+  goldenGlasses: false,
+  diagnosticDone: false,
+  history: [] as HistoryItem[],
+  mistakes: [] as MistakeRef[],
+  unlocked: [] as string[],
+  weekId: '',
+  weekXp: 0,
+  tier: 0,
+  lastWeek: null as LastWeek | null,
+};
+
 export const useStore = create<State>()(
   persist(
     (set, get) => ({
       hydrated: false,
-      onboarded: false,
-      playerName: '',
-      playerPhoto: null,
-      charStart: 'caveman',
-      energy: MAX_ENERGY,
-      coins: 0,
-      xp: 0,
-      xpToday: 0,
-      streak: 1,
-      streakFreezes: 0,
-      lastActiveDate: null,
-      daysAway: 0,
-      dailyGoal: 'regular',
-      level: 1,
-      completed: [],
-      quiz: {},
+      ...FRESH,
 
       setHydrated: () => set({ hydrated: true }),
 
-      setQuizAnswer: (key, value) =>
-        set((s) => ({ quiz: { ...s.quiz, [key]: value } })),
+      setQuizAnswer: (key, value) => set((s) => ({ quiz: { ...s.quiz, [key]: value } })),
 
       finishOnboarding: (name, goal) =>
         set((s) => ({
@@ -125,81 +254,171 @@ export const useStore = create<State>()(
           charStart: startFromExp(s.quiz.exp),
           dailyGoal: goal,
           lastActiveDate: todayStr(),
+          lastBonusDate: todayStr(),
+          energyAt: Date.now(),
+          weekId: weekStartStr(),
         })),
 
       setPlayerName: (name) => set({ playerName: name.trim().slice(0, 14) }),
 
       setPlayerPhoto: (uri) => set({ playerPhoto: uri }),
 
+      setDailyGoal: (goal) => set({ dailyGoal: goal }),
+
+      setStrictEnergy: (v) => set({ strictEnergy: v }),
+
       checkStreak: () =>
         set((s) => {
           const today = todayStr();
-          if (!s.lastActiveDate) return { lastActiveDate: today };
-          if (s.lastActiveDate === today) return s.daysAway ? { daysAway: 0 } : {};
-
-          const gap = daysBetween(s.lastActiveDate, today);
-          const away = { daysAway: gap };
-          if (gap === 1) {
-            return { ...away, streak: s.streak + 1, lastActiveDate: today, xpToday: 0 };
+          let patch: Partial<State> = {};
+          if (!s.lastActiveDate) {
+            patch = { lastActiveDate: today };
+          } else if (s.lastActiveDate === today) {
+            if (s.daysAway) patch = { daysAway: 0 };
+          } else {
+            const gap = daysBetween(s.lastActiveDate, today);
+            const away = { daysAway: gap };
+            if (gap === 1) {
+              patch = { ...away, streak: s.streak + 1, lastActiveDate: today, xpToday: 0 };
+            } else if (gap === 2 && s.streakFreezes > 0) {
+              patch = { ...away, streak: s.streak + 1, lastActiveDate: today, xpToday: 0, streakFreezes: s.streakFreezes - 1 };
+            } else if (gap > 1) {
+              patch = { ...away, streak: 1, lastActiveDate: today, xpToday: 0 };
+            } else {
+              patch = { lastActiveDate: today, xpToday: 0 };
+            }
           }
-          if (gap === 2 && s.streakFreezes > 0) {
-            return {
-              ...away,
-              streak: s.streak + 1,
-              lastActiveDate: today,
-              xpToday: 0,
-              streakFreezes: s.streakFreezes - 1,
-            };
-          }
-          if (gap > 1) {
-            return { ...away, streak: 1, lastActiveDate: today, xpToday: 0 };
-          }
-          return { lastActiveDate: today, xpToday: 0 };
+          const next = { ...s, ...patch } as State;
+          return withAchievements(s, { ...patch, ...rolloverWeek(next), ...energyPatch(next, Date.now()) });
         }),
 
-      completeLesson: (id, coinsEarned, xpEarned) =>
+      refreshEnergy: () =>
         set((s) => {
-          const completed = s.completed.includes(id)
-            ? s.completed
-            : [...s.completed, id];
+          const p = energyPatch(s, Date.now());
+          return p.energy === s.energy && p.energyAt === s.energyAt && p.lastBonusDate === s.lastBonusDate ? {} : p;
+        }),
+
+      completeLesson: (id, coinsEarned, xpEarned, extra) =>
+        set((s) => {
+          const count = !extra?.practiceOnly;
+          const completed = !count || s.completed.includes(id) ? s.completed : [...s.completed, id];
           const xp = s.xp + xpEarned;
-          return {
+          const perfect = !!extra && !extra.practiceOnly && extra.errors === 0 && extra.correct > 0;
+          const history: HistoryItem[] = extra
+            ? [
+                { id, date: new Date().toISOString(), correct: extra.correct, errors: extra.errors, xp: xpEarned, coins: coinsEarned },
+                ...s.history,
+              ].slice(0, 60)
+            : s.history;
+          const week = rolloverWeek(s);
+          const patch: Partial<State> = {
+            ...week,
             completed,
             coins: s.coins + coinsEarned,
             xp,
             level: levelForXp(xp),
             xpToday: s.xpToday + xpEarned,
+            weekXp: (week.weekXp ?? s.weekXp) + xpEarned,
+            totalCoinsEarned: s.totalCoinsEarned + coinsEarned,
+            totalCorrect: s.totalCorrect + (extra?.correct ?? 0),
+            totalErrors: s.totalErrors + (extra?.errors ?? 0),
+            perfectLessons: s.perfectLessons + (perfect ? 1 : 0),
+            history,
+            doubleCoins: extra?.doubled ? Math.max(0, s.doubleCoins - 1) : s.doubleCoins,
           };
+          return withAchievements(s, patch);
+        }),
+
+      // Підсумок відповідей уроку: помилки потрапляють у «надолуження», правильні відповіді їх прибирають
+      recordAnswers: (results) =>
+        set((s) => {
+          let mistakes = s.mistakes;
+          let fixed = 0;
+          for (const r of results) {
+            const at = mistakes.findIndex((m) => m.lessonId === r.lessonId && m.idx === r.idx);
+            if (r.ok && at >= 0) {
+              mistakes = mistakes.filter((_, i) => i !== at);
+              fixed++;
+            } else if (!r.ok && at < 0) {
+              mistakes = [{ lessonId: r.lessonId, idx: r.idx }, ...mistakes];
+            }
+          }
+          return withAchievements(s, { mistakes: mistakes.slice(0, 80), mistakesFixed: s.mistakesFixed + fixed });
         }),
 
       spendEnergy: (n) =>
-        set((s) => ({ energy: Math.max(0, s.energy - n) })),
-
-      buyStreakFreeze: () =>
         set((s) => {
-          if (s.coins < STREAK_FREEZE_COST || s.streakFreezes >= MAX_STREAK_FREEZES) return {};
-          return { coins: s.coins - STREAK_FREEZE_COST, streakFreezes: s.streakFreezes + 1 };
+          const energy = Math.max(0, s.energy - n);
+          // енергія почала витрачатись: відлік відновлення стартує звідси
+          return { energy, energyAt: s.energy >= MAX_ENERGY ? Date.now() : s.energyAt };
         }),
 
-      reset: () =>
-        set({
-          onboarded: false,
-          playerName: '',
-          playerPhoto: null,
-          charStart: 'caveman',
-          energy: MAX_ENERGY,
-          coins: 0,
-          xp: 0,
-          xpToday: 0,
-          streak: 1,
-          streakFreezes: 0,
-          lastActiveDate: null,
-          daysAway: 0,
-          dailyGoal: 'regular',
-          level: 1,
-          completed: [],
-          quiz: {},
-        }),
+      useComboShield: () => {
+        if (get().comboShields <= 0) return false;
+        set((s) => ({ comboShields: s.comboShields - 1 }));
+        return true;
+      },
+
+      useHint: () => {
+        if (get().hints <= 0) return false;
+        set((s) => ({ hints: s.hints - 1 }));
+        return true;
+      },
+
+      buyItem: (id) => {
+        const s = get();
+        const item = ITEMS.find((i) => i.id === id);
+        if (!item) return 'poor';
+        if (s.coins < item.cost) return 'poor';
+        let patch: Partial<State> | null = null;
+        switch (id) {
+          case 'energy10':
+          case 'energy20':
+          case 'energyFull': {
+            if (s.energy >= MAX_ENERGY) return 'max';
+            const add = id === 'energy10' ? 10 : id === 'energy20' ? 20 : MAX_ENERGY;
+            patch = { energy: Math.min(MAX_ENERGY, s.energy + add) };
+            break;
+          }
+          case 'freeze':
+            if (s.streakFreezes >= MAX_STREAK_FREEZES) return 'max';
+            patch = { streakFreezes: s.streakFreezes + 1 };
+            break;
+          case 'shield3':
+            patch = { comboShields: s.comboShields + 3 };
+            break;
+          case 'hint3':
+            patch = { hints: s.hints + 3 };
+            break;
+          case 'double':
+            if (s.doubleCoins >= 1) return 'max';
+            patch = { doubleCoins: 1 };
+            break;
+          default:
+            if (id.startsWith('frame_')) {
+              const key = id.slice(6);
+              if (s.frames.includes(key)) return 'owned';
+              patch = { frames: [...s.frames, key], frame: key };
+            }
+        }
+        if (!patch) return 'poor';
+        set((st) => withAchievements(st, { ...patch, coins: st.coins - item.cost, purchases: st.purchases + 1 }));
+        return 'ok';
+      },
+
+      equipFrame: (frame) => set((s) => (frame === 'green' || s.frames.includes(frame) ? { frame } : {})),
+
+      // Діагностичний тест: skipTo = уроки, які вважаємо вже відомими (без нагороди)
+      finishDiagnostic: (perfect, skipTo) =>
+        set((s) =>
+          withAchievements(s, {
+            diagnosticDone: true,
+            goldenGlasses: s.goldenGlasses || (perfect && !s.diagnosticDone),
+            completed: [...s.completed, ...skipTo.filter((id) => !s.completed.includes(id))],
+          })
+        ),
+
+      reset: () => set({ ...FRESH }),
     }),
     {
       name: 'grindset-state',

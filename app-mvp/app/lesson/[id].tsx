@@ -4,7 +4,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { shuffleQuestion, Step } from '../../src/data/lessons';
 import { ALL_LESSONS } from '../../src/data/modules';
-import { useStore, ENERGY_PER_LESSON } from '../../src/store';
+import { buildDiagnostic, buildMistakes, DIAGNOSTIC_ID, MISTAKES_ID, VirtualLesson } from '../../src/data/virtual';
+import { useStore, ENERGY_PER_LESSON, AnswerResult } from '../../src/store';
 import { C } from '../../src/theme';
 import { Grindyk } from '../../src/components/Grindyk';
 import { say, PhraseKind } from '../../src/data/phrases';
@@ -24,11 +25,24 @@ export default function LessonScreen() {
   const insets = useSafeAreaInsets();
   const spendEnergy = useStore((s) => s.spendEnergy);
   const completed = useStore((s) => s.completed);
+  const recordAnswers = useStore((s) => s.recordAnswers);
+  const takeComboShield = useStore((s) => s.useComboShield);
+  const takeHint = useStore((s) => s.useHint);
+  const hintsLeft = useStore((s) => s.hints);
+  const doubleCoins = useStore((s) => s.doubleCoins);
 
-  const lesson = useMemo(() => ALL_LESSONS.find((l) => l.id === id), [id]);
+  // надолуження помилок і діагностика збираються на льоту
+  const virtual: VirtualLesson | null = useMemo(() => {
+    if (id === MISTAKES_ID) return buildMistakes(useStore.getState().mistakes);
+    if (id === DIAGNOSTIC_ID) return buildDiagnostic();
+    return null;
+  }, [id]);
+  const isDiagnostic = id === DIAGNOSTIC_ID;
+
+  const lesson = useMemo(() => virtual?.lesson ?? ALL_LESSONS.find((l) => l.id === id), [id, virtual]);
   const isCheckpoint = lesson?.kind === 'checkpoint';
   const isQuiz = lesson?.kind === 'quiz';
-  const alreadyDone = lesson ? completed.includes(lesson.id) : false;
+  const alreadyDone = lesson ? completed.includes(lesson.id) || id === MISTAKES_ID : false;
 
   const steps: Step[] = useMemo(() => {
     if (!lesson) return [];
@@ -46,6 +60,9 @@ export default function LessonScreen() {
   const [timeLeft, setTimeLeft] = useState(0);
   const [timedOut, setTimedOut] = useState(false);
   const [speedPts, setSpeedPts] = useState(0);
+  const [shieldHit, setShieldHit] = useState(false);
+  const [hidden, setHidden] = useState<number | null>(null); // варіант, прибраний підказкою
+  const resultsRef = useRef<AnswerResult[]>([]);
   const leftRef = useRef(0);
 
   // Квіз іде на час: 20 с на питання, 30 с на сценарну задачу
@@ -68,6 +85,7 @@ export default function LessonScreen() {
         setAnswered(true);
         setCombo(0);
         setErrors((e) => e + 1);
+        pushResult(false);
       }
     }, 200);
     return () => clearInterval(timer);
@@ -90,7 +108,16 @@ export default function LessonScreen() {
   const isCorrect = step.type === 'teach' ? false : isChoiceLike ? selected === step.answer : extCorrect === true;
   const canContinue = isTeach || answered;
 
+  function refFor(i: number) {
+    return virtual ? virtual.refs[i] : { lessonId: id, idx: i };
+  }
+
+  function pushResult(ok: boolean) {
+    resultsRef.current.push({ ...refFor(idx), ok });
+  }
+
   function record(ok: boolean) {
+    pushResult(ok);
     if (ok) {
       const nextCombo = combo + 1;
       const bonus = Math.min(20, nextCombo * 2);
@@ -99,9 +126,19 @@ export default function LessonScreen() {
       setCorrect((c) => c + 1);
       if (limit) setSpeedPts((p) => p + Math.round(5 * (leftRef.current / limit)));
     } else {
-      setCombo(0);
       setErrors((e) => e + 1);
+      if (combo > 0 && takeComboShield()) {
+        setShieldHit(true); // захист із магазину зберіг комбо
+      } else {
+        setCombo(0);
+      }
     }
+  }
+
+  function useHintNow() {
+    if (answered || hidden !== null || (step.type !== 'choice' && step.type !== 'fill') || !takeHint()) return;
+    const wrong = step.options.map((_, k) => k).filter((k) => k !== step.answer);
+    setHidden(wrong[Math.floor(Math.random() * wrong.length)]);
   }
 
   function onAnswer(k: number) {
@@ -120,7 +157,8 @@ export default function LessonScreen() {
 
   function onContinue() {
     if (idx + 1 >= total) {
-      spendEnergy(ENERGY_PER_LESSON);
+      recordAnswers(resultsRef.current);
+      if (!isDiagnostic && id !== MISTAKES_ID) spendEnergy(ENERGY_PER_LESSON);
 
       const accuracy = correct + errors > 0 ? correct / (correct + errors) : 1;
       const passed = !isCheckpoint || accuracy >= (lsn.passThreshold ?? 0.8);
@@ -138,6 +176,12 @@ export default function LessonScreen() {
         coins = 0;
         xp = 0;
       }
+      const doubled = doubleCoins > 0 && coins > 0 && !isDiagnostic;
+      if (doubled) coins *= 2;
+      if (isDiagnostic) {
+        coins = 0;
+        xp = 0;
+      }
 
       router.replace({
         pathname: '/results',
@@ -152,6 +196,7 @@ export default function LessonScreen() {
           checkpoint: isCheckpoint ? '1' : '0',
           passed: passed ? '1' : '0',
           speed: String(speedPts),
+          doubled: doubled ? '1' : '0',
         },
       });
       return;
@@ -161,6 +206,8 @@ export default function LessonScreen() {
     setExtCorrect(null);
     setAnswered(false);
     setTimedOut(false);
+    setShieldHit(false);
+    setHidden(null);
   }
 
   const mood = isTeach
@@ -192,10 +239,14 @@ export default function LessonScreen() {
         </View>
       </View>
 
-      {(isCheckpoint || alreadyDone || isQuiz) && (
+      {(isCheckpoint || alreadyDone || isQuiz || isDiagnostic) && (
         <Text style={[styles.mode, isCheckpoint && { color: C.gold }]}>
           {isCheckpoint
             ? '👑 ТЕСТ НА КОРОНУ · потрібно 80%'
+            : isDiagnostic
+            ? '🧪 ДІАГНОСТИКА · без нагород, лише рівень'
+            : id === MISTAKES_ID
+            ? '🩹 НАДОЛУЖЕННЯ ПОМИЛОК · нагорода ½'
             : alreadyDone
             ? '🔁 ПОВТОРЕННЯ · нагорода ½'
             : '⏱ КВІЗ НА ЧАС · бонусна нагорода'}
@@ -261,11 +312,18 @@ export default function LessonScreen() {
               </Text>
             )}
 
+            {!answered && hintsLeft > 0 && (step.type === 'choice' || step.type === 'fill') && hidden === null && (
+              <Pressable onPress={useHintNow} style={styles.hintBtn}>
+                <Text style={styles.hintTxt}>💡 Підказка ({hintsLeft})</Text>
+              </Pressable>
+            )}
+
             <View style={{ marginTop: 12 }}>
               {(step.type === 'choice' || step.type === 'fill') &&
                 step.options.map((o, k) => {
                   const showCorrect = answered && k === step.answer;
                   const showWrong = answered && k === selected && k !== step.answer;
+                  if (k === hidden) return null;
                   return (
                     <Pressable
                       key={k}
@@ -307,6 +365,7 @@ export default function LessonScreen() {
               {timedOut ? '⏱ Час вийшов. Правильна відповідь підсвічена зеленим.' : isCorrect ? step.okMsg : step.noMsg}
             </Text>
             {step.explain && <Text style={styles.explain}>{step.explain}</Text>}
+            {shieldHit && <Text style={styles.shield}>🛡️ Захист комбо врятував серію</Text>}
             <Quip kind={timedOut ? 'timeout' : isCorrect ? (combo >= 5 ? 'combo5' : combo >= 3 ? 'combo3' : 'correct') : 'wrong'} />
           </View>
         </View>
@@ -335,6 +394,9 @@ const styles = StyleSheet.create({
   x: { color: C.muted, fontSize: 22 },
   pbar: { flex: 1, height: 16, backgroundColor: '#191e28', borderRadius: 10, overflow: 'hidden' },
   fill: { height: '100%', backgroundColor: C.accent, borderRadius: 10 },
+  hintBtn: { alignSelf: 'flex-start', backgroundColor: C.panel2, borderRadius: 12, paddingVertical: 7, paddingHorizontal: 12, borderWidth: 2, borderColor: C.gold, marginTop: 6 },
+  hintTxt: { color: C.gold, fontWeight: '800', fontSize: 13 },
+  shield: { color: C.blue, fontWeight: '800', fontSize: 13, marginTop: 6 },
   quip: { color: C.muted, fontSize: 13, fontStyle: 'italic', marginTop: 6 },
   comboBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 3, minWidth: 56 },
   timerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 6 },

@@ -110,7 +110,7 @@ export default function Onboarding() {
           disabled={name.trim().length === 0}
           onPress={() => {
             finishOnboarding(name, goal ?? 'regular');
-            router.replace('/home');
+            router.replace('/diagnostic');
           }}
         />
       </View>

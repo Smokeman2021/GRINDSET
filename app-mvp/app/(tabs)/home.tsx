@@ -10,25 +10,17 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import * as ImagePicker from 'expo-image-picker';
-import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { Lesson } from '../src/data/lessons';
-import { MODULES, PATH } from '../src/data/modules';
-import { GOAL_XP, GOAL_LABEL, MAX_STREAK_FREEZES, STREAK_FREEZE_COST, useStore } from '../src/store';
-import { C } from '../src/theme';
-import { Icon, IconName } from '../src/components/Icon';
-import { GrindykSay } from '../src/components/GrindykSay';
-import { pose as poseFile, PoseName } from '../src/data/poses';
-import { homeSay } from '../src/data/phrases';
+import type { Lesson } from '../../src/data/lessons';
+import { MODULES, PATH } from '../../src/data/modules';
+import { GOAL_XP, GOAL_LABEL, ENERGY_PER_LESSON, useStore } from '../../src/store';
+import { C } from '../../src/theme';
+import { TopBar } from '../../src/components/TopBar';
+import { GrindykSay } from '../../src/components/GrindykSay';
+import { pose as poseFile, PoseName } from '../../src/data/poses';
+import { homeSay, say } from '../../src/data/phrases';
 
-
-const LEVEL_TITLES = [
-  'Щойно дізнався що є арбітраж',
-  'Вже читав про це в телеграмі',
-  'Злив перший бюджет на навчання',
-];
 
 const LAST = PATH.length - 1;
 
@@ -99,31 +91,28 @@ export default function Home() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width: winW } = useWindowDimensions();
-  const {
-    playerName,
-    playerPhoto,
-    energy,
-    coins,
-    xp,
-    xpToday,
-    streak,
-    streakFreezes,
-    dailyGoal,
-    level,
-    completed,
-    buyStreakFreeze,
-    setPlayerName,
-    setPlayerPhoto,
-    daysAway,
-  } = useStore();
+  const { energy, xpToday, dailyGoal, completed, daysAway, strictEnergy, refreshEnergy } = useStore();
 
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState('');
+  useFocusEffect(
+    React.useCallback(() => {
+      refreshEnergy();
+    }, [refreshEnergy])
+  );
+
+  // Жорстка енергія: без 10 одиниць нові уроки закриті, повтор пройденого доступний
+  const open = (id: string) => {
+    if (strictEnergy && energy < ENERGY_PER_LESSON && !completed.includes(id)) {
+      setTalk(say('lowEnergy'));
+      router.navigate('/shop');
+      return;
+    }
+    router.push(`/lesson/${id}`);
+  };
+
   const scrollRef = useRef<ScrollView>(null);
   const [pathTop, setPathTop] = useState<number | null>(null);
   const scrolled = useRef(false);
 
-  const lvlTitle = LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)];
   const firstOpen = PATH.findIndex((p) => !completed.includes(p.lesson.id));
   const allDone = firstOpen === -1;
   const currentIdx = allDone ? LAST : firstOpen;
@@ -133,10 +122,6 @@ export default function Home() {
     homeSay({ daysAway, energy, goalDone: xpToday >= GOAL_XP[dailyGoal], fresh: true })
   );
   const goalPct = Math.min(1, xpToday / goalTarget);
-  const canBuyFreeze = coins >= STREAK_FREEZE_COST && streakFreezes < MAX_STREAK_FREEZES;
-
-  const shownName = playerName || 'Гравець';
-  const initial = shownName.trim().charAt(0).toUpperCase();
 
   // геометрія під поточну ширину екрана
   const W = Math.min(winW, 480) - 44;
@@ -160,82 +145,11 @@ export default function Home() {
     return d;
   };
 
-  // Фото з галереї стискаємо до 320 px і зберігаємо як data-uri: так воно переживає перезапуск і працює на вебі
-  const pickPhoto = async () => {
-    try {
-      const res = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-      if (res.canceled || !res.assets?.[0]) return;
-      const small = await ImageManipulator.manipulate(res.assets[0].uri).resize({ width: 320 }).renderAsync();
-      const saved = await small.saveAsync({ format: SaveFormat.JPEG, compress: 0.7, base64: true });
-      if (saved.base64) setPlayerPhoto(`data:image/jpeg;base64,${saved.base64}`);
-    } catch (e) {
-      console.warn('Не вдалося вибрати фото', e);
-    }
-  };
-
-  const saveName = () => {
-    if (draft.trim()) setPlayerName(draft);
-    setEditing(false);
-  };
-
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <View style={[styles.topbar, { paddingTop: insets.top + 10 }]}>
-        <Text style={styles.course}>FB АРБІТРАЖ</Text>
-        <Stat color={C.fire} icon="streak" value={streak} />
-        <Stat color={C.blue} icon="xp" value={xp} />
-        <Stat color={C.gold} icon="coin" value={coins} />
-        <Stat color={C.accent} icon="energy" value={energy} />
-      </View>
+      <TopBar />
 
       <ScrollView ref={scrollRef} contentContainerStyle={{ padding: 22, paddingBottom: insets.bottom + 30 }}>
-        <View style={styles.hero}>
-          <Pressable onPress={pickPhoto}>
-            <View style={styles.avatar}>
-              {playerPhoto ? (
-                <Image source={{ uri: playerPhoto }} style={styles.avatarImg} />
-              ) : (
-                <Text style={styles.avatarInitial}>{initial}</Text>
-              )}
-            </View>
-            <View style={styles.avatarBadge}>
-              <Text style={styles.avatarBadgeTxt}>{playerPhoto ? '✎' : '+'}</Text>
-            </View>
-          </Pressable>
-          {editing ? (
-            <TextInput
-              style={styles.nameInput}
-              value={draft}
-              onChangeText={setDraft}
-              autoFocus
-              maxLength={14}
-              onSubmitEditing={saveName}
-              onBlur={saveName}
-              placeholder="Твій нік"
-              placeholderTextColor={C.muted}
-            />
-          ) : (
-            <Pressable
-              onPress={() => {
-                setDraft(playerName);
-                setEditing(true);
-              }}
-            >
-              <Text style={styles.name}>
-                {shownName} <Text style={styles.nameEdit}>✎</Text>
-              </Text>
-            </Pressable>
-          )}
-          <Text style={styles.lvl}>
-            Lvl {level} — «{lvlTitle}»
-          </Text>
-        </View>
-
         <View style={styles.goalRow}>
           <View style={styles.goalHead}>
             <Text style={styles.goalLabel}>Ціль дня · {GOAL_LABEL[dailyGoal]}</Text>
@@ -247,24 +161,6 @@ export default function Home() {
             <View style={[styles.goalFill, { width: `${goalPct * 100}%` }]} />
           </View>
         </View>
-
-        <Pressable
-          style={styles.freezeRow}
-          disabled={!canBuyFreeze}
-          onPress={buyStreakFreeze}
-        >
-          <Text style={styles.freezeTxt}>
-            ❄️ Заморозка стріку: {streakFreezes}/{MAX_STREAK_FREEZES}
-          </Text>
-          {streakFreezes < MAX_STREAK_FREEZES && (
-            <View style={styles.buyRow}>
-              <Text style={[styles.freezeBuy, !canBuyFreeze && styles.freezeBuyOff]}>
-                Купити за {STREAK_FREEZE_COST}
-              </Text>
-              <Icon name="coin" size={16} />
-            </View>
-          )}
-        </Pressable>
 
         <View style={{ marginTop: 16, marginBottom: 6 }}>
           <GrindykSay
@@ -320,7 +216,7 @@ export default function Home() {
                 />
                 <Pressable
                   disabled={!unlocked}
-                  onPress={() => router.push(`/lesson/${quiz.id}`)}
+                  onPress={() => open(quiz.id)}
                   style={({ pressed }) => [
                     styles.quiz,
                     { left: qx, top: qTop },
@@ -353,7 +249,7 @@ export default function Home() {
               <React.Fragment key={l.id}>
                 <Pressable
                   disabled={locked}
-                  onPress={() => router.push(`/lesson/${l.id}`)}
+                  onPress={() => open(l.id)}
                   style={({ pressed }) => [
                     styles.node,
                     { left: x - NODE / 2, top: y - NODE / 2 },
@@ -392,15 +288,6 @@ export default function Home() {
           </View>
         )}
       </ScrollView>
-    </View>
-  );
-}
-
-function Stat({ icon, value, color }: { icon: IconName; value: number; color: string }) {
-  return (
-    <View style={styles.stat}>
-      <Icon name={icon} size={22} />
-      <Text style={{ color, fontWeight: '800', fontSize: 15 }}>{value}</Text>
     </View>
   );
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TextStyle, ScrollView } from 'react-native';
+import { useRouter } from 'expo-router';
 import { C } from '../theme';
 
 type Block =
@@ -61,7 +62,7 @@ function parse(src: string): Block[] {
 }
 
 // **жирний**, *курсив*, `код`, [→ Бібліотека: X]
-function inline(text: string, base: TextStyle) {
+function inline(text: string, base: TextStyle, onRef?: (label: string) => void) {
   const parts = text.split(/(\*\*[^*]+\*\*|\*[^*\n]+\*|`[^`]+`|\[→[^\]]+\])/g);
   return parts.map((part, i) => {
     if (!part) return null;
@@ -79,7 +80,7 @@ function inline(text: string, base: TextStyle) {
       );
     if (part.startsWith('[→'))
       return (
-        <Text key={i} style={[base, styles.ref]}>
+        <Text key={i} style={[base, styles.ref]} onPress={() => onRef?.(part.slice(2, -1).replace(/^\s*Бібліотека:\s*/i, '').trim())}>
           {'📚 ' + part.slice(2, -1).trim()}
         </Text>
       );
@@ -94,13 +95,15 @@ function inline(text: string, base: TextStyle) {
 }
 
 export function Markdown({ text, small }: { text: string; small?: boolean }) {
+  const router = useRouter();
+  const goRef = (label: string) => router.navigate({ pathname: '/library', params: { cat: label } });
   const blocks = parse(text);
   const pStyle = small ? [styles.p, styles.pSm] : styles.p;
   const liStyle = small ? [styles.liTxt, styles.liSm] : styles.liTxt;
   return (
     <View>
       {blocks.map((b, i) => {
-        if (b.t === 'p') return <Text key={i} style={pStyle}>{inline(b.text, styles.p)}</Text>;
+        if (b.t === 'p') return <Text key={i} style={pStyle}>{inline(b.text, styles.p, goRef)}</Text>;
         if (b.t === 'code')
           return (
             <View key={i} style={styles.codeBox}>
@@ -127,7 +130,7 @@ export function Markdown({ text, small }: { text: string; small?: boolean }) {
                         ci === row.length - 1 && { borderRightWidth: 0 },
                       ]}
                     >
-                      <Text style={[styles.tdTxt, ri === 0 && styles.bold]}>{inline(cell, styles.tdTxt)}</Text>
+                      <Text style={[styles.tdTxt, ri === 0 && styles.bold]}>{inline(cell, styles.tdTxt, goRef)}</Text>
                     </View>
                   ))}
                 </View>
@@ -148,7 +151,7 @@ export function Markdown({ text, small }: { text: string; small?: boolean }) {
             {items.map((it, ii) => (
               <View key={ii} style={styles.li}>
                 <Text style={styles.bullet}>{b.t === 'ol' ? `${ii + 1}.` : '•'}</Text>
-                <Text style={liStyle}>{inline(it, styles.liTxt)}</Text>
+                <Text style={liStyle}>{inline(it, styles.liTxt, goRef)}</Text>
               </View>
             ))}
           </View>
