@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { TopBar } from '../../src/components/TopBar';
 import { GrindykSay } from '../../src/components/GrindykSay';
-import { CARDS, CATEGORIES, categoryFor } from '../../src/data/library';
+import { CARDS, CATEGORIES, categoryFor, PRICES_AS_OF } from '../../src/data/library';
 import { TERMS } from '../../src/data/glossary';
 import { Calculators } from '../../src/components/Calculators';
 import { INCLUDE_RESTRICTED } from '../../src/data/restricted';
@@ -57,12 +57,18 @@ export default function Library() {
         {cat === 'Калькулятори' && <Calculators />}
 
         {cat === 'Словник' &&
-          TERMS.map((t) => (
-            <View key={t.id} style={styles.card}>
-              <Text style={styles.name}>{t.title}</Text>
-              <Text style={styles.forWhat}>{t.def}</Text>
-            </View>
-          ))}
+          TERMS.map((t) => {
+            const isOpen = open === `term-${t.id}`;
+            return (
+              <Pressable key={t.id} onPress={() => setOpen(isOpen ? null : `term-${t.id}`)} style={styles.termRow}>
+                <View style={styles.head}>
+                  <Text style={styles.termTitle}>{t.title}</Text>
+                  <Text style={styles.arrow}>{isOpen ? '▲' : '▼'}</Text>
+                </View>
+                {isOpen && <Text style={styles.termDef}>{t.def}</Text>}
+              </Pressable>
+            );
+          })}
 
         {cards.map((k) => {
           const isOpen = open === k.id;
@@ -76,7 +82,14 @@ export default function Library() {
               <Text style={styles.price}>💰 {k.price}</Text>
               {isOpen && (
                 <View style={{ marginTop: 10 }}>
-                  <Text style={styles.plus}>ПЛЮСИ</Text>
+                  <Text style={styles.plus}>ТАРИФИ</Text>
+                  {k.pricing.map((p) => (
+                    <Text key={p} style={styles.li}>
+                      • {p}
+                    </Text>
+                  ))}
+                  {k.terms && <Text style={styles.terms}>Умови: {k.terms}</Text>}
+                  <Text style={[styles.plus, { marginTop: 10 }]}>ПЛЮСИ</Text>
                   {k.pros.map((p) => (
                     <Text key={p} style={styles.li}>
                       + {p}
@@ -95,7 +108,7 @@ export default function Library() {
         })}
 
         <Text style={styles.foot}>
-          Ціни й умови змінюються: перед оплатою перевір сайт сервісу. Інформація довідкова, не реклама і не порада.
+          Ціни зібрані з відкритих джерел станом на {PRICES_AS_OF} і часто змінюються: перед оплатою перевір сайт сервісу. Інформація довідкова, не реклама і не порада.
         </Text>
       </ScrollView>
     </View>
@@ -103,6 +116,10 @@ export default function Library() {
 }
 
 const styles = StyleSheet.create({
+  termRow: { backgroundColor: C.panel, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14, marginBottom: 6, borderWidth: 2, borderColor: C.line },
+  termTitle: { color: C.txt, fontWeight: '800', fontSize: 15, flex: 1 },
+  terms: { color: C.gold, fontSize: 12, lineHeight: 18, marginTop: 6 },
+  termDef: { color: C.txt, fontSize: 14, lineHeight: 21, marginTop: 8 },
   numbers: {
     flexDirection: 'row',
     alignItems: 'center',
