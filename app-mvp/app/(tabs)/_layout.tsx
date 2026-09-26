@@ -16,12 +16,14 @@ function TabIcon({ glyph, focused }: { glyph: string; focused: boolean }) {
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
-  const { notifEnabled, notifMorning, notifEvening, streak, playerName } = useStore();
+  const { notifEnabled, notifMorning, notifEvening, streak, playerName, campaigns } = useStore();
+  const checksKey = JSON.stringify(campaigns.filter((c) => c.status === 'active' && c.remindTimes.length).map((c) => [c.id, c.name, c.remindTimes]));
 
   // Переплановуємо нагадування на 7 діб уперед при запуску і зміні налаштувань
   React.useEffect(() => {
-    scheduleAll({ enabled: notifEnabled, morning: notifMorning, evening: notifEvening }, streak, playerName);
-  }, [notifEnabled, notifMorning, notifEvening, streak, playerName]);
+    const checks = (JSON.parse(checksKey) as [string, string, string[]][]).map(([id, name, times]) => ({ id, name, times }));
+    scheduleAll({ enabled: notifEnabled, morning: notifMorning, evening: notifEvening }, streak, playerName, checks);
+  }, [notifEnabled, notifMorning, notifEvening, streak, playerName, checksKey]);
 
   return (
     <Tabs

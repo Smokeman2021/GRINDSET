@@ -6,6 +6,7 @@ import { levelForXp } from './data/levels';
 import { ITEMS } from './data/shop';
 import { Metric, questsForDay } from './data/quests';
 import { reviewed, srsKey, SrsMap } from './data/srs';
+import type { Campaign, Entry } from './data/advice';
 import { outcomeFor, rankOf, standings, weekStartStr, LeagueOutcome } from './data/league';
 
 export type CharStart = 'caveman' | 'sapiens' | 'early';
@@ -69,6 +70,9 @@ type State = {
   mistakes: MistakeRef[];
   unlocked: string[]; // відкриті досягнення
 
+  // «Мої цифри»: трекер власних кампаній
+  campaigns: Campaign[];
+
   // розумні повтори
   srs: SrsMap;
 
@@ -106,6 +110,11 @@ type State = {
   recordAnswers: (results: AnswerResult[]) => void;
   claimQuest: (id: string) => void;
   finishSim: (stars: number) => { coins: number; xp: number };
+  addCampaign: (c: Omit<Campaign, 'id' | 'entries' | 'changes' | 'status' | 'startDate'>) => string;
+  updateCampaign: (id: string, patch: Partial<Campaign>) => void;
+  removeCampaign: (id: string) => void;
+  saveEntry: (id: string, entry: Entry) => void;
+  addChange: (id: string, text: string) => void;
   spendEnergy: (n: number) => void;
   useComboShield: () => boolean;
   useHint: () => boolean;
@@ -264,6 +273,7 @@ const FRESH = {
   history: [] as HistoryItem[],
   mistakes: [] as MistakeRef[],
   unlocked: [] as string[],
+  campaigns: [] as Campaign[],
   srs: {} as SrsMap,
   simDate: '',
   simRuns: 0,
@@ -401,6 +411,29 @@ export const useStore = create<State>()(
           const qp = fixed ? bump(q0.questProgress ?? s.questProgress, 'fixed', fixed) : q0.questProgress ?? s.questProgress;
           return withAchievements(s, { ...q0, srs, questProgress: qp, mistakes: mistakes.slice(0, 80), mistakesFixed: s.mistakesFixed + fixed });
         }),
+
+      addCampaign: (c) => {
+        const id = `c${Date.now().toString(36)}`;
+        set((st) => ({ campaigns: [{ ...c, id, status: 'active', startDate: todayStr(), entries: [], changes: [] }, ...st.campaigns] }));
+        return id;
+      },
+
+      updateCampaign: (id, patch) => set((st) => ({ campaigns: st.campaigns.map((c) => (c.id === id ? { ...c, ...patch } : c)) })),
+
+      removeCampaign: (id) => set((st) => ({ campaigns: st.campaigns.filter((c) => c.id !== id) })),
+
+      // запис дня: одна дата = один запис (перезаписується)
+      saveEntry: (id, entry) =>
+        set((st) => ({
+          campaigns: st.campaigns.map((c) =>
+            c.id === id ? { ...c, entries: [...c.entries.filter((e) => e.date !== entry.date), entry].sort((a, b) => a.date.localeCompare(b.date)) } : c
+          ),
+        })),
+
+      addChange: (id, text) =>
+        set((st) => ({
+          campaigns: st.campaigns.map((c) => (c.id === id ? { ...c, changes: [{ ts: Date.now(), text: text.trim() }, ...c.changes].slice(0, 100) } : c)),
+        })),
 
       // Нагорода симулятора: повна за перший запуск дня, далі 30% (щоб не фармити коїни)
       finishSim: (stars) => {

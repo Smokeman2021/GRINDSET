@@ -40,14 +40,26 @@ const parse = (hhmm: string) => {
 };
 
 // Плануємо наступні 7 діб: щоразу скасовуємо старе й ставимо нове
-export async function scheduleAll(prefs: NotifPrefs, streak: number, name: string): Promise<void> {
+export type CheckReminder = { id: string; name: string; times: string[] };
+
+export async function scheduleAll(prefs: NotifPrefs, streak: number, name: string, checks: CheckReminder[] = []): Promise<void> {
   if (Platform.OS === 'web') return;
   try {
     const N = await import('expo-notifications');
     await N.cancelAllScheduledNotificationsAsync();
-    if (!prefs.enabled) return;
     const perm = await N.getPermissionsAsync();
     if (!perm.granted) return;
+    // щоденні нагадування перевірити кампанії (налаштовуються в «Мої цифри»)
+    for (const c of checks) {
+      for (const t of c.times) {
+        const { h, m } = parse(t);
+        await N.scheduleNotificationAsync({
+          content: { title: 'Перевір кампанію', body: `«${c.name}»: зайди в кабінет, глянь ліди й витрати та запиши зміни.`, data: { kind: 'check', id: c.id } },
+          trigger: { type: N.SchedulableTriggerInputTypes.DAILY, hour: h, minute: m },
+        });
+      }
+    }
+    if (!prefs.enabled) return;
     const now = Date.now();
     const base = new Date();
     for (let i = 0; i < 7; i++) {

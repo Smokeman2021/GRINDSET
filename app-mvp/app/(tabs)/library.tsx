@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { TopBar } from '../../src/components/TopBar';
 import { GrindykSay } from '../../src/components/GrindykSay';
 import { CARDS, CATEGORIES, categoryFor } from '../../src/data/library';
@@ -13,6 +13,7 @@ import { C } from '../../src/theme';
 
 export default function Library() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const params = useLocalSearchParams<{ cat?: string }>();
   const [talk, setTalk] = useState(() => say('library'));
   const cats = useMemo(
@@ -34,6 +35,14 @@ export default function Library() {
       <TopBar title="БІБЛІОТЕКА" />
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 30 }}>
         <GrindykSay text={talk.text} pose={talk.pose} height={100} onPress={() => setTalk(say('library'))} />
+
+        <Pressable onPress={() => router.push('/numbers')} style={({ pressed }) => [styles.numbers, pressed && { transform: [{ translateY: 2 }] }]}>
+          <Text style={{ fontSize: 26 }}>📈</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.numbersTitle}>Мої цифри</Text>
+            <Text style={styles.numbersSub}>Трекер твоїх кампаній: дані, зміни, поради й нагадування перевірити кабінет</Text>
+          </View>
+        </Pressable>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 12 }} contentContainerStyle={{ gap: 8 }}>
           {cats.map((c) => (
@@ -94,6 +103,21 @@ export default function Library() {
 }
 
 const styles = StyleSheet.create({
+  numbers: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: C.panel,
+    borderRadius: 16,
+    padding: 14,
+    marginTop: 12,
+    borderWidth: 2,
+    borderBottomWidth: 4,
+    borderColor: C.accent,
+    borderBottomColor: C.accentEdge,
+  },
+  numbersTitle: { color: C.txt, fontWeight: '900', fontSize: 16 },
+  numbersSub: { color: C.muted, fontSize: 12, marginTop: 2, lineHeight: 16 },
   chip: {
     paddingVertical: 8,
     paddingHorizontal: 12,
