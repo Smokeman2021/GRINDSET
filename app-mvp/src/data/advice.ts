@@ -56,7 +56,7 @@ export function totalsOf(c: Campaign, entries: Entry[] = c.entries): Totals {
 
 export const breakEvenCpl = (c: Campaign) => c.payout * c.approve;
 
-const money = (v: number) => `${v < 0 ? '−' : ''}${Math.abs(v).toFixed(2)}`;
+const money = (v: number) => `${v < 0 ? '−' : ''}$${Math.abs(v).toFixed(2)}`;
 
 export function analyze(c: Campaign): Advice[] {
   const out: Advice[] = [];
