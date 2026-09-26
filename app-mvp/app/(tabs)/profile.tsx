@@ -8,6 +8,8 @@ import { TopBar } from '../../src/components/TopBar';
 import { Avatar } from '../../src/components/Avatar';
 import { GrindykSay } from '../../src/components/GrindykSay';
 import { ACHIEVEMENTS } from '../../src/data/achievements';
+import { MemeCard } from '../../src/components/MemeCard';
+import { MEMES } from '../../src/data/memes';
 import { levelProgress, levelTitle } from '../../src/data/levels';
 import { ALL_LESSONS } from '../../src/data/modules';
 import { say } from '../../src/data/phrases';
@@ -137,6 +139,15 @@ export default function Profile() {
               </View>
             );
           })}
+        </View>
+
+        <Text style={styles.h}>КОЛЕКЦІЯ МЕМІВ · {MEMES.filter((m) => unlocked.has(m.unlockedBy)).length}/{MEMES.length}</Text>
+        <View style={styles.memeGrid}>
+          {MEMES.map((m) => (
+            <View key={m.id} style={styles.memeCell}>
+              <MemeCard meme={m} locked={!unlocked.has(m.unlockedBy)} />
+            </View>
+          ))}
         </View>
 
         <Text style={styles.h}>ІСТОРІЯ</Text>
@@ -280,6 +291,8 @@ const styles = StyleSheet.create({
   },
   achTitle: { color: C.txt, fontWeight: '800', fontSize: 13, marginTop: 4 },
   achDesc: { color: C.muted, fontSize: 11, marginTop: 2, lineHeight: 15 },
+  memeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  memeCell: { width: '48%', flexGrow: 1 },
   empty: { color: C.muted, fontSize: 13 },
   hRow: {
     flexDirection: 'row',

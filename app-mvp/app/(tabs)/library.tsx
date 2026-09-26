@@ -5,6 +5,8 @@ import { useLocalSearchParams } from 'expo-router';
 import { TopBar } from '../../src/components/TopBar';
 import { GrindykSay } from '../../src/components/GrindykSay';
 import { CARDS, CATEGORIES, categoryFor } from '../../src/data/library';
+import { TERMS } from '../../src/data/glossary';
+import { Calculators } from '../../src/components/Calculators';
 import { INCLUDE_RESTRICTED } from '../../src/data/restricted';
 import { say } from '../../src/data/phrases';
 import { C } from '../../src/theme';
@@ -14,7 +16,7 @@ export default function Library() {
   const params = useLocalSearchParams<{ cat?: string }>();
   const [talk, setTalk] = useState(() => say('library'));
   const cats = useMemo(
-    () => CATEGORIES.filter((c) => CARDS.some((k) => k.category === c.id && (INCLUDE_RESTRICTED || !k.risky))),
+    () => [{ id: 'Калькулятори', icon: '🧮' }, { id: 'Словник', icon: '📖' }, ...CATEGORIES].filter((c) => c.id === 'Калькулятори' || c.id === 'Словник' || CARDS.some((k) => k.category === c.id && (INCLUDE_RESTRICTED || !k.risky))),
     []
   );
   const fromLink = params.cat ? categoryFor(params.cat) : undefined;
@@ -42,6 +44,16 @@ export default function Library() {
             </Pressable>
           ))}
         </ScrollView>
+
+        {cat === 'Калькулятори' && <Calculators />}
+
+        {cat === 'Словник' &&
+          TERMS.map((t) => (
+            <View key={t.id} style={styles.card}>
+              <Text style={styles.name}>{t.title}</Text>
+              <Text style={styles.forWhat}>{t.def}</Text>
+            </View>
+          ))}
 
         {cards.map((k) => {
           const isOpen = open === k.id;

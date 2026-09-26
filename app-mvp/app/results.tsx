@@ -12,6 +12,8 @@ import { say, PhraseKind } from '../src/data/phrases';
 import { ACHIEVEMENTS } from '../src/data/achievements';
 import { DIAGNOSTIC_ID, MISTAKES_ID, skippableUpTo } from '../src/data/virtual';
 import { MODULES } from '../src/data/modules';
+import { MemeCard } from '../src/components/MemeCard';
+import { MEMES } from '../src/data/memes';
 
 export default function Results() {
   const insets = useSafeAreaInsets();
@@ -59,7 +61,7 @@ export default function Results() {
         // діагностика не дає нагород; ачівка «золоті окуляри» за безпомилковий тест з першої спроби
         useStore.getState().finishDiagnostic(errors === 0 && correct > 0, []);
       } else if (passed) {
-        completeLesson(id, coins, xp, { correct, errors, doubled, practiceOnly: isMistakes });
+        completeLesson(id, coins, xp, { correct, errors, doubled, practiceOnly: isMistakes, maxCombo: Math.round(maxBonus / 2), isQuiz: isQuizId(id) });
       }
       const st = useStore.getState();
       const fresh = st.unlocked.filter((a) => !unlockedBefore.includes(a));
@@ -160,6 +162,16 @@ export default function Results() {
                 <Text style={styles.achTitle}>Досягнення: {a.title}</Text>
                 <Text style={styles.achSub}>{a.desc}</Text>
               </View>
+            </View>
+          ) : null;
+        })}
+
+        {newAch.map((aid) => {
+          const meme = MEMES.find((m) => m.unlockedBy === aid);
+          return meme ? (
+            <View key={`meme-${aid}`} style={{ width: 200, marginTop: 10 }}>
+              <Text style={styles.memeTag}>НОВИЙ МЕМ У КОЛЕКЦІЇ</Text>
+              <MemeCard meme={meme} />
             </View>
           ) : null;
         })}
@@ -283,6 +295,7 @@ const styles = StyleSheet.create({
   center: { alignItems: 'center' },
   emoji: { fontSize: 60 },
   h1: { color: C.txt, fontSize: 26, fontWeight: '800', marginTop: 8 },
+  memeTag: { color: C.gold, fontWeight: '900', fontSize: 11, letterSpacing: 1, textAlign: 'center', marginBottom: 6 },
   doubled: { color: C.gold, fontWeight: '800', marginTop: 10 },
   diagTxt: { color: C.txt, fontSize: 15, lineHeight: 22, textAlign: 'center' },
   muted: { color: C.muted, fontSize: 14, marginTop: 6, textAlign: 'center' },

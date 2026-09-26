@@ -63,6 +63,7 @@ export default function LessonScreen() {
   const [shieldHit, setShieldHit] = useState(false);
   const [hidden, setHidden] = useState<number | null>(null); // варіант, прибраний підказкою
   const resultsRef = useRef<AnswerResult[]>([]);
+  const [wrongSteps, setWrongSteps] = useState<number[]>([]);
   const leftRef = useRef(0);
 
   // Квіз іде на час: 20 с на питання, 30 с на сценарну задачу
@@ -114,6 +115,7 @@ export default function LessonScreen() {
 
   function pushResult(ok: boolean) {
     resultsRef.current.push({ ...refFor(idx), ok });
+    if (!ok) setWrongSteps((w) => [...w, idx]);
   }
 
   function record(ok: boolean) {
@@ -227,7 +229,16 @@ export default function LessonScreen() {
           <Text style={styles.x}>✕</Text>
         </Pressable>
         <View style={styles.pbar}>
-          <View style={[styles.fill, { width: `${(idx / total) * 100}%` }]} />
+          {steps.map((_, k) => (
+            <View
+              key={k}
+              style={[
+                styles.seg,
+                k < idx && { backgroundColor: wrongSteps.includes(k) ? C.red : C.accent },
+                k === idx && answered && { backgroundColor: wrongSteps.includes(k) ? C.red : C.accent },
+              ]}
+            />
+          ))}
         </View>
         <View style={styles.comboBox}>
           {combo > 0 && (
@@ -392,7 +403,8 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.bg, paddingHorizontal: 22 },
   head: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 10 },
   x: { color: C.muted, fontSize: 22 },
-  pbar: { flex: 1, height: 16, backgroundColor: '#191e28', borderRadius: 10, overflow: 'hidden' },
+  pbar: { flex: 1, height: 16, flexDirection: 'row', gap: 2, borderRadius: 10, overflow: 'hidden' },
+  seg: { flex: 1, backgroundColor: '#191e28' },
   fill: { height: '100%', backgroundColor: C.accent, borderRadius: 10 },
   hintBtn: { alignSelf: 'flex-start', backgroundColor: C.panel2, borderRadius: 12, paddingVertical: 7, paddingHorizontal: 12, borderWidth: 2, borderColor: C.gold, marginTop: 6 },
   hintTxt: { color: C.gold, fontWeight: '800', fontSize: 13 },

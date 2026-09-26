@@ -17,6 +17,7 @@ import { MODULES, PATH } from '../../src/data/modules';
 import { GOAL_XP, GOAL_LABEL, ENERGY_PER_LESSON, useStore } from '../../src/store';
 import { C } from '../../src/theme';
 import { TopBar } from '../../src/components/TopBar';
+import { Quests } from '../../src/components/Quests';
 import { GrindykSay } from '../../src/components/GrindykSay';
 import { pose as poseFile, PoseName } from '../../src/data/poses';
 import { homeSay, say } from '../../src/data/phrases';
@@ -161,6 +162,8 @@ export default function Home() {
             <View style={[styles.goalFill, { width: `${goalPct * 100}%` }]} />
           </View>
         </View>
+
+        <Quests />
 
         <View style={{ marginTop: 16, marginBottom: 6 }}>
           <GrindykSay

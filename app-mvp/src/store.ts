@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ACHIEVEMENTS, Stats } from './data/achievements';
 import { levelForXp } from './data/levels';
 import { ITEMS } from './data/shop';
+import { Metric, questsForDay } from './data/quests';
 import { outcomeFor, rankOf, standings, weekStartStr, LeagueOutcome } from './data/league';
 
 export type CharStart = 'caveman' | 'sapiens' | 'early';
@@ -64,6 +65,11 @@ type State = {
   mistakes: MistakeRef[];
   unlocked: string[]; // відкриті досягнення
 
+  // щоденні завдання
+  questsDate: string;
+  questProgress: Partial<Record<Metric, number>>;
+  questsClaimed: string[];
+
   // ліга
   weekId: string;
   weekXp: number;
@@ -83,9 +89,10 @@ type State = {
     id: string,
     coinsEarned: number,
     xpEarned: number,
-    extra?: { correct: number; errors: number; doubled?: boolean; practiceOnly?: boolean }
+    extra?: { correct: number; errors: number; doubled?: boolean; practiceOnly?: boolean; maxCombo?: number; isQuiz?: boolean }
   ) => void;
   recordAnswers: (results: AnswerResult[]) => void;
+  claimQuest: (id: string) => void;
   spendEnergy: (n: number) => void;
   useComboShield: () => boolean;
   useHint: () => boolean;
@@ -195,6 +202,16 @@ function energyPatch(s: State, now: number): Partial<State> {
   return { energy, energyAt, lastBonusDate };
 }
 
+// Скидає прогрес завдань, якщо настала нова доба
+function questsRoll(s: State): Partial<State> {
+  const today = todayStr();
+  return s.questsDate === today ? {} : { questsDate: today, questProgress: {}, questsClaimed: [] };
+}
+
+function bump(p: Partial<Record<Metric, number>>, m: Metric, by: number, mode: 'add' | 'max' = 'add') {
+  return { ...p, [m]: mode === 'max' ? Math.max(p[m] ?? 0, by) : (p[m] ?? 0) + by };
+}
+
 const FRESH = {
   onboarded: false,
   playerName: '',
@@ -231,6 +248,9 @@ const FRESH = {
   history: [] as HistoryItem[],
   mistakes: [] as MistakeRef[],
   unlocked: [] as string[],
+  questsDate: '',
+  questProgress: {} as Partial<Record<Metric, number>>,
+  questsClaimed: [] as string[],
   weekId: '',
   weekXp: 0,
   tier: 0,
@@ -289,7 +309,7 @@ export const useStore = create<State>()(
             }
           }
           const next = { ...s, ...patch } as State;
-          return withAchievements(s, { ...patch, ...rolloverWeek(next), ...energyPatch(next, Date.now()) });
+          return withAchievements(s, { ...patch, ...rolloverWeek(next), ...questsRoll(next), ...energyPatch(next, Date.now()) });
         }),
 
       refreshEnergy: () =>
@@ -311,8 +331,17 @@ export const useStore = create<State>()(
               ].slice(0, 60)
             : s.history;
           const week = rolloverWeek(s);
+          const q0 = questsRoll(s);
+          let qp = q0.questProgress ?? s.questProgress;
+          qp = bump(qp, 'xp', xpEarned);
+          if (count && !s.completed.includes(id)) qp = bump(qp, 'lessons', 1);
+          if (perfect) qp = bump(qp, 'perfect', 1);
+          if (extra?.isQuiz) qp = bump(qp, 'quiz', 1);
+          if (extra?.maxCombo) qp = bump(qp, 'combo', extra.maxCombo, 'max');
           const patch: Partial<State> = {
             ...week,
+            ...q0,
+            questProgress: qp,
             completed,
             coins: s.coins + coinsEarned,
             xp,
@@ -343,7 +372,25 @@ export const useStore = create<State>()(
               mistakes = [{ lessonId: r.lessonId, idx: r.idx }, ...mistakes];
             }
           }
-          return withAchievements(s, { mistakes: mistakes.slice(0, 80), mistakesFixed: s.mistakesFixed + fixed });
+          const q0 = questsRoll(s);
+          const qp = fixed ? bump(q0.questProgress ?? s.questProgress, 'fixed', fixed) : q0.questProgress ?? s.questProgress;
+          return withAchievements(s, { ...q0, questProgress: qp, mistakes: mistakes.slice(0, 80), mistakesFixed: s.mistakesFixed + fixed });
+        }),
+
+      claimQuest: (id) =>
+        set((s) => {
+          const q0 = questsRoll(s);
+          const day = q0.questsDate ?? s.questsDate;
+          const claimed = q0.questsClaimed ?? s.questsClaimed;
+          const progress = q0.questProgress ?? s.questProgress;
+          const def = questsForDay(day).find((q) => q.id === id);
+          if (!def || claimed.includes(id) || (progress[def.metric] ?? 0) < def.target) return {};
+          return withAchievements(s, {
+            ...q0,
+            questsClaimed: [...claimed, id],
+            coins: s.coins + def.reward,
+            totalCoinsEarned: s.totalCoinsEarned + def.reward,
+          });
         }),
 
       spendEnergy: (n) =>

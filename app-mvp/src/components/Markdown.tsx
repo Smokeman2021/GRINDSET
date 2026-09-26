@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet, TextStyle, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TextStyle, ScrollView, Modal, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { C } from '../theme';
+import { findTerm, Term, TERM_RE } from '../data/glossary';
 
 type Block =
   | { t: 'p'; text: string }
@@ -62,7 +63,39 @@ function parse(src: string): Block[] {
 }
 
 // **жирний**, *курсив*, `код`, [→ Бібліотека: X]
-function inline(text: string, base: TextStyle, onRef?: (label: string) => void) {
+type Ctx = { onRef?: (label: string) => void; onTerm?: (t: Term) => void; seen: Set<string> };
+
+// Звичайний текст: перше згадування терміна з глосарію підсвічується і відкриває пояснення
+function plain(text: string, base: TextStyle, ctx: Ctx, keyPrefix: string): React.ReactNode[] {
+  const out: React.ReactNode[] = [];
+  let rest = text;
+  let n = 0;
+  while (rest) {
+    const m = TERM_RE.exec(rest);
+    if (!m) {
+      out.push(rest);
+      break;
+    }
+    const term = findTerm(m[0]);
+    const end = m.index + m[0].length;
+    if (!term || ctx.seen.has(term.id)) {
+      out.push(rest.slice(0, end));
+      rest = rest.slice(end);
+      continue;
+    }
+    ctx.seen.add(term.id);
+    if (m.index > 0) out.push(rest.slice(0, m.index));
+    out.push(
+      <Text key={`${keyPrefix}-${n++}`} style={[base, styles.term]} onPress={() => ctx.onTerm?.(term)}>
+        {m[0]}
+      </Text>
+    );
+    rest = rest.slice(end);
+  }
+  return out;
+}
+
+function inline(text: string, base: TextStyle, ctx: Ctx) {
   const parts = text.split(/(\*\*[^*]+\*\*|\*[^*\n]+\*|`[^`]+`|\[→[^\]]+\])/g);
   return parts.map((part, i) => {
     if (!part) return null;
@@ -80,7 +113,7 @@ function inline(text: string, base: TextStyle, onRef?: (label: string) => void) 
       );
     if (part.startsWith('[→'))
       return (
-        <Text key={i} style={[base, styles.ref]} onPress={() => onRef?.(part.slice(2, -1).replace(/^\s*Бібліотека:\s*/i, '').trim())}>
+        <Text key={i} style={[base, styles.ref]} onPress={() => ctx.onRef?.(part.slice(2, -1).replace(/^\s*Бібліотека:\s*/i, '').trim())}>
           {'📚 ' + part.slice(2, -1).trim()}
         </Text>
       );
@@ -90,20 +123,22 @@ function inline(text: string, base: TextStyle, onRef?: (label: string) => void) 
           {part.slice(1, -1)}
         </Text>
       );
-    return part;
+    return <React.Fragment key={i}>{plain(part, base, ctx, String(i))}</React.Fragment>;
   });
 }
 
 export function Markdown({ text, small }: { text: string; small?: boolean }) {
   const router = useRouter();
   const goRef = (label: string) => router.navigate({ pathname: '/library', params: { cat: label } });
+  const [popup, setPopup] = useState<Term | null>(null);
+  const ctx: Ctx = { onRef: goRef, onTerm: setPopup, seen: new Set() };
   const blocks = parse(text);
   const pStyle = small ? [styles.p, styles.pSm] : styles.p;
   const liStyle = small ? [styles.liTxt, styles.liSm] : styles.liTxt;
   return (
     <View>
       {blocks.map((b, i) => {
-        if (b.t === 'p') return <Text key={i} style={pStyle}>{inline(b.text, styles.p, goRef)}</Text>;
+        if (b.t === 'p') return <Text key={i} style={pStyle}>{inline(b.text, styles.p, ctx)}</Text>;
         if (b.t === 'code')
           return (
             <View key={i} style={styles.codeBox}>
@@ -130,7 +165,7 @@ export function Markdown({ text, small }: { text: string; small?: boolean }) {
                         ci === row.length - 1 && { borderRightWidth: 0 },
                       ]}
                     >
-                      <Text style={[styles.tdTxt, ri === 0 && styles.bold]}>{inline(cell, styles.tdTxt, goRef)}</Text>
+                      <Text style={[styles.tdTxt, ri === 0 && styles.bold]}>{inline(cell, styles.tdTxt, ctx)}</Text>
                     </View>
                   ))}
                 </View>
@@ -151,12 +186,22 @@ export function Markdown({ text, small }: { text: string; small?: boolean }) {
             {items.map((it, ii) => (
               <View key={ii} style={styles.li}>
                 <Text style={styles.bullet}>{b.t === 'ol' ? `${ii + 1}.` : '•'}</Text>
-                <Text style={liStyle}>{inline(it, styles.liTxt, goRef)}</Text>
+                <Text style={liStyle}>{inline(it, styles.liTxt, ctx)}</Text>
               </View>
             ))}
           </View>
         );
       })}
+      <Modal transparent animationType="fade" visible={!!popup} onRequestClose={() => setPopup(null)}>
+        <Pressable style={styles.backdrop} onPress={() => setPopup(null)}>
+          <View style={styles.sheet}>
+            <Text style={styles.sheetTag}>ТЕРМІН</Text>
+            <Text style={styles.sheetTitle}>{popup?.title}</Text>
+            <Text style={styles.sheetDef}>{popup?.def}</Text>
+            <Text style={styles.sheetHint}>Торкнись будь-де, щоб закрити</Text>
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -165,6 +210,13 @@ const styles = StyleSheet.create({
   p: { color: C.txt, fontSize: 16, lineHeight: 25, marginBottom: 12 },
   pSm: { fontSize: 14, lineHeight: 21, marginBottom: 8 },
   liSm: { fontSize: 14, lineHeight: 21 },
+  term: { color: C.gold, textDecorationLine: 'underline', textDecorationStyle: 'dotted', textDecorationColor: C.gold },
+  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
+  sheet: { backgroundColor: C.panel, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 22, paddingBottom: 34, borderTopWidth: 3, borderTopColor: C.gold },
+  sheetTag: { color: C.gold, fontWeight: '900', fontSize: 11, letterSpacing: 1 },
+  sheetTitle: { color: C.txt, fontWeight: '900', fontSize: 22, marginTop: 4 },
+  sheetDef: { color: C.txt, fontSize: 16, lineHeight: 24, marginTop: 10 },
+  sheetHint: { color: C.muted, fontSize: 12, marginTop: 14 },
   bold: { fontWeight: '800' },
   italic: { fontStyle: 'italic', color: C.muted },
   mono: { fontFamily: 'monospace', backgroundColor: C.panel2 },
