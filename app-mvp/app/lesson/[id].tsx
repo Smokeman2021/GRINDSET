@@ -1,28 +1,99 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LESSONS } from '../../src/data/lessons';
-import { useStore, ENERGY_PER_LESSON } from '../../src/store';
+import { shuffleQuestion, Step } from '../../src/data/lessons';
+import { ALL_LESSONS } from '../../src/data/modules';
+import { buildDiagnostic, buildMistakes, buildPractice, DIAGNOSTIC_ID, MISTAKES_ID, PRACTICE_ID, VirtualLesson } from '../../src/data/virtual';
+import { useStore, ENERGY_PER_LESSON, AnswerResult } from '../../src/store';
 import { C } from '../../src/theme';
 import { Grindyk } from '../../src/components/Grindyk';
+import { say, PhraseKind } from '../../src/data/phrases';
 import { Button } from '../../src/components/Button';
+import { Icon } from '../../src/components/Icon';
+import { Reaction } from '../../src/components/Reaction';
+import { boostLeftMs } from '../../src/notifications';
+import { Markdown } from '../../src/components/Markdown';
+import { BundleStep, MatchStep, MultiStep, NumericStep, OrderStep, StoryStep } from '../../src/components/steps';
+
+const SECONDS_L1 = 20;
+const SECONDS_L2 = 30;
+const QUIZ_BASE_COINS = 40;
+const QUIZ_BASE_XP = 30;
 
 export default function LessonScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const spendEnergy = useStore((s) => s.spendEnergy);
+  const completed = useStore((s) => s.completed);
+  const recordAnswers = useStore((s) => s.recordAnswers);
+  const takeComboShield = useStore((s) => s.useComboShield);
+  const takeHint = useStore((s) => s.useHint);
+  const hintsLeft = useStore((s) => s.hints);
+  const doubleCoins = useStore((s) => s.doubleCoins);
 
-  const lesson = useMemo(() => LESSONS.find((l) => l.id === id), [id]);
+  // надолуження помилок і діагностика збираються на льоту
+  const virtual: VirtualLesson | null = useMemo(() => {
+    if (id === MISTAKES_ID) return buildMistakes(useStore.getState().mistakes);
+    if (id === DIAGNOSTIC_ID) return buildDiagnostic();
+    if (id === PRACTICE_ID) return buildPractice(useStore.getState().completed, useStore.getState().srs);
+    return null;
+  }, [id]);
+  const isDiagnostic = id === DIAGNOSTIC_ID;
+
+  const lesson = useMemo(() => virtual?.lesson ?? ALL_LESSONS.find((l) => l.id === id), [id, virtual]);
+  const isCheckpoint = lesson?.kind === 'checkpoint';
+  const isQuiz = lesson?.kind === 'quiz';
+  const alreadyDone = lesson ? completed.includes(lesson.id) || id === MISTAKES_ID || id === PRACTICE_ID : false;
+
+  const steps: Step[] = useMemo(() => {
+    if (!lesson) return [];
+    return isQuiz ? lesson.steps.map((s) => (s.type === 'teach' ? s : shuffleQuestion(s))) : lesson.steps;
+  }, [lesson, isQuiz]);
 
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
+  const [extCorrect, setExtCorrect] = useState<boolean | null>(null); // результат завдань з власним інтерфейсом
   const [answered, setAnswered] = useState(false);
   const [combo, setCombo] = useState(0);
   const [maxBonus, setMaxBonus] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [errors, setErrors] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [timedOut, setTimedOut] = useState(false);
+  const [speedPts, setSpeedPts] = useState(0);
+  const [shieldHit, setShieldHit] = useState(false);
+  const [hidden, setHidden] = useState<number | null>(null); // варіант, прибраний підказкою
+  const resultsRef = useRef<AnswerResult[]>([]);
+  const [wrongSteps, setWrongSteps] = useState<number[]>([]);
+  const leftRef = useRef(0);
+
+  // Квіз іде на час: 20 с на питання, 30 с на сценарну задачу
+  const cur = steps[idx];
+  const limit = isQuiz && cur && cur.type !== 'teach' ? (cur.layer === 2 ? SECONDS_L2 : SECONDS_L1) : 0;
+
+  useEffect(() => {
+    if (!limit || answered) return;
+    const deadline = Date.now() + limit * 1000;
+    leftRef.current = limit;
+    setTimeLeft(limit);
+    const timer = setInterval(() => {
+      const left = Math.max(0, (deadline - Date.now()) / 1000);
+      leftRef.current = left;
+      setTimeLeft(left);
+      if (left <= 0) {
+        clearInterval(timer);
+        setSelected(-1);
+        setTimedOut(true);
+        setAnswered(true);
+        setCombo(0);
+        setErrors((e) => e + 1);
+        pushResult(false);
+      }
+    }, 200);
+    return () => clearInterval(timer);
+  }, [idx, limit, answered]);
 
   if (!lesson) {
     return (
@@ -33,49 +104,120 @@ export default function LessonScreen() {
     );
   }
 
-  const step = lesson.steps[idx];
-  const total = lesson.steps.length;
+  const lsn = lesson;
+  const step = steps[idx];
+  const total = steps.length;
   const isTeach = step.type === 'teach';
-  const isCorrect = !isTeach && selected === step.answer;
+  const isChoiceLike = step.type === 'choice' || step.type === 'fill';
+  const isCorrect = step.type === 'teach' ? false : isChoiceLike ? selected === step.answer : extCorrect === true;
   const canContinue = isTeach || answered;
 
-  function onAnswer(k: number) {
-    if (answered || step.type === 'teach') return;
-    setSelected(k);
-    setAnswered(true);
-    if (k === step.answer) {
+  function refFor(i: number) {
+    return virtual ? virtual.refs[i] : { lessonId: id, idx: i };
+  }
+
+  function pushResult(ok: boolean) {
+    resultsRef.current.push({ ...refFor(idx), ok });
+    if (!ok) setWrongSteps((w) => [...w, idx]);
+  }
+
+  function record(ok: boolean) {
+    pushResult(ok);
+    if (ok) {
       const nextCombo = combo + 1;
       const bonus = Math.min(20, nextCombo * 2);
       setCombo(nextCombo);
       setMaxBonus((m) => Math.max(m, bonus));
       setCorrect((c) => c + 1);
+      if (limit) setSpeedPts((p) => p + Math.round(5 * (leftRef.current / limit)));
     } else {
-      setCombo(0);
       setErrors((e) => e + 1);
+      if (combo > 0 && takeComboShield()) {
+        setShieldHit(true); // захист із магазину зберіг комбо
+      } else {
+        setCombo(0);
+      }
     }
+  }
+
+  function useHintNow() {
+    if (answered || hidden !== null || (step.type !== 'choice' && step.type !== 'fill') || !takeHint()) return;
+    const wrong = step.options.map((_, k) => k).filter((k) => k !== step.answer);
+    setHidden(wrong[Math.floor(Math.random() * wrong.length)]);
+  }
+
+  function onAnswer(k: number) {
+    if (answered || (step.type !== 'choice' && step.type !== 'fill')) return;
+    setSelected(k);
+    setAnswered(true);
+    record(k === step.answer);
+  }
+
+  function onExternal(ok: boolean) {
+    if (answered) return;
+    setExtCorrect(ok);
+    setAnswered(true);
+    record(ok);
   }
 
   function onContinue() {
     if (idx + 1 >= total) {
-      spendEnergy(ENERGY_PER_LESSON);
-      const base = 20;
-      const bonusCoins = Math.round((base * maxBonus) / 100);
-      const coins = base + bonusCoins + correct * 5;
+      recordAnswers(resultsRef.current);
+      if (!isDiagnostic && id !== MISTAKES_ID && id !== PRACTICE_ID) spendEnergy(ENERGY_PER_LESSON);
+
+      const accuracy = correct + errors > 0 ? correct / (correct + errors) : 1;
+      const passed = !isCheckpoint || accuracy >= (lsn.passThreshold ?? 0.8);
+
+      const baseCoins = isCheckpoint ? 40 : isQuiz ? QUIZ_BASE_COINS : 20;
+      const baseXp = isCheckpoint ? 50 : isQuiz ? QUIZ_BASE_XP : 10;
+      let coins = baseCoins + Math.round((baseCoins * maxBonus) / 100) + correct * 5 + speedPts;
+      let xp = baseXp + correct * 3 + Math.round(speedPts * 0.6);
+
+      if (alreadyDone) {
+        coins = Math.round(coins / 2);
+        xp = Math.round(xp / 2);
+      }
+      if (isCheckpoint && !passed) {
+        coins = 0;
+        xp = 0;
+      }
+      const doubled = doubleCoins > 0 && coins > 0 && !isDiagnostic;
+      if (doubled) coins *= 2;
+      // X2-вікно посеред дня (10 хвилин після сповіщення): подвоює коїни й XP
+      if (!isDiagnostic && boostLeftMs() > 0) {
+        coins *= 2;
+        xp *= 2;
+      }
+      if (isDiagnostic) {
+        coins = 0;
+        xp = 0;
+      }
+
       router.replace({
         pathname: '/results',
         params: {
-          id: lesson.id,
+          id: lsn.id,
           correct: String(correct),
           errors: String(errors),
           maxBonus: String(maxBonus),
           coins: String(coins),
+          xp: String(xp),
+          practice: alreadyDone ? '1' : '0',
+          checkpoint: isCheckpoint ? '1' : '0',
+          passed: passed ? '1' : '0',
+          speed: String(speedPts),
+          doubled: doubled ? '1' : '0',
         },
       });
       return;
     }
     setIdx(idx + 1);
     setSelected(null);
+    setExtCorrect(null);
     setAnswered(false);
+    setTimedOut(false);
+    setShieldHit(false);
+    setHidden(null);
   }
 
   const mood = isTeach
@@ -95,10 +237,61 @@ export default function LessonScreen() {
           <Text style={styles.x}>✕</Text>
         </Pressable>
         <View style={styles.pbar}>
-          <View style={[styles.fill, { width: `${(idx / total) * 100}%` }]} />
+          {steps.map((_, k) => (
+            <View
+              key={k}
+              style={[
+                styles.seg,
+                k < idx && { backgroundColor: wrongSteps.includes(k) ? C.red : C.accent },
+                k === idx && answered && { backgroundColor: wrongSteps.includes(k) ? C.red : C.accent },
+              ]}
+            />
+          ))}
         </View>
-        <Text style={styles.combo}>{combo > 0 ? `🔥 x${combo}` : ''}</Text>
+        <View style={styles.comboBox}>
+          {combo > 0 && (
+            <>
+              <Icon name="streak" size={22} />
+              <Text style={styles.combo}>x{combo}</Text>
+            </>
+          )}
+        </View>
       </View>
+
+      {(isCheckpoint || alreadyDone || isQuiz || isDiagnostic) && (
+        <Text style={[styles.mode, isCheckpoint && { color: C.gold }]}>
+          {isCheckpoint
+            ? '👑 ТЕСТ НА КОРОНУ · потрібно 80%'
+            : isDiagnostic
+            ? '🧪 ДІАГНОСТИКА · без нагород, лише рівень'
+            : id === MISTAKES_ID
+            ? '🩹 НАДОЛУЖЕННЯ ПОМИЛОК · нагорода ½'
+            : id === PRACTICE_ID
+            ? '🏋️ ШВИДКЕ ТРЕНУВАННЯ · нагорода ½'
+            : alreadyDone
+            ? '🔁 ПОВТОРЕННЯ · нагорода ½'
+            : '⏱ КВІЗ НА ЧАС · бонусна нагорода'}
+        </Text>
+      )}
+
+      {limit > 0 && (
+        <View style={styles.timerRow}>
+          <Text style={[styles.timerTxt, timeLeft <= 5 && !answered && { color: C.red }]}>
+            ⏱ {Math.ceil(timeLeft)} с
+          </Text>
+          <View style={styles.timerBar}>
+            <View
+              style={[
+                styles.timerFill,
+                {
+                  width: `${Math.min(100, (timeLeft / limit) * 100)}%`,
+                  backgroundColor: timeLeft <= 5 && !answered ? C.red : C.blue,
+                },
+              ]}
+            />
+          </View>
+        </View>
+      )}
 
       <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
         {isTeach ? (
@@ -108,7 +301,20 @@ export default function LessonScreen() {
               <Grindyk mood="think" size={64} />
             </View>
             <Text style={styles.teachTitle}>{step.title}</Text>
-            <Text style={styles.teachBody}>{step.body}</Text>
+            <Markdown text={step.body} />
+            {step.cards && (
+              <View style={styles.cards}>
+                {step.cards.map((c, i) => (
+                  <View key={i} style={styles.card}>
+                    <Text style={styles.cardIcon}>{c.icon}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.cardTitle}>{c.title}</Text>
+                      <Text style={styles.cardTxt}>{c.text}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
             {step.example && (
               <View style={styles.example}>
                 <Text style={styles.exampleLabel}>ПРИКЛАД</Text>
@@ -126,9 +332,9 @@ export default function LessonScreen() {
               <Text style={styles.q}>{step.q}</Text>
             </View>
 
-            {step.type === 'choice' && step.scenario && (
+            {step.type !== 'fill' && step.scenario && (
               <View style={styles.scenario}>
-                <Text style={styles.scenarioTxt}>{step.scenario}</Text>
+                <Markdown text={step.scenario} small />
               </View>
             )}
 
@@ -140,21 +346,52 @@ export default function LessonScreen() {
               </Text>
             )}
 
+            {!answered && hintsLeft > 0 && (step.type === 'choice' || step.type === 'fill') && hidden === null && (
+              <Pressable onPress={useHintNow} style={styles.hintBtn}>
+                <Text style={styles.hintTxt}>💡 Підказка ({hintsLeft})</Text>
+              </Pressable>
+            )}
+
             <View style={{ marginTop: 12 }}>
-              {step.options.map((o, k) => {
-                const showCorrect = answered && k === step.answer;
-                const showWrong = answered && k === selected && k !== step.answer;
-                return (
-                  <Pressable
-                    key={k}
-                    disabled={answered}
-                    onPress={() => onAnswer(k)}
-                    style={[styles.opt, showCorrect && styles.optCorrect, showWrong && styles.optWrong]}
-                  >
-                    <Text style={styles.optTxt}>{o}</Text>
-                  </Pressable>
-                );
-              })}
+              {(step.type === 'choice' || step.type === 'fill') &&
+                step.options.map((o, k) => {
+                  const showCorrect = answered && k === step.answer;
+                  const showWrong = answered && k === selected && k !== step.answer;
+                  if (k === hidden) return null;
+                  return (
+                    <Pressable
+                      key={k}
+                      disabled={answered}
+                      onPress={() => onAnswer(k)}
+                      style={({ pressed }) => [
+                        styles.opt,
+                        showCorrect && styles.optCorrect,
+                        showWrong && styles.optWrong,
+                        pressed && !answered && styles.optPressed,
+                      ]}
+                    >
+                      <Text style={styles.optTxt}>{o}</Text>
+                    </Pressable>
+                  );
+                })}
+              {step.type === 'multi' && (
+                <MultiStep key={`${idx}`} step={step} resolution={answered ? { correct: isCorrect } : null} onResolve={onExternal} />
+              )}
+              {step.type === 'order' && (
+                <OrderStep key={`${idx}`} step={step} resolution={answered ? { correct: isCorrect } : null} onResolve={onExternal} />
+              )}
+              {step.type === 'match' && (
+                <MatchStep key={`${idx}`} step={step} resolution={answered ? { correct: isCorrect } : null} onResolve={onExternal} />
+              )}
+              {step.type === 'bundle' && (
+                <BundleStep key={`${idx}`} step={step} resolution={answered ? { correct: isCorrect } : null} onResolve={onExternal} />
+              )}
+              {step.type === 'story' && (
+                <StoryStep key={`${idx}`} step={step} resolution={answered ? { correct: isCorrect } : null} onResolve={onExternal} />
+              )}
+              {step.type === 'numeric' && (
+                <NumericStep key={`${idx}`} step={step} resolution={answered ? { correct: isCorrect } : null} onResolve={onExternal} />
+              )}
             </View>
           </>
         )}
@@ -162,19 +399,21 @@ export default function LessonScreen() {
 
       {!isTeach && answered && (
         <View style={[styles.fb, isCorrect ? styles.fbOk : styles.fbNo]}>
-          <Text style={styles.fbBig}>{isCorrect ? (combo >= 3 ? '🔥' : '👍') : '👀'}</Text>
+          <Reaction key={`r-${idx}`} kind={timedOut ? 'timeout' : isCorrect ? (combo >= 3 ? 'fire' : 'good') : 'bad'} size={58} />
           <View style={{ flex: 1 }}>
             <Text style={[styles.fbTxt, { color: isCorrect ? C.accent : C.red }]}>
-              {isCorrect ? step.okMsg : step.noMsg}
+              {timedOut ? '⏱ Час вийшов. Правильна відповідь підсвічена зеленим.' : isCorrect ? step.okMsg : step.noMsg}
             </Text>
             {step.explain && <Text style={styles.explain}>{step.explain}</Text>}
+            {shieldHit && <Text style={styles.shield}>🛡️ Захист комбо врятував серію</Text>}
+            <Quip kind={timedOut ? 'timeout' : isCorrect ? (combo >= 5 ? 'combo5' : combo >= 3 ? 'combo3' : 'correct') : 'wrong'} />
           </View>
         </View>
       )}
 
       <View style={{ paddingTop: 12, paddingBottom: insets.bottom + 12 }}>
         <Button
-          title={isTeach ? 'Зрозумів' : idx + 1 >= total ? 'Завершити' : 'Далі'}
+          title={isTeach ? (isQuiz && idx === 0 ? 'Старт' : 'Зрозумів') : idx + 1 >= total ? 'Завершити' : 'Далі'}
           onPress={onContinue}
           disabled={!canContinue}
         />
@@ -183,13 +422,35 @@ export default function LessonScreen() {
   );
 }
 
+// Репліка Гріндіка під відповідь: одна на показ фідбеку, не змінюється при перерендері
+function Quip({ kind }: { kind: PhraseKind }) {
+  const text = useMemo(() => say(kind).text, []); // eslint-disable-line react-hooks/exhaustive-deps
+  return <Text style={styles.quip}>Гріндік: {text}</Text>;
+}
+
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.bg, paddingHorizontal: 22 },
   head: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 10 },
   x: { color: C.muted, fontSize: 22 },
-  pbar: { flex: 1, height: 14, backgroundColor: C.line, borderRadius: 8, overflow: 'hidden' },
-  fill: { height: '100%', backgroundColor: C.accent },
-  combo: { color: C.fire, fontWeight: '800', fontSize: 15, minWidth: 50, textAlign: 'right' },
+  pbar: { flex: 1, height: 16, flexDirection: 'row', gap: 2, borderRadius: 10, overflow: 'hidden' },
+  seg: { flex: 1, backgroundColor: '#191e28' },
+  fill: { height: '100%', backgroundColor: C.accent, borderRadius: 10 },
+  hintBtn: { alignSelf: 'flex-start', backgroundColor: C.panel2, borderRadius: 12, paddingVertical: 7, paddingHorizontal: 12, borderWidth: 2, borderColor: C.gold, marginTop: 6 },
+  hintTxt: { color: C.gold, fontWeight: '800', fontSize: 13 },
+  shield: { color: C.blue, fontWeight: '800', fontSize: 13, marginTop: 6 },
+  cards: { gap: 10, marginBottom: 14 },
+  card: { flexDirection: 'row', gap: 12, alignItems: 'center', backgroundColor: C.panel, borderRadius: 14, padding: 12, borderWidth: 2, borderBottomWidth: 4, borderColor: C.line },
+  cardIcon: { fontSize: 30 },
+  cardTitle: { color: C.txt, fontWeight: '800', fontSize: 15 },
+  cardTxt: { color: C.muted, fontSize: 13, lineHeight: 19, marginTop: 2 },
+  quip: { color: C.muted, fontSize: 13, fontStyle: 'italic', marginTop: 6 },
+  comboBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 3, minWidth: 56 },
+  timerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 6 },
+  timerTxt: { color: C.blue, fontSize: 13, fontWeight: '800', minWidth: 52 },
+  timerBar: { flex: 1, height: 8, backgroundColor: '#191e28', borderRadius: 6, overflow: 'hidden' },
+  timerFill: { height: '100%', borderRadius: 6 },
+  combo: { color: C.fire, fontWeight: '800', fontSize: 15 },
+  mode: { color: C.blue, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginBottom: 4 },
   layer: { color: C.blue, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginVertical: 8 },
   qRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   q: { color: C.txt, fontSize: 20, fontWeight: '700', flex: 1, marginTop: 4 },
@@ -223,10 +484,20 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: 16,
     padding: 15,
-    marginBottom: 10,
+    marginBottom: 12,
+    borderBottomWidth: 5,
   },
-  optCorrect: { borderColor: C.accent, backgroundColor: 'rgba(54,226,122,0.14)' },
-  optWrong: { borderColor: C.red, backgroundColor: 'rgba(255,92,92,0.12)' },
+  optPressed: { transform: [{ translateY: 3 }], borderBottomWidth: 2 },
+  optCorrect: {
+    borderColor: C.accent,
+    backgroundColor: 'rgba(54,226,122,0.14)',
+    borderBottomColor: C.accentEdge,
+  },
+  optWrong: {
+    borderColor: C.red,
+    backgroundColor: 'rgba(255,92,92,0.12)',
+    borderBottomColor: C.redEdge,
+  },
   optTxt: { color: C.txt, fontSize: 16 },
   fb: { flexDirection: 'row', gap: 10, borderRadius: 14, padding: 14, alignItems: 'flex-start' },
   fbOk: { backgroundColor: 'rgba(54,226,122,0.12)' },

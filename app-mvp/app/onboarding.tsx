@@ -6,16 +6,26 @@ import {
   Pressable,
   TextInput,
   ScrollView,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { QUIZ } from '../src/data/quiz';
-import { useStore } from '../src/store';
-import { Grindyk } from '../src/components/Grindyk';
+import { QUIZ, SKILL_LEVELS } from '../src/data/quiz';
+import { DailyGoal, GOAL_LABEL, GOAL_XP, useStore } from '../src/store';
+import { askPermission } from '../src/notifications';
 import { Button } from '../src/components/Button';
 import { C } from '../src/theme';
 
-type Phase = 'welcome' | 'quiz' | 'name';
+type Phase = 'welcome' | 'quiz' | 'goal' | 'name';
+
+const FULL = require('../assets/grindyk-full.png');
+const BUST = require('../assets/grindyk-bust.png');
+
+const GOALS: { key: DailyGoal; emoji: string; desc: string }[] = [
+  { key: 'casual', emoji: '🌱', desc: '1 урок на день' },
+  { key: 'regular', emoji: '⚡', desc: '2 уроки на день' },
+  { key: 'intense', emoji: '🔥', desc: '3+ уроки на день' },
+];
 
 export default function Onboarding() {
   const router = useRouter();
@@ -26,14 +36,16 @@ export default function Onboarding() {
   const [phase, setPhase] = useState<Phase>('welcome');
   const [stepIdx, setStepIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
-  const [name, setName] = useState('Гріндік');
+  const [skillAns, setSkillAns] = useState<Record<string, number>>({});
+  const [goal, setGoal] = useState<DailyGoal | null>(null);
+  const [name, setName] = useState('');
 
   const pad = { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20 };
 
   if (phase === 'welcome') {
     return (
       <View style={[styles.screen, styles.center, pad]}>
-        <Grindyk mood="neutral" size={90} />
+        <Image source={FULL} style={styles.heroImg} resizeMode="contain" />
         <Text style={styles.h1}>GRINDSET</Text>
         <Text style={styles.muted}>Performance-маркетинг. Без води.</Text>
         <View style={styles.bubble}>
@@ -49,24 +61,59 @@ export default function Onboarding() {
     );
   }
 
+  if (phase === 'goal') {
+    return (
+      <View style={[styles.screen, pad]}>
+        <View style={{ alignItems: 'center', marginBottom: 10 }}>
+          <View style={styles.avatarSm}>
+            <Image source={BUST} style={styles.avatarImg} />
+          </View>
+        </View>
+        <Text style={styles.h2}>Яка ціль на день?</Text>
+        {GOALS.map((g) => (
+          <Pressable
+            key={g.key}
+            style={[styles.opt, goal === g.key && styles.optSel]}
+            onPress={() => setGoal(g.key)}
+          >
+            <Text style={styles.optEmoji}>{g.emoji}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.optTitle}>
+                {GOAL_LABEL[g.key]} · {GOAL_XP[g.key]} XP
+              </Text>
+              <Text style={styles.optDesc}>{g.desc}</Text>
+            </View>
+          </Pressable>
+        ))}
+        <View style={{ flex: 1 }} />
+        <Button title="Далі" disabled={goal === null} onPress={() => setPhase('name')} />
+      </View>
+    );
+  }
+
   if (phase === 'name') {
     return (
       <View style={[styles.screen, styles.center, pad]}>
-        <Grindyk mood="happy" size={90} />
-        <Text style={styles.h2}>Як мене звати?</Text>
-        <Text style={styles.muted}>Дай мені ім'я. Гріндимо разом.</Text>
+        <View style={styles.avatarLg}>
+          <Image source={BUST} style={styles.avatarImg} />
+        </View>
+        <Text style={styles.h2}>А тебе як звати?</Text>
+        <Text style={styles.muted}>Ім'я або нік — так тебе бачитимуть у застосунку.</Text>
         <TextInput
           style={styles.input}
           value={name}
           onChangeText={setName}
           maxLength={14}
+          placeholder="Твій нік"
           placeholderTextColor={C.muted}
         />
         <Button
           title="Готово"
+          disabled={name.trim().length === 0}
           onPress={() => {
-            finishOnboarding(name);
-            router.replace('/home');
+            finishOnboarding(name, goal ?? 'regular');
+            askPermission(); // дозвіл на нагадування (не блокує)
+            router.replace('/plan');
           }}
         />
       </View>
@@ -75,6 +122,12 @@ export default function Onboarding() {
 
   // quiz
   const step = QUIZ[stepIdx];
+  const next = () => {
+    setSelected(null);
+    if (stepIdx + 1 >= QUIZ.length) setPhase('goal');
+    else setStepIdx(stepIdx + 1);
+  };
+  const skillsDone = step.kind === 'skills' && step.skills.every((s) => skillAns[s.key] !== undefined);
   return (
     <View style={[styles.screen, pad]}>
       <View style={styles.segs}>
@@ -84,26 +137,44 @@ export default function Onboarding() {
       </View>
       <ScrollView contentContainerStyle={{ paddingTop: 16 }}>
         <Text style={styles.h2}>{step.q}</Text>
-        {step.options.map((o, i) => (
-          <Pressable
-            key={i}
-            style={[styles.opt, selected === i && styles.optSel]}
-            onPress={() => setSelected(i)}
-          >
-            <Text style={styles.optEmoji}>{o.emoji}</Text>
-            <Text style={styles.optTxt}>{o.text}</Text>
-          </Pressable>
-        ))}
+        {step.hint && <Text style={styles.hint}>{step.hint}</Text>}
+        {step.kind === 'choice' &&
+          step.options.map((o, i) => (
+            <Pressable key={i} style={[styles.opt, selected === i && styles.optSel, o.soon && styles.optSoon]} onPress={() => setSelected(i)}>
+              <Text style={styles.optEmoji}>{o.emoji}</Text>
+              <Text style={styles.optTxt}>{o.text}</Text>
+              {o.soon && <Text style={styles.soon}>скоро</Text>}
+            </Pressable>
+          ))}
+        {step.kind === 'skills' &&
+          step.skills.map((sk) => (
+            <View key={sk.key} style={styles.skill}>
+              <Text style={styles.skillLabel}>{sk.label}</Text>
+              <View style={styles.chips}>
+                {SKILL_LEVELS.map((lv, li) => (
+                  <Pressable
+                    key={lv}
+                    onPress={() => setSkillAns((p) => ({ ...p, [sk.key]: li }))}
+                    style={[styles.chip, skillAns[sk.key] === li && styles.chipOn]}
+                  >
+                    <Text style={[styles.chipTxt, skillAns[sk.key] === li && { color: '#05140a' }]}>{lv}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          ))}
       </ScrollView>
       <Button
         title="Далі"
-        disabled={selected === null}
+        disabled={step.kind === 'choice' ? selected === null : !skillsDone}
         onPress={() => {
-          if (selected === null) return;
-          setQuizAnswer(step.key, step.options[selected].text);
-          setSelected(null);
-          if (stepIdx + 1 >= QUIZ.length) setPhase('name');
-          else setStepIdx(stepIdx + 1);
+          if (step.kind === 'choice') {
+            if (selected === null) return;
+            setQuizAnswer(step.key, step.options[selected].text);
+          } else {
+            step.skills.forEach((sk) => setQuizAnswer(sk.key, SKILL_LEVELS[skillAns[sk.key]]));
+          }
+          next();
         }}
       />
     </View>
@@ -113,17 +184,42 @@ export default function Onboarding() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.bg, paddingHorizontal: 22 },
   center: { justifyContent: 'center', alignItems: 'center' },
+  heroImg: { width: 170, height: 340 },
+  avatarSm: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    overflow: 'hidden',
+    backgroundColor: C.imgBg,
+    borderWidth: 3,
+    borderColor: C.accent,
+    borderBottomWidth: 5,
+    borderBottomColor: C.accentEdge,
+  },
+  avatarLg: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    overflow: 'hidden',
+    backgroundColor: C.imgBg,
+    borderWidth: 3,
+    borderColor: C.accent,
+    borderBottomWidth: 6,
+    borderBottomColor: C.accentEdge,
+  },
+  avatarImg: { width: '100%', height: '100%' },
   h1: { color: C.txt, fontSize: 28, fontWeight: '800', marginTop: 16 },
   h2: { color: C.txt, fontSize: 21, fontWeight: '700', marginBottom: 14 },
   muted: { color: C.muted, fontSize: 14, marginTop: 6, textAlign: 'center' },
   bubble: {
     backgroundColor: C.panel,
     borderColor: C.line,
-    borderWidth: 1,
+    borderWidth: 2,
     borderRadius: 18,
     padding: 16,
-    marginTop: 28,
+    marginTop: 24,
     width: '100%',
+    borderBottomWidth: 5,
   },
   bubbleTxt: { color: C.txt, fontSize: 16, lineHeight: 22 },
   disclaimer: { color: C.muted, fontSize: 12, textAlign: 'center', marginVertical: 18 },
@@ -139,11 +235,28 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: 16,
     padding: 15,
-    marginBottom: 10,
+    marginBottom: 12,
+    borderBottomWidth: 5,
   },
-  optSel: { borderColor: C.accent, backgroundColor: 'rgba(54,226,122,0.08)' },
+  optSel: {
+    borderColor: C.accent,
+    backgroundColor: 'rgba(54,226,122,0.08)',
+    borderBottomColor: C.accentEdge,
+  },
+  optSoon: { opacity: 0.55 },
+  soon: { color: C.gold, fontSize: 11, fontWeight: '800' },
+  hint: { color: C.muted, fontSize: 13, marginTop: -8, marginBottom: 14 },
+  skill: { marginBottom: 14 },
+  skillLabel: { color: C.txt, fontWeight: '800', fontSize: 15, marginBottom: 6 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  chip: { paddingVertical: 7, paddingHorizontal: 10, borderRadius: 12, borderWidth: 2, borderColor: C.line, backgroundColor: C.panel },
+  chipOn: { backgroundColor: C.accent, borderColor: C.accentEdge },
+  chipTxt: { color: C.txt, fontWeight: '700', fontSize: 12 },
   optEmoji: { fontSize: 24 },
   optTxt: { color: C.txt, fontSize: 16, flex: 1 },
+  // без flex: 1, інакше в колонці на телефоні текст стискається до нуля висоти й обрізається
+  optTitle: { color: C.txt, fontSize: 16, fontWeight: '700' },
+  optDesc: { color: C.muted, fontSize: 13, marginTop: 2 },
   input: {
     width: '100%',
     backgroundColor: C.panel,

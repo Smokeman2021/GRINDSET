@@ -8,6 +8,8 @@ export type Step =
       title: string;
       body: string;
       example?: string;
+      // візуальні картки: коротко й наочно замість абзаців
+      cards?: { icon: string; title: string; text: string }[];
     }
   | {
       type: 'choice';
@@ -31,6 +33,75 @@ export type Step =
       okMsg: string;
       noMsg: string;
       explain?: string;
+    }
+  // кілька правильних відповідей
+  | {
+      type: 'multi';
+      layer: 1 | 2;
+      q: string;
+      scenario?: string;
+      options: string[];
+      answers: number[];
+      okMsg: string;
+      noMsg: string;
+      explain?: string;
+    }
+  // розставити елементи в правильному порядку (items уже в правильному порядку)
+  | {
+      type: 'order';
+      layer: 1 | 2;
+      q: string;
+      scenario?: string;
+      items: string[];
+      okMsg: string;
+      noMsg: string;
+      explain?: string;
+    }
+  // з'єднати пари (ліві елементи фіксовані, праві перемішуються)
+  | {
+      type: 'match';
+      layer: 1 | 2;
+      q: string;
+      scenario?: string;
+      pairs: [string, string][];
+      okMsg: string;
+      noMsg: string;
+      explain?: string;
+    }
+  // «збери зв'язку»: по одному варіанту на кожен слот
+  | {
+      type: 'bundle';
+      layer: 1 | 2;
+      q: string;
+      scenario?: string;
+      slots: { label: string; options: string[]; answer: number }[];
+      okMsg: string;
+      noMsg: string;
+      explain?: string;
+    }
+  // історія-кейс: послідовні рішення, кожне з відгуком
+  | {
+      type: 'story';
+      layer: 1 | 2;
+      q: string;
+      intro: string;
+      scenario?: string;
+      scenes: { text: string; options: { label: string; good: boolean; feedback: string }[] }[];
+      passRatio?: number; // частка вдалих рішень для зарахування (за замовчуванням 0.7)
+      okMsg: string;
+      noMsg: string;
+      explain?: string;
+    }
+  // вписати число (одне або кілька полів)
+  | {
+      type: 'numeric';
+      layer: 1 | 2;
+      q: string;
+      scenario?: string;
+      fields: { label: string; answer: number; unit?: string; tolerance?: number }[];
+      okMsg: string;
+      noMsg: string;
+      explain?: string;
     };
 
 export type Lesson = {
@@ -39,6 +110,9 @@ export type Lesson = {
   title: string;
   minutes: number;
   steps: Step[];
+  kind?: 'checkpoint' | 'quiz';
+  passThreshold?: number; // 0-1, потрібна точність аби пройти (тільки checkpoint)
+  requires?: string[]; // id уроків, які мають бути пройдені, щоб відкрити (квізи)
 };
 
 export const MODULE_TITLE = 'Модуль 01 · Що таке арбітраж';
@@ -450,4 +524,184 @@ export const LESSONS: Lesson[] = [
       },
     ],
   },
+  {
+    id: 'checkpoint',
+    code: '👑',
+    title: 'Тест на корону',
+    minutes: 6,
+    kind: 'checkpoint',
+    passThreshold: 0.8,
+    steps: [
+      {
+        type: 'teach',
+        title: 'Тест на корону',
+        body:
+          'Фінальна перевірка Модуля 01. Потрібно щонайменше 80% правильних відповідей. Не пройдеш — не страшно, спробуєш ще раз, коли будеш готовий.',
+      },
+      {
+        type: 'choice',
+        layer: 2,
+        q: 'Порахуй прибуток:',
+        scenario: 'Партнерка платить $12 за замовлення. Витрачено $400 на рекламу, підтверджено 40 замовлень.',
+        options: ['+$80', '−$80', '+$480', 'Рівно в нуль'],
+        answer: 0,
+        okMsg: 'Так. 40 × $12 = $480 − $400 = $80.',
+        noMsg: 'Рахуємо: 40 × $12 = $480. $480 − $400 = $80.',
+      },
+      {
+        type: 'fill',
+        layer: 2,
+        q: 'Заповни ланцюг:',
+        before: 'Рекламодавець → ',
+        after: ' → Арбітражник → Трафік',
+        options: ['Партнерська мережа', 'Банк', 'Хостинг'],
+        answer: 0,
+        okMsg: 'Точно. Партнерка стоїть між рекламодавцем і тобою.',
+        noMsg: 'Між рекламодавцем і тобою — партнерська мережа.',
+      },
+      {
+        type: 'choice',
+        layer: 2,
+        q: 'Адсет два дні поспіль без жодного ліда. Що робиш?',
+        options: [
+          'Видаляю одразу — це провал',
+          'Перевіряю і переробляю — два дні поспіль без лідів вже сигнал',
+          'Чекаю ще тиждень мовчки',
+        ],
+        answer: 1,
+        okMsg: 'Так. Один день — норма, два поспіль — час діяти.',
+        noMsg: 'Правило 2 днів: один день без лідів — терпимо, два поспіль — перевіряй/переробляй.',
+      },
+      {
+        type: 'fill',
+        layer: 2,
+        q: 'Оплата за підтверджене замовлення називається:',
+        before: 'Модель ',
+        after: '',
+        options: ['CPA', 'CPL', 'RevShare'],
+        answer: 0,
+        okMsg: 'Вірно. CPA = Cost Per Action.',
+        noMsg: 'Оплата за цільову дію (замовлення) — це CPA.',
+      },
+      {
+        type: 'choice',
+        layer: 2,
+        q: 'Чому алгоритм Facebook — перевага для новачка?',
+        options: [
+          'Він сам знаходить людей, схожих на тих, хто вже робить цільову дію',
+          'Реклама там безкоштовна',
+          'Немає конкуренції за увагу',
+        ],
+        answer: 0,
+        okMsg: 'Так. Оптимізація на схожу аудиторію — і є сила алгоритму.',
+        noMsg: 'Реклама платна і конкуренція є. Перевага — алгоритм оптимізує покази на потрібних людей.',
+      },
+      {
+        type: 'choice',
+        layer: 2,
+        q: 'Чесне очікування від першого місяця в арбітражі:',
+        options: [
+          'Гарантований стабільний прибуток',
+          'Навчання коштом тестів, можливий мінус',
+          'Нуль будь-яких витрат',
+        ],
+        answer: 1,
+        okMsg: 'Так. Перший місяць — плата за досвід, це нормально.',
+        noMsg: 'Реалістично: перший місяць — тести і навчання, часто в мінус.',
+      },
+    ],
+  },
 ];
+
+// ── Квізи: закріплення пройденого. Питання беруться з уроків, нового контенту не потрібно. ──
+export type Question = Exclude<Step, { type: 'teach' }>;
+
+// До квізу на час беремо лише питання з варіантами: їх можна перемішати й швидко відповісти
+export type Quizzable = Extract<Question, { type: 'choice' | 'fill' | 'multi' }>;
+export const isQuizzable = (s: Step): s is Quizzable => s.type === 'choice' || s.type === 'fill' || s.type === 'multi';
+
+// Перемішує варіанти (і відповідно індекс правильної), щоб квіз не збігався з порядком в уроці
+export function shuffleQuestion(q: Question): Question {
+  if (q.type === 'choice' || q.type === 'fill' || q.type === 'multi') {
+    const order = q.options.map((_, i) => i);
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    const options = order.map((i) => q.options[i]);
+    if (q.type === 'multi') {
+      return { ...q, options, answers: q.answers.map((a) => order.indexOf(a)) };
+    }
+    return { ...q, options, answer: order.indexOf(q.answer) };
+  }
+  return q;
+}
+
+export function buildQuiz(id: string, title: string, sourceIds: string[], source: Lesson[] = LESSONS): Lesson {
+  const pools: Question[][] = sourceIds.map((sid) => {
+    const lesson = source.find((l) => l.id === sid);
+    return (lesson?.steps ?? []).filter(isQuizzable);
+  });
+  const flat = pools.flat();
+  const picked: Question[] = [];
+  // по одному сценарному питанню (шар 2) з кожного уроку, далі добираємо шар 1 по колу
+  pools.forEach((pool) => {
+    const scenario = pool.find((q) => q.layer === 2);
+    if (scenario) picked.push(scenario);
+  });
+  for (let round = 0; round < 6 && picked.length < 6; round++) {
+    pools.forEach((pool) => {
+      const q = pool.filter((x) => x.layer === 1)[round];
+      if (q && picked.length < 6) picked.push(q);
+    });
+  }
+  picked.sort((a, b) => flat.indexOf(a) - flat.indexOf(b));
+
+  return {
+    id,
+    code: '?',
+    title,
+    minutes: 4,
+    kind: 'quiz',
+    requires: sourceIds,
+    steps: [
+      {
+        type: 'teach',
+        title: 'Квіз на час',
+        body: 'Питання за матеріалом останніх уроків, варіанти перемішані. На кожне 20 секунд, на задачу з цифрами 30. Чим швидше відповідаєш, тим більший бонус до нагороди. Не встиг — питання рахується помилкою.',
+      },
+      ...picked,
+    ],
+  };
+}
+
+export const QUIZZES: Lesson[] = [
+  buildQuiz('q1', 'Квіз 1 · Основи', ['l1', 'l2', 'l3']),
+  buildQuiz('q2', 'Квіз 2 · Гроші й канал', ['l4', 'l5', 'l6']),
+];
+
+// Корона модуля: підсумок + фінальна задача автора + добір питань шару 2 з уроків (проходження від 80%)
+export function buildCrown(opts: {
+  id: string;
+  title: string;
+  intro: { title: string; body: string };
+  final: Question[];
+  source: Lesson[];
+  target?: number;
+}): Lesson {
+  const target = opts.target ?? 8;
+  const picked: Question[] = [...opts.final];
+  const pool = opts.source.flatMap((l) => l.steps.filter(isQuizzable)).filter((q) => q.layer === 2);
+  // рівномірно по всьому модулю, без повторів
+  const stepSize = Math.max(1, Math.floor(pool.length / Math.max(1, target - picked.length)));
+  for (let i = 0; i < pool.length && picked.length < target; i += stepSize) picked.push(pool[i]);
+  return {
+    id: opts.id,
+    code: '👑',
+    title: opts.title,
+    minutes: 8,
+    kind: 'checkpoint',
+    passThreshold: 0.8,
+    steps: [{ type: 'teach', title: opts.intro.title, body: opts.intro.body }, ...picked],
+  };
+}
