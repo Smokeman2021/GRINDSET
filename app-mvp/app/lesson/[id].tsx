@@ -12,6 +12,7 @@ import { say, PhraseKind } from '../../src/data/phrases';
 import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
 import { Reaction } from '../../src/components/Reaction';
+import { boostLeftMs } from '../../src/notifications';
 import { Markdown } from '../../src/components/Markdown';
 import { MatchStep, MultiStep, NumericStep, OrderStep } from '../../src/components/steps';
 
@@ -182,6 +183,11 @@ export default function LessonScreen() {
       }
       const doubled = doubleCoins > 0 && coins > 0 && !isDiagnostic;
       if (doubled) coins *= 2;
+      // X2-вікно посеред дня (10 хвилин після сповіщення): подвоює коїни й XP
+      if (!isDiagnostic && boostLeftMs() > 0) {
+        coins *= 2;
+        xp *= 2;
+      }
       if (isDiagnostic) {
         coins = 0;
         xp = 0;

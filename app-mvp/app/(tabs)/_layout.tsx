@@ -3,6 +3,8 @@ import { Text, View, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { C } from '../../src/theme';
+import { useStore } from '../../src/store';
+import { scheduleAll } from '../../src/notifications';
 
 function TabIcon({ glyph, focused }: { glyph: string; focused: boolean }) {
   return (
@@ -14,6 +16,13 @@ function TabIcon({ glyph, focused }: { glyph: string; focused: boolean }) {
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
+  const { notifEnabled, notifMorning, notifEvening, streak, playerName } = useStore();
+
+  // Переплановуємо нагадування на 7 діб уперед при запуску і зміні налаштувань
+  React.useEffect(() => {
+    scheduleAll({ enabled: notifEnabled, morning: notifMorning, evening: notifEvening }, streak, playerName);
+  }, [notifEnabled, notifMorning, notifEvening, streak, playerName]);
+
   return (
     <Tabs
       screenOptions={{

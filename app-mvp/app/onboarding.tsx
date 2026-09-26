@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { QUIZ } from '../src/data/quiz';
 import { DailyGoal, GOAL_LABEL, GOAL_XP, useStore } from '../src/store';
+import { askPermission } from '../src/notifications';
 import { Button } from '../src/components/Button';
 import { C } from '../src/theme';
 
@@ -110,6 +111,7 @@ export default function Onboarding() {
           disabled={name.trim().length === 0}
           onPress={() => {
             finishOnboarding(name, goal ?? 'regular');
+            askPermission(); // дозвіл на нагадування (не блокує)
             router.replace('/diagnostic');
           }}
         />

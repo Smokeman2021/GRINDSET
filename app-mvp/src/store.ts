@@ -34,6 +34,9 @@ type State = {
   energyAt: number; // мс: від якого моменту рахуємо відновлення енергії
   lastBonusDate: string | null; // дата останнього щоденного бонусу енергії
   strictEnergy: boolean; // true: без енергії нові уроки закриті
+  notifEnabled: boolean; // нагадування (зранку, ввечері, X2 посеред дня)
+  notifMorning: string;
+  notifEvening: string;
   coins: number;
   xp: number;
   xpToday: number;
@@ -91,6 +94,7 @@ type State = {
   setPlayerPhoto: (uri: string | null) => void;
   setDailyGoal: (goal: DailyGoal) => void;
   setStrictEnergy: (v: boolean) => void;
+  setNotif: (p: Partial<{ notifEnabled: boolean; notifMorning: string; notifEvening: string }>) => void;
   checkStreak: () => void;
   refreshEnergy: () => void;
   completeLesson: (
@@ -230,6 +234,9 @@ const FRESH = {
   energyAt: 0,
   lastBonusDate: null,
   strictEnergy: false,
+  notifEnabled: true,
+  notifMorning: '08:00',
+  notifEvening: '20:30',
   coins: 0,
   xp: 0,
   xpToday: 0,
@@ -298,6 +305,8 @@ export const useStore = create<State>()(
       setDailyGoal: (goal) => set({ dailyGoal: goal }),
 
       setStrictEnergy: (v) => set({ strictEnergy: v }),
+
+      setNotif: (p) => set(p),
 
       checkStreak: () =>
         set((s) => {

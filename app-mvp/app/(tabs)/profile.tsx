@@ -14,6 +14,7 @@ import { levelProgress, levelTitle } from '../../src/data/levels';
 import { ALL_LESSONS } from '../../src/data/modules';
 import { say } from '../../src/data/phrases';
 import { masteredCount } from '../../src/data/srs';
+import { askPermission } from '../../src/notifications';
 import { GOAL_LABEL, GOAL_XP, DailyGoal, statsOf, useStore } from '../../src/store';
 import { C } from '../../src/theme';
 
@@ -181,6 +182,41 @@ export default function Profile() {
               </Pressable>
             ))}
           </View>
+          <View style={styles.switchRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.setLabel}>Нагадування</Text>
+              <Text style={styles.setSub}>Зранку, ввечері та одне X2-вікно на 10 хвилин посеред дня.</Text>
+            </View>
+            <Switch
+              value={s.notifEnabled}
+              onValueChange={async (v) => {
+                if (v) await askPermission();
+                s.setNotif({ notifEnabled: v });
+              }}
+              trackColor={{ true: C.accent, false: C.line }}
+              thumbColor="#fff"
+            />
+          </View>
+          {s.notifEnabled && (
+            <View style={{ marginBottom: 16 }}>
+              <Text style={styles.setSub}>Ранок</Text>
+              <View style={styles.goalRow}>
+                {['07:00', '08:00', '09:00'].map((t) => (
+                  <Pressable key={t} onPress={() => s.setNotif({ notifMorning: t })} style={[styles.goalBtn, s.notifMorning === t && styles.goalOn]}>
+                    <Text style={[styles.goalTxt, s.notifMorning === t && { color: '#05140a' }]}>{t}</Text>
+                  </Pressable>
+                ))}
+              </View>
+              <Text style={styles.setSub}>Вечір</Text>
+              <View style={styles.goalRow}>
+                {['19:00', '20:30', '22:00'].map((t) => (
+                  <Pressable key={t} onPress={() => s.setNotif({ notifEvening: t })} style={[styles.goalBtn, s.notifEvening === t && styles.goalOn]}>
+                    <Text style={[styles.goalTxt, s.notifEvening === t && { color: '#05140a' }]}>{t}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          )}
           <View style={styles.switchRow}>
             <View style={{ flex: 1 }}>
               <Text style={styles.setLabel}>Жорстка енергія</Text>
