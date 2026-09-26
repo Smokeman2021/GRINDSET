@@ -233,6 +233,9 @@ export default function Profile() {
 
         <Text style={styles.h}>ІНШЕ</Text>
         <View style={styles.box}>
+          <Pressable onPress={() => router.push('/plan')} style={styles.link}>
+            <Text style={styles.linkTxt}>🗺️ Мій маршрут</Text>
+          </Pressable>
           <Pressable onPress={() => router.push('/diagnostic')} style={styles.link}>
             <Text style={styles.linkTxt}>🧪 Діагностичний тест{s.diagnosticDone ? ' (пройдено)' : ''}</Text>
           </Pressable>

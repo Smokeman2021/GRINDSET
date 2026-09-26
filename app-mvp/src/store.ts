@@ -12,13 +12,7 @@ import { outcomeFor, rankOf, standings, weekStartStr, LeagueOutcome } from './da
 export type CharStart = 'caveman' | 'sapiens' | 'early';
 export type DailyGoal = 'casual' | 'regular' | 'intense';
 
-type QuizAnswers = {
-  goal?: string;
-  exp?: string;
-  budget?: string;
-  time?: string;
-  mode?: string;
-};
+type QuizAnswers = Record<string, string>;
 
 export type HistoryItem = { id: string; date: string; correct: number; errors: number; xp: number; coins: number };
 export type MistakeRef = { lessonId: string; idx: number };
@@ -92,7 +86,7 @@ type State = {
   lastWeek: LastWeek | null;
 
   setHydrated: () => void;
-  setQuizAnswer: (key: keyof QuizAnswers, value: string) => void;
+  setQuizAnswer: (key: string, value: string) => void;
   finishOnboarding: (name: string, goal: DailyGoal) => void;
   setPlayerName: (name: string) => void;
   setPlayerPhoto: (uri: string | null) => void;

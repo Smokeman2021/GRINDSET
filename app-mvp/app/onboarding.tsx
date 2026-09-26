@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { QUIZ } from '../src/data/quiz';
+import { QUIZ, SKILL_LEVELS } from '../src/data/quiz';
 import { DailyGoal, GOAL_LABEL, GOAL_XP, useStore } from '../src/store';
 import { askPermission } from '../src/notifications';
 import { Button } from '../src/components/Button';
@@ -36,6 +36,7 @@ export default function Onboarding() {
   const [phase, setPhase] = useState<Phase>('welcome');
   const [stepIdx, setStepIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
+  const [skillAns, setSkillAns] = useState<Record<string, number>>({});
   const [goal, setGoal] = useState<DailyGoal | null>(null);
   const [name, setName] = useState('');
 
@@ -112,7 +113,7 @@ export default function Onboarding() {
           onPress={() => {
             finishOnboarding(name, goal ?? 'regular');
             askPermission(); // дозвіл на нагадування (не блокує)
-            router.replace('/diagnostic');
+            router.replace('/plan');
           }}
         />
       </View>
@@ -121,6 +122,12 @@ export default function Onboarding() {
 
   // quiz
   const step = QUIZ[stepIdx];
+  const next = () => {
+    setSelected(null);
+    if (stepIdx + 1 >= QUIZ.length) setPhase('goal');
+    else setStepIdx(stepIdx + 1);
+  };
+  const skillsDone = step.kind === 'skills' && step.skills.every((s) => skillAns[s.key] !== undefined);
   return (
     <View style={[styles.screen, pad]}>
       <View style={styles.segs}>
@@ -130,26 +137,44 @@ export default function Onboarding() {
       </View>
       <ScrollView contentContainerStyle={{ paddingTop: 16 }}>
         <Text style={styles.h2}>{step.q}</Text>
-        {step.options.map((o, i) => (
-          <Pressable
-            key={i}
-            style={[styles.opt, selected === i && styles.optSel]}
-            onPress={() => setSelected(i)}
-          >
-            <Text style={styles.optEmoji}>{o.emoji}</Text>
-            <Text style={styles.optTxt}>{o.text}</Text>
-          </Pressable>
-        ))}
+        {step.hint && <Text style={styles.hint}>{step.hint}</Text>}
+        {step.kind === 'choice' &&
+          step.options.map((o, i) => (
+            <Pressable key={i} style={[styles.opt, selected === i && styles.optSel, o.soon && styles.optSoon]} onPress={() => setSelected(i)}>
+              <Text style={styles.optEmoji}>{o.emoji}</Text>
+              <Text style={styles.optTxt}>{o.text}</Text>
+              {o.soon && <Text style={styles.soon}>скоро</Text>}
+            </Pressable>
+          ))}
+        {step.kind === 'skills' &&
+          step.skills.map((sk) => (
+            <View key={sk.key} style={styles.skill}>
+              <Text style={styles.skillLabel}>{sk.label}</Text>
+              <View style={styles.chips}>
+                {SKILL_LEVELS.map((lv, li) => (
+                  <Pressable
+                    key={lv}
+                    onPress={() => setSkillAns((p) => ({ ...p, [sk.key]: li }))}
+                    style={[styles.chip, skillAns[sk.key] === li && styles.chipOn]}
+                  >
+                    <Text style={[styles.chipTxt, skillAns[sk.key] === li && { color: '#05140a' }]}>{lv}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          ))}
       </ScrollView>
       <Button
         title="Далі"
-        disabled={selected === null}
+        disabled={step.kind === 'choice' ? selected === null : !skillsDone}
         onPress={() => {
-          if (selected === null) return;
-          setQuizAnswer(step.key, step.options[selected].text);
-          setSelected(null);
-          if (stepIdx + 1 >= QUIZ.length) setPhase('goal');
-          else setStepIdx(stepIdx + 1);
+          if (step.kind === 'choice') {
+            if (selected === null) return;
+            setQuizAnswer(step.key, step.options[selected].text);
+          } else {
+            step.skills.forEach((sk) => setQuizAnswer(sk.key, SKILL_LEVELS[skillAns[sk.key]]));
+          }
+          next();
         }}
       />
     </View>
@@ -218,6 +243,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(54,226,122,0.08)',
     borderBottomColor: C.accentEdge,
   },
+  optSoon: { opacity: 0.55 },
+  soon: { color: C.gold, fontSize: 11, fontWeight: '800' },
+  hint: { color: C.muted, fontSize: 13, marginTop: -8, marginBottom: 14 },
+  skill: { marginBottom: 14 },
+  skillLabel: { color: C.txt, fontWeight: '800', fontSize: 15, marginBottom: 6 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  chip: { paddingVertical: 7, paddingHorizontal: 10, borderRadius: 12, borderWidth: 2, borderColor: C.line, backgroundColor: C.panel },
+  chipOn: { backgroundColor: C.accent, borderColor: C.accentEdge },
+  chipTxt: { color: C.txt, fontWeight: '700', fontSize: 12 },
   optEmoji: { fontSize: 24 },
   optTxt: { color: C.txt, fontSize: 16, flex: 1 },
   // без flex: 1, інакше в колонці на телефоні текст стискається до нуля висоти й обрізається
