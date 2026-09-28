@@ -28,6 +28,7 @@ type State = {
   hydrated: boolean;
   onboarded: boolean;
   lang: Lang; // мова інтерфейсу; контент уроків поки завжди українською
+  theme: 'night' | 'day'; // нічний (темний) або денний (світлий) інтерфейс
   playerName: string;
   playerPhoto: string | null; // фото гравця (uri / data-uri); поки null — плейсхолдер з ініціалом
   archetype: ArchetypeId | null; // обраний архетип персонажа-аватара (повний зріст, еволюціонує по модулях)
@@ -106,6 +107,7 @@ type State = {
   allocStat: (id: StatId) => void;
   setEquip: (slot: EquipSlot, itemId: string | null) => void;
   setLang: (lang: Lang) => void;
+  setTheme: (theme: 'night' | 'day') => void;
   setDailyGoal: (goal: DailyGoal) => void;
   setStrictEnergy: (v: boolean) => void;
   setNotif: (p: Partial<{ notifEnabled: boolean; notifMorning: string; notifEvening: string }>) => void;
@@ -248,6 +250,7 @@ function bump(p: Partial<Record<Metric, number>>, m: Metric, by: number, mode: '
 const FRESH = {
   onboarded: false,
   lang: 'uk' as Lang,
+  theme: 'night' as 'night' | 'day',
   playerName: '',
   playerPhoto: null,
   archetype: null as ArchetypeId | null,
@@ -338,6 +341,8 @@ export const useStore = create<State>()(
 
       setEquip: (slot, itemId) =>
         set((s) => ({ equipped: itemId ? { ...s.equipped, [slot]: itemId } : { ...s.equipped, [slot]: undefined } })),
+
+      setTheme: (theme) => set({ theme }),
 
       setLang: (lang) => {
         setContentLang(lang);
@@ -600,10 +605,7 @@ export const useStore = create<State>()(
           })
         ),
 
-      reset: () => {
-        setContentLang('uk');
-        set({ ...FRESH });
-      },
+      reset: () => set((s) => ({ ...FRESH, lang: s.lang, theme: s.theme })),
     }),
     {
       name: 'grindset-state',

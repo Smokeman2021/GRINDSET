@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { boostLeftMs } from '../notifications';
-import { C } from '../theme';
+import { Theme, useStyles } from '../theme';
 
 // Плашка «X2» із відліком: видно лише в 10-хвилинне вікно
 export function BoostBanner() {
+  const styles = useStyles(makeStyles);
   const [left, setLeft] = useState(() => boostLeftMs());
   useEffect(() => {
     const t = setInterval(() => setLeft(boostLeftMs()), 1000);
@@ -26,13 +27,13 @@ export function BoostBanner() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   box: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     marginTop: 12,
-    backgroundColor: '#2a2410',
+    backgroundColor: C.goldTint,
     borderRadius: 16,
     padding: 14,
     borderWidth: 2,
@@ -41,7 +42,7 @@ const styles = StyleSheet.create({
     borderBottomColor: C.goldEdge,
   },
   icon: { fontSize: 28 },
-  title: { color: C.gold, fontWeight: '900', fontSize: 16 },
+  title: { color: C.goldTxt, fontWeight: '900', fontSize: 16 },
   sub: { color: C.muted, fontSize: 12, marginTop: 2 },
-  time: { color: C.gold, fontWeight: '900', fontSize: 24, fontVariant: ['tabular-nums'] },
+  time: { color: C.goldTxt, fontWeight: '900', fontSize: 24, fontVariant: ['tabular-nums'] },
 });

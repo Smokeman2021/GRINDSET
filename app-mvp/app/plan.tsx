@@ -7,16 +7,19 @@ import { GrindykSay } from '../src/components/GrindykSay';
 import { buildPlan } from '../src/data/plan';
 import { FUTURE_ROUTES } from '../src/data/quiz';
 import { useStore } from '../src/store';
-import { C } from '../src/theme';
+import { Theme, useStyles, useTheme } from '../src/theme';
 
-const TAG: Record<string, { label: string; color: string }> = {
-  core: { label: 'Основа', color: C.blue },
-  focus: { label: '🎯 Фокус', color: C.gold },
+const tagStyles = (C: Theme): Record<string, { label: string; color: string }> => ({
+  core: { label: 'Основа', color: C.blueTxt },
+  focus: { label: '🎯 Фокус', color: C.goldTxt },
   skip: { label: 'Можна пропустити', color: C.muted },
-};
+});
 
 // Особистий маршрут після опитування: короткий підсумок, модулі з поясненням і затемнені майбутні напрямки
 export default function Plan() {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
+  const TAG = tagStyles(C);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const quiz = useStore((s) => s.quiz);
@@ -60,9 +63,9 @@ export default function Plan() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   h1: { color: C.txt, fontSize: 26, fontWeight: '900', marginTop: 12 },
-  sum: { color: C.gold, fontWeight: '800', marginTop: 4, marginBottom: 12 },
+  sum: { color: C.goldTxt, fontWeight: '800', marginTop: 4, marginBottom: 12 },
   card: { backgroundColor: C.panel, borderRadius: 14, padding: 12, marginBottom: 8, borderWidth: 2, borderColor: C.line },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   num: { color: C.muted, fontWeight: '900', width: 22, textAlign: 'center' },

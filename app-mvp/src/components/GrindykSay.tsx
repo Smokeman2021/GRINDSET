@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { pose, PoseName } from '../data/poses';
-import { C } from '../theme';
+import { Theme, useStyles } from '../theme';
 
 // Гріндік з хмаркою репліки. Постійно ледь «дихає», а хмарка з’являється з пружинкою.
 // onPress (наприклад, нова репліка) вішається на весь блок.
@@ -18,6 +18,7 @@ export function GrindykSay({
   onPress?: () => void;
   flip?: boolean;
 }) {
+  const styles = useStyles(makeStyles);
   const bob = useRef(new Animated.Value(0)).current;
   const pop = useRef(new Animated.Value(0)).current;
   const p = pose(poseName);
@@ -68,7 +69,7 @@ export function GrindykSay({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'flex-end', gap: 12 },
   bubble: {
     flex: 1,

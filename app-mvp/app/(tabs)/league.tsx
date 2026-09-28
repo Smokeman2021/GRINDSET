@@ -8,9 +8,11 @@ import { DEMOTE_BOTTOM, LEAGUE_SIZE, PROMOTE_TOP, rankOf, standings, TIERS, week
 import { useStore } from '../../src/store';
 import { say, PhraseKind } from '../../src/data/phrases';
 import { useT } from '../../src/i18n';
-import { C } from '../../src/theme';
+import { Theme, useStyles, useTheme } from '../../src/theme';
 
 export default function League() {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
   const insets = useSafeAreaInsets();
   const { tier, weekId, weekXp, playerName, lastWeek, checkStreak } = useStore();
   const tr = useT();
@@ -72,11 +74,11 @@ export default function League() {
             const down = tier > 0 && pos > LEAGUE_SIZE - DEMOTE_BOTTOM;
             return (
               <View key={r.name + i} style={[styles.row, r.me && styles.rowMe]}>
-                <Text style={[styles.pos, up && { color: C.accent }, down && { color: C.red }]}>{pos}</Text>
+                <Text style={[styles.pos, up && { color: C.accentTxt }, down && { color: C.redTxt }]}>{pos}</Text>
                 <View style={[styles.dot, r.me && { backgroundColor: C.accent }]}>
                   <Text style={styles.dotTxt}>{r.name.charAt(0).toUpperCase()}</Text>
                 </View>
-                <Text style={[styles.name, r.me && { color: C.accent }]} numberOfLines={1}>
+                <Text style={[styles.name, r.me && { color: C.accentTxt }]} numberOfLines={1}>
                   {r.name}
                   {r.me ? ' (ти)' : ''}
                 </Text>
@@ -94,7 +96,7 @@ export default function League() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   hero: {
     alignItems: 'center',
     backgroundColor: C.panel,
@@ -131,11 +133,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'transparent',
   },
-  rowMe: { borderColor: C.accent, backgroundColor: '#12241a' },
+  rowMe: { borderColor: C.accent, backgroundColor: C.chip },
   pos: { width: 24, color: C.muted, fontWeight: '900', fontSize: 15, textAlign: 'center' },
   dot: { width: 34, height: 34, borderRadius: 17, backgroundColor: C.panel2, alignItems: 'center', justifyContent: 'center' },
   dotTxt: { color: C.txt, fontWeight: '900' },
   name: { flex: 1, color: C.txt, fontWeight: '700', fontSize: 15 },
-  xp: { color: C.blue, fontWeight: '800' },
+  xp: { color: C.blueTxt, fontWeight: '800' },
   foot: { color: C.muted, fontSize: 12, textAlign: 'center', marginTop: 16 },
 });

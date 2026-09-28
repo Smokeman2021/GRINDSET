@@ -10,9 +10,11 @@ import { Calculators } from '../../src/components/Calculators';
 import { INCLUDE_RESTRICTED } from '../../src/data/restricted';
 import { say } from '../../src/data/phrases';
 import { useT } from '../../src/i18n';
-import { C } from '../../src/theme';
+import { Theme, useStyles, useTheme } from '../../src/theme';
 
 export default function Library() {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const t = useT();
@@ -49,7 +51,7 @@ export default function Library() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 12 }} contentContainerStyle={{ gap: 8 }}>
           {cats.map((c) => (
             <Pressable key={c.id} onPress={() => setCat(c.id)} style={[styles.chip, cat === c.id && styles.chipOn]}>
-              <Text style={[styles.chipTxt, cat === c.id && { color: '#05140a' }]}>
+              <Text style={[styles.chipTxt, cat === c.id && { color: C.onAccent }]}>
                 {c.icon} {c.id}
               </Text>
             </Pressable>
@@ -97,7 +99,7 @@ export default function Library() {
                       + {p}
                     </Text>
                   ))}
-                  <Text style={[styles.plus, { color: C.red, marginTop: 8 }]}>МІНУСИ</Text>
+                  <Text style={[styles.plus, { color: C.redTxt, marginTop: 8 }]}>МІНУСИ</Text>
                   {k.cons.map((p) => (
                     <Text key={p} style={styles.li}>
                       − {p}
@@ -117,10 +119,10 @@ export default function Library() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   termRow: { backgroundColor: C.panel, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14, marginBottom: 6, borderWidth: 2, borderColor: C.line },
   termTitle: { color: C.txt, fontWeight: '800', fontSize: 15, flex: 1 },
-  terms: { color: C.gold, fontSize: 12, lineHeight: 18, marginTop: 6 },
+  terms: { color: C.goldTxt, fontSize: 12, lineHeight: 18, marginTop: 6 },
   termDef: { color: C.txt, fontSize: 14, lineHeight: 21, marginTop: 8 },
   numbers: {
     flexDirection: 'row',
@@ -160,8 +162,8 @@ const styles = StyleSheet.create({
   name: { color: C.txt, fontWeight: '900', fontSize: 17, flex: 1 },
   arrow: { color: C.muted, fontSize: 12 },
   forWhat: { color: C.txt, fontSize: 14, lineHeight: 20, marginTop: 6 },
-  price: { color: C.gold, fontWeight: '700', fontSize: 13, marginTop: 8 },
-  plus: { color: C.accent, fontWeight: '900', fontSize: 11, letterSpacing: 1, marginBottom: 4 },
+  price: { color: C.goldTxt, fontWeight: '700', fontSize: 13, marginTop: 8 },
+  plus: { color: C.accentTxt, fontWeight: '900', fontSize: 11, letterSpacing: 1, marginBottom: 4 },
   li: { color: C.txt, fontSize: 13, lineHeight: 19, marginBottom: 2 },
   foot: { color: C.muted, fontSize: 12, textAlign: 'center', marginTop: 12 },
 });

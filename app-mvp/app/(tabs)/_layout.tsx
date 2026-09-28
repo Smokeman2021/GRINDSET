@@ -2,12 +2,13 @@ import React from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { C } from '../../src/theme';
+import { Theme, useStyles, useTheme } from '../../src/theme';
 import { useStore } from '../../src/store';
 import { scheduleAll } from '../../src/notifications';
 import { useT } from '../../src/i18n';
 
 function TabIcon({ glyph, focused }: { glyph: string; focused: boolean }) {
+  const styles = useStyles(makeStyles);
   return (
     <View style={[styles.icon, focused && styles.iconOn]}>
       <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.55 }}>{glyph}</Text>
@@ -16,6 +17,7 @@ function TabIcon({ glyph, focused }: { glyph: string; focused: boolean }) {
 }
 
 export default function TabsLayout() {
+  const C = useTheme();
   const insets = useSafeAreaInsets();
   const { notifEnabled, notifMorning, notifEvening, streak, playerName, campaigns } = useStore();
   const t = useT();
@@ -69,7 +71,7 @@ export default function TabsLayout() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   icon: { width: 44, height: 32, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  iconOn: { backgroundColor: '#1a2a20' },
+  iconOn: { backgroundColor: C.tabOn },
 });

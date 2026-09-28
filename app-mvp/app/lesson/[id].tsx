@@ -6,7 +6,7 @@ import { shuffleQuestion, Step } from '../../src/data/lessons';
 import { ALL_LESSONS } from '../../src/data/modules';
 import { buildDiagnostic, buildMistakes, buildPractice, DIAGNOSTIC_ID, MISTAKES_ID, PRACTICE_ID, VirtualLesson } from '../../src/data/virtual';
 import { useStore, ENERGY_PER_LESSON, AnswerResult } from '../../src/store';
-import { C } from '../../src/theme';
+import { Theme, useStyles, useTheme } from '../../src/theme';
 import { Grindyk } from '../../src/components/Grindyk';
 import { say, PhraseKind } from '../../src/data/phrases';
 import { Button } from '../../src/components/Button';
@@ -22,6 +22,8 @@ const QUIZ_BASE_COINS = 40;
 const QUIZ_BASE_XP = 30;
 
 export default function LessonScreen() {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -259,7 +261,7 @@ export default function LessonScreen() {
       </View>
 
       {(isCheckpoint || alreadyDone || isQuiz || isDiagnostic) && (
-        <Text style={[styles.mode, isCheckpoint && { color: C.gold }]}>
+        <Text style={[styles.mode, isCheckpoint && { color: C.goldTxt }]}>
           {isCheckpoint
             ? '👑 ТЕСТ НА КОРОНУ · потрібно 80%'
             : isDiagnostic
@@ -276,7 +278,7 @@ export default function LessonScreen() {
 
       {limit > 0 && (
         <View style={styles.timerRow}>
-          <Text style={[styles.timerTxt, timeLeft <= 5 && !answered && { color: C.red }]}>
+          <Text style={[styles.timerTxt, timeLeft <= 5 && !answered && { color: C.redTxt }]}>
             ⏱ {Math.ceil(timeLeft)} с
           </Text>
           <View style={styles.timerBar}>
@@ -296,7 +298,7 @@ export default function LessonScreen() {
       <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
         {isTeach ? (
           <>
-            <Text style={[styles.layer, { color: C.gold }]}>ТЕОРІЯ</Text>
+            <Text style={[styles.layer, { color: C.goldTxt }]}>ТЕОРІЯ</Text>
             <View style={styles.teachHero}>
               <Grindyk mood="think" size={64} />
             </View>
@@ -424,20 +426,21 @@ export default function LessonScreen() {
 
 // Репліка Гріндіка під відповідь: одна на показ фідбеку, не змінюється при перерендері
 function Quip({ kind }: { kind: PhraseKind }) {
+  const styles = useStyles(makeStyles);
   const text = useMemo(() => say(kind).text, []); // eslint-disable-line react-hooks/exhaustive-deps
   return <Text style={styles.quip}>Гріндік: {text}</Text>;
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.bg, paddingHorizontal: 22 },
   head: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 10 },
   x: { color: C.muted, fontSize: 22 },
   pbar: { flex: 1, height: 16, flexDirection: 'row', gap: 2, borderRadius: 10, overflow: 'hidden' },
-  seg: { flex: 1, backgroundColor: '#191e28' },
+  seg: { flex: 1, backgroundColor: C.track },
   fill: { height: '100%', backgroundColor: C.accent, borderRadius: 10 },
   hintBtn: { alignSelf: 'flex-start', backgroundColor: C.panel2, borderRadius: 12, paddingVertical: 7, paddingHorizontal: 12, borderWidth: 2, borderColor: C.gold, marginTop: 6 },
-  hintTxt: { color: C.gold, fontWeight: '800', fontSize: 13 },
-  shield: { color: C.blue, fontWeight: '800', fontSize: 13, marginTop: 6 },
+  hintTxt: { color: C.goldTxt, fontWeight: '800', fontSize: 13 },
+  shield: { color: C.blueTxt, fontWeight: '800', fontSize: 13, marginTop: 6 },
   cards: { gap: 10, marginBottom: 14 },
   card: { flexDirection: 'row', gap: 12, alignItems: 'center', backgroundColor: C.panel, borderRadius: 14, padding: 12, borderWidth: 2, borderBottomWidth: 4, borderColor: C.line },
   cardIcon: { fontSize: 30 },
@@ -446,12 +449,12 @@ const styles = StyleSheet.create({
   quip: { color: C.muted, fontSize: 13, fontStyle: 'italic', marginTop: 6 },
   comboBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 3, minWidth: 56 },
   timerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 6 },
-  timerTxt: { color: C.blue, fontSize: 13, fontWeight: '800', minWidth: 52 },
-  timerBar: { flex: 1, height: 8, backgroundColor: '#191e28', borderRadius: 6, overflow: 'hidden' },
+  timerTxt: { color: C.blueTxt, fontSize: 13, fontWeight: '800', minWidth: 52 },
+  timerBar: { flex: 1, height: 8, backgroundColor: C.track, borderRadius: 6, overflow: 'hidden' },
   timerFill: { height: '100%', borderRadius: 6 },
-  combo: { color: C.fire, fontWeight: '800', fontSize: 15 },
-  mode: { color: C.blue, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginBottom: 4 },
-  layer: { color: C.blue, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginVertical: 8 },
+  combo: { color: C.fireTxt, fontWeight: '800', fontSize: 15 },
+  mode: { color: C.blueTxt, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginBottom: 4 },
+  layer: { color: C.blueTxt, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginVertical: 8 },
   qRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   q: { color: C.txt, fontSize: 20, fontWeight: '700', flex: 1, marginTop: 4 },
   teachHero: { alignItems: 'center', marginVertical: 8 },
@@ -465,7 +468,7 @@ const styles = StyleSheet.create({
     padding: 14,
     marginTop: 16,
   },
-  exampleLabel: { color: C.gold, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginBottom: 6 },
+  exampleLabel: { color: C.goldTxt, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginBottom: 6 },
   exampleTxt: { color: C.txt, fontSize: 15, lineHeight: 22 },
   scenario: {
     backgroundColor: C.panel2,
@@ -477,7 +480,7 @@ const styles = StyleSheet.create({
   },
   scenarioTxt: { color: C.txt, fontSize: 14, lineHeight: 20 },
   fillLine: { color: C.txt, fontSize: 17, lineHeight: 30, marginTop: 12 },
-  blank: { color: C.accent, fontWeight: '800' },
+  blank: { color: C.accentTxt, fontWeight: '800' },
   opt: {
     backgroundColor: C.panel,
     borderColor: C.line,
@@ -490,18 +493,18 @@ const styles = StyleSheet.create({
   optPressed: { transform: [{ translateY: 3 }], borderBottomWidth: 2 },
   optCorrect: {
     borderColor: C.accent,
-    backgroundColor: 'rgba(54,226,122,0.14)',
+    backgroundColor: C.accentTint,
     borderBottomColor: C.accentEdge,
   },
   optWrong: {
     borderColor: C.red,
-    backgroundColor: 'rgba(255,92,92,0.12)',
+    backgroundColor: C.redTint,
     borderBottomColor: C.redEdge,
   },
   optTxt: { color: C.txt, fontSize: 16 },
   fb: { flexDirection: 'row', gap: 10, borderRadius: 14, padding: 14, alignItems: 'flex-start' },
-  fbOk: { backgroundColor: 'rgba(54,226,122,0.12)' },
-  fbNo: { backgroundColor: 'rgba(255,92,92,0.12)' },
+  fbOk: { backgroundColor: C.accentTint },
+  fbNo: { backgroundColor: C.redTint },
   fbBig: { fontSize: 26 },
   fbTxt: { fontSize: 15, fontWeight: '600', lineHeight: 20 },
   explain: { color: C.txt, fontSize: 13, marginTop: 6, lineHeight: 18 },

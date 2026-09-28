@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Lesson } from '../../src/data/lessons';
 import { ALL_LESSONS, MODULES, PATH } from '../../src/data/modules';
 import { GOAL_XP, GOAL_LABEL, ENERGY_PER_LESSON, useStore } from '../../src/store';
-import { C } from '../../src/theme';
+import { Theme, useStyles, useTheme } from '../../src/theme';
 import { TopBar } from '../../src/components/TopBar';
 import { Quests } from '../../src/components/Quests';
 import { BoostBanner } from '../../src/components/BoostBanner';
@@ -91,6 +91,8 @@ const QUIZ_SLOTS = (() => {
 })();
 
 export default function Home() {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width: winW } = useWindowDimensions();
@@ -204,8 +206,8 @@ export default function Home() {
         <View style={{ width: W, height: H, alignSelf: 'center' }} onLayout={(e) => setPathTop(e.nativeEvent.layout.y)}>
           {/* течія: русло + пройдена частина */}
           <Svg width={W} height={H} style={StyleSheet.absoluteFill}>
-            <Path d={pathD(LAST)} stroke="#151a23" strokeWidth={28} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-            <Path d={pathD(LAST)} stroke="#222a37" strokeWidth={4} strokeDasharray="2 12" strokeLinecap="round" fill="none" />
+            <Path d={pathD(LAST)} stroke={C.pathBed} strokeWidth={28} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            <Path d={pathD(LAST)} stroke={C.pathDots} strokeWidth={4} strokeDasharray="2 12" strokeLinecap="round" fill="none" />
             {currentIdx > 0 && (
               <Path d={pathD(currentIdx)} stroke={C.accent} strokeOpacity={0.9} strokeWidth={10} strokeLinecap="round" strokeLinejoin="round" fill="none" />
             )}
@@ -321,7 +323,7 @@ export default function Home() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   practice: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -356,7 +358,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     paddingHorizontal: 9,
     borderBottomWidth: 3,
-    borderBottomColor: '#0a0c10',
+    borderBottomColor: C.edge,
   },
   hero: { alignItems: 'center', marginVertical: 14 },
   avatar: {
@@ -373,7 +375,7 @@ const styles = StyleSheet.create({
     borderBottomColor: C.accentEdge,
   },
   avatarImg: { width: '100%', height: '100%' },
-  avatarInitial: { color: C.accent, fontSize: 42, fontWeight: '900' },
+  avatarInitial: { color: C.accentTxt, fontSize: 42, fontWeight: '900' },
   avatarBadge: {
     position: 'absolute',
     right: -2,
@@ -387,7 +389,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 4,
     borderBottomColor: C.accentEdge,
   },
-  avatarBadgeTxt: { color: '#05140a', fontSize: 18, fontWeight: '900', marginTop: -2 },
+  avatarBadgeTxt: { color: C.onAccent, fontSize: 18, fontWeight: '900', marginTop: -2 },
   name: { color: C.txt, fontWeight: '800', fontSize: 18, marginTop: 8 },
   nameEdit: { color: C.muted, fontSize: 13, fontWeight: '600' },
   nameInput: {
@@ -401,12 +403,12 @@ const styles = StyleSheet.create({
     borderBottomColor: C.accent,
     paddingVertical: 2,
   },
-  lvl: { color: C.gold, fontSize: 13, fontWeight: '700', marginTop: 2 },
+  lvl: { color: C.goldTxt, fontSize: 13, fontWeight: '700', marginTop: 2 },
   goalRow: { marginBottom: 14 },
   goalHead: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
   goalLabel: { color: C.muted, fontSize: 12, fontWeight: '700' },
-  goalNum: { color: C.blue, fontSize: 12, fontWeight: '800' },
-  goalBar: { height: 14, backgroundColor: '#191e28', borderRadius: 8, overflow: 'hidden' },
+  goalNum: { color: C.blueTxt, fontSize: 12, fontWeight: '800' },
+  goalBar: { height: 14, backgroundColor: C.track, borderRadius: 8, overflow: 'hidden' },
   goalFill: { height: '100%', backgroundColor: C.blue, borderRadius: 8 },
   freezeRow: {
     flexDirection: 'row',
@@ -418,20 +420,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     marginBottom: 16,
     borderBottomWidth: 4,
-    borderBottomColor: '#0a0c10',
+    borderBottomColor: C.edge,
   },
   freezeTxt: { color: C.txt, fontSize: 13, fontWeight: '700' },
   buyRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  freezeBuy: { color: C.accent, fontSize: 12, fontWeight: '800' },
+  freezeBuy: { color: C.accentTxt, fontSize: 12, fontWeight: '800' },
   freezeBuyOff: { color: C.muted },
   modHead: { position: 'absolute', left: 0, alignItems: 'center' },
   modChip: {
-    color: C.accent,
+    color: C.accentTxt,
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.6,
     textAlign: 'center',
-    backgroundColor: '#0f2419',
+    backgroundColor: C.chip,
     paddingVertical: 7,
     paddingHorizontal: 14,
     borderRadius: 20,
@@ -446,7 +448,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: C.panel,
     borderBottomWidth: 7,
-    borderBottomColor: '#0a0c10',
+    borderBottomColor: C.edge,
   },
   nodeDone: { backgroundColor: C.accent, borderBottomColor: C.accentEdge },
   nodeCur: { backgroundColor: C.accent, borderBottomColor: C.accentEdge },
@@ -454,7 +456,7 @@ const styles = StyleSheet.create({
   nodeCrown: { backgroundColor: C.gold, borderBottomColor: C.goldEdge },
   nodePressed: { transform: [{ translateY: 4 }], borderBottomWidth: 3 },
   nodeTxt: { fontSize: 26, color: C.txt },
-  nodeTxtOn: { color: '#05140a' },
+  nodeTxtOn: { color: C.onAccent },
   codeWrap: { position: 'absolute', width: 80, alignItems: 'center' },
   code: {
     color: C.muted,
@@ -487,7 +489,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: C.panel,
     borderBottomWidth: 8,
-    borderBottomColor: '#0a0c10',
+    borderBottomColor: C.edge,
   },
   quizOpen: { backgroundColor: C.blue, borderBottomColor: C.blueEdge },
   quizTxt: { fontSize: 34, fontWeight: '900', color: C.txt },

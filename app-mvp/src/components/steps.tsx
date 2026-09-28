@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, TextInput } from 'react-native';
-import { C } from '../theme';
+import { Theme, useStyles, useTheme } from '../theme';
 import { Button } from './Button';
 import type { Question } from '../data/lessons';
 
@@ -28,6 +28,7 @@ function shuffled<T>(arr: T[], avoid?: (a: T[]) => boolean): T[] {
 
 // ─── Кілька правильних відповідей ───
 export function MultiStep({ step, resolution, onResolve }: Props<'multi'>) {
+  const styles = useStyles(makeStyles);
   const [sel, setSel] = useState<number[]>([]);
   const done = resolution !== null;
   const toggle = (i: number) => {
@@ -69,6 +70,7 @@ export function MultiStep({ step, resolution, onResolve }: Props<'multi'>) {
 
 // ─── Збери зв'язку: по одному варіанту на кожен слот ───
 export function BundleStep({ step, resolution, onResolve }: Props<'bundle'>) {
+  const styles = useStyles(makeStyles);
   const [sel, setSel] = useState<(number | null)[]>(() => step.slots.map(() => null));
   const done = resolution !== null;
   const all = sel.every((v) => v !== null);
@@ -109,6 +111,8 @@ export function BundleStep({ step, resolution, onResolve }: Props<'bundle'>) {
 
 // ─── Історія-кейс: послідовні рішення ───
 export function StoryStep({ step, resolution, onResolve }: Props<'story'>) {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
   const [scene, setScene] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [goods, setGoods] = useState(0);
@@ -172,6 +176,7 @@ export function StoryStep({ step, resolution, onResolve }: Props<'story'>) {
 
 // ─── Послідовність ───
 export function OrderStep({ step, resolution, onResolve }: Props<'order'>) {
+  const styles = useStyles(makeStyles);
   const pool = useMemo(
     () => shuffled(step.items.map((_, i) => i), (a) => a.every((v, i) => v === i)),
     [step]
@@ -224,6 +229,8 @@ export function OrderStep({ step, resolution, onResolve }: Props<'order'>) {
 
 // ─── З’єднати пари ───
 export function MatchStep({ step, resolution, onResolve }: Props<'match'>) {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
   const rights = useMemo(
     () => shuffled(step.pairs.map((p) => p[1]), (a) => a.every((v, i) => v === step.pairs[i][1])),
     [step]
@@ -295,6 +302,8 @@ const defaultTol = (f: { answer: number }) => Math.max(0.02, Math.abs(f.answer) 
 const parseNum = (s: string) => parseFloat(s.replace(',', '.').replace(/[^\d.\-]/g, ''));
 
 export function NumericStep({ step, resolution, onResolve }: Props<'numeric'>) {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
   const [vals, setVals] = useState<string[]>(() => step.fields.map(() => ''));
   const done = resolution !== null;
   const results = step.fields.map((f, i) => {
@@ -336,8 +345,8 @@ export function NumericStep({ step, resolution, onResolve }: Props<'numeric'>) {
   );
 }
 
-const styles = StyleSheet.create({
-  slotLabel: { color: C.gold, fontWeight: '800', fontSize: 13, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },
+const makeStyles = (C: Theme) => StyleSheet.create({
+  slotLabel: { color: C.goldTxt, fontWeight: '800', fontSize: 13, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },
   storyIntro: { color: C.muted, fontSize: 14, lineHeight: 21, marginBottom: 10 },
   storyBox: { backgroundColor: C.panel, borderRadius: 14, padding: 14, marginBottom: 10, borderLeftWidth: 4, borderLeftColor: C.blue },
   storyTxt: { color: C.txt, fontSize: 15, lineHeight: 22 },
@@ -355,24 +364,24 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderBottomWidth: 5,
   },
-  optSel: { borderColor: C.blue, borderBottomColor: C.blueEdge, backgroundColor: 'rgba(90,167,255,0.10)' },
-  optOk: { borderColor: C.accent, backgroundColor: 'rgba(54,226,122,0.14)', borderBottomColor: C.accentEdge },
-  optNo: { borderColor: C.red, backgroundColor: 'rgba(255,92,92,0.12)', borderBottomColor: C.redEdge },
+  optSel: { borderColor: C.blue, borderBottomColor: C.blueEdge, backgroundColor: C.blueTint },
+  optOk: { borderColor: C.accent, backgroundColor: C.accentTint, borderBottomColor: C.accentEdge },
+  optNo: { borderColor: C.red, backgroundColor: C.redTint, borderBottomColor: C.redEdge },
   optPressed: { transform: [{ translateY: 3 }], borderBottomWidth: 2 },
   optTxt: { color: C.txt, fontSize: 16, flex: 1 },
   box: { color: C.txt, fontSize: 18, fontWeight: '900', minWidth: 22, textAlign: 'center' },
-  num: { color: C.accent, fontSize: 16, fontWeight: '900', minWidth: 22, textAlign: 'center' },
-  wrong: { color: C.red, fontSize: 18, fontWeight: '900' },
+  num: { color: C.accentTxt, fontSize: 16, fontWeight: '900', minWidth: 22, textAlign: 'center' },
+  wrong: { color: C.redTxt, fontSize: 18, fontWeight: '900' },
   matchCard: { flexDirection: 'column', alignItems: 'flex-start', gap: 4 },
   matchLeft: { color: C.txt, fontSize: 16, fontWeight: '800' },
-  matchRight: { color: C.accent, fontSize: 14 },
+  matchRight: { color: C.accentTxt, fontSize: 14 },
   chip: {
     backgroundColor: C.panel2,
     borderRadius: 14,
     padding: 13,
     marginBottom: 8,
     borderBottomWidth: 4,
-    borderBottomColor: '#0a0c10',
+    borderBottomColor: C.edge,
   },
   chipUsed: { opacity: 0.35 },
   fieldLabel: { color: C.txt, fontSize: 14, fontWeight: '700', marginBottom: 6 },
@@ -388,5 +397,5 @@ const styles = StyleSheet.create({
   },
   input: { flex: 1, color: C.txt, fontSize: 20, fontWeight: '800', paddingVertical: 12 },
   unit: { color: C.muted, fontSize: 18, fontWeight: '800', marginHorizontal: 4 },
-  correctNote: { color: C.accent, fontSize: 13, fontWeight: '700', marginTop: 4 },
+  correctNote: { color: C.accentTxt, fontSize: 13, fontWeight: '700', marginTop: 4 },
 });

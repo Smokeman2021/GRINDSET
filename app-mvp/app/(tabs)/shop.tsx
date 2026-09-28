@@ -7,7 +7,7 @@ import { GrindykSay } from '../../src/components/GrindykSay';
 import { Icon } from '../../src/components/Icon';
 import { ITEMS, ShopCategory, FRAMES } from '../../src/data/shop';
 import { ENERGY_REGEN_MS, MAX_ENERGY, MAX_STREAK_FREEZES, useStore } from '../../src/store';
-import { C } from '../../src/theme';
+import { Theme, useStyles, useTheme } from '../../src/theme';
 import { shopSay, ShopMsg } from '../../src/data/phrases';
 import { useT } from '../../src/i18n';
 
@@ -20,6 +20,8 @@ function fmtLeft(ms: number) {
 }
 
 export default function Shop() {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
   const insets = useSafeAreaInsets();
   const { coins, energy, energyAt, streakFreezes, comboShields, hints, doubleCoins, frames, frame, buyItem, equipFrame, refreshEnergy } =
     useStore();
@@ -120,7 +122,7 @@ export default function Shop() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   energyCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -160,7 +162,7 @@ const styles = StyleSheet.create({
   },
   itemTitle: { color: C.txt, fontWeight: '800', fontSize: 15 },
   itemDesc: { color: C.muted, fontSize: 12, marginTop: 2, lineHeight: 16 },
-  own: { color: C.accent, fontSize: 12, fontWeight: '800', marginTop: 4 },
+  own: { color: C.accentTxt, fontSize: 12, fontWeight: '800', marginTop: 4 },
   buy: {
     minWidth: 78,
     alignItems: 'center',
@@ -177,6 +179,6 @@ const styles = StyleSheet.create({
   buyOff: { borderColor: C.line, borderBottomColor: C.line },
   buyOwned: { borderColor: C.accent, borderBottomColor: C.accentEdge },
   priceRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  buyTxt: { color: C.gold, fontWeight: '900', fontSize: 15 },
+  buyTxt: { color: C.goldTxt, fontWeight: '900', fontSize: 15 },
   foot: { color: C.muted, fontSize: 12, textAlign: 'center', marginTop: 20 },
 });

@@ -14,7 +14,7 @@ import { QUIZ, SKILL_LEVELS } from '../src/data/quiz';
 import { DailyGoal, GOAL_LABEL, GOAL_XP, useStore } from '../src/store';
 import { askPermission } from '../src/notifications';
 import { Button } from '../src/components/Button';
-import { C } from '../src/theme';
+import { Theme, useStyles, useTheme } from '../src/theme';
 
 type Phase = 'welcome' | 'quiz' | 'goal' | 'name';
 
@@ -28,6 +28,8 @@ const GOALS: { key: DailyGoal; emoji: string; desc: string }[] = [
 ];
 
 export default function Onboarding() {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const setQuizAnswer = useStore((s) => s.setQuizAnswer);
@@ -157,7 +159,7 @@ export default function Onboarding() {
                     onPress={() => setSkillAns((p) => ({ ...p, [sk.key]: li }))}
                     style={[styles.chip, skillAns[sk.key] === li && styles.chipOn]}
                   >
-                    <Text style={[styles.chipTxt, skillAns[sk.key] === li && { color: '#05140a' }]}>{lv}</Text>
+                    <Text style={[styles.chipTxt, skillAns[sk.key] === li && { color: C.onAccent }]}>{lv}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -181,7 +183,7 @@ export default function Onboarding() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.bg, paddingHorizontal: 22 },
   center: { justifyContent: 'center', alignItems: 'center' },
   heroImg: { width: 170, height: 340 },
@@ -240,11 +242,11 @@ const styles = StyleSheet.create({
   },
   optSel: {
     borderColor: C.accent,
-    backgroundColor: 'rgba(54,226,122,0.08)',
+    backgroundColor: C.accentTint,
     borderBottomColor: C.accentEdge,
   },
   optSoon: { opacity: 0.55 },
-  soon: { color: C.gold, fontSize: 11, fontWeight: '800' },
+  soon: { color: C.goldTxt, fontSize: 11, fontWeight: '800' },
   hint: { color: C.muted, fontSize: 13, marginTop: -8, marginBottom: 14 },
   skill: { marginBottom: 14 },
   skillLabel: { color: C.txt, fontWeight: '800', fontSize: 15, marginBottom: 6 },

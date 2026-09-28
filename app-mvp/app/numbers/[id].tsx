@@ -7,7 +7,7 @@ import { analyze, breakEvenCpl, totalsOf } from '../../src/data/advice';
 import { askPermission } from '../../src/notifications';
 import { fetchSheet } from '../../src/data/sheets';
 import { useStore } from '../../src/store';
-import { C } from '../../src/theme';
+import { Theme, useStyles, useTheme } from '../../src/theme';
 
 const num = (s: string) => {
   const v = parseFloat(s.replace(',', '.'));
@@ -32,6 +32,8 @@ const REMIND: { label: string; times: string[] }[] = [
 ];
 
 export default function CampaignScreen() {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -232,7 +234,7 @@ export default function CampaignScreen() {
             const on = JSON.stringify(c.remindTimes) === JSON.stringify(r.times);
             return (
               <Pressable key={r.label} onPress={() => setReminders(r.times)} style={[styles.opt, on && styles.optOn]}>
-                <Text style={[styles.optTxt, on && { color: '#05140a' }]}>{r.label}</Text>
+                <Text style={[styles.optTxt, on && { color: C.onAccent }]}>{r.label}</Text>
               </Pressable>
             );
           })}
@@ -248,7 +250,7 @@ export default function CampaignScreen() {
           }}
           style={{ marginTop: 20, alignItems: 'center' }}
         >
-          <Text style={{ color: C.red, fontWeight: '800' }}>{confirmDel ? '⚠️ Натисни ще раз: видалити кампанію' : '🗑 Видалити кампанію'}</Text>
+          <Text style={{ color: C.redTxt, fontWeight: '800' }}>{confirmDel ? '⚠️ Натисни ще раз: видалити кампанію' : '🗑 Видалити кампанію'}</Text>
         </Pressable>
       </ScrollView>
     </View>
@@ -256,15 +258,19 @@ export default function CampaignScreen() {
 }
 
 function Row({ k, v, tone }: { k: string; v: string; tone?: 'good' | 'bad' | 'gold' }) {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
   return (
     <View style={styles.row}>
       <Text style={styles.k}>{k}</Text>
-      <Text style={[styles.v, tone === 'good' && { color: C.accent }, tone === 'bad' && { color: C.red }, tone === 'gold' && { color: C.gold }]}>{v}</Text>
+      <Text style={[styles.v, tone === 'good' && { color: C.accentTxt }, tone === 'bad' && { color: C.redTxt }, tone === 'gold' && { color: C.goldTxt }]}>{v}</Text>
     </View>
   );
 }
 
 function Field({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
   return (
     <View style={{ marginTop: 8 }}>
       <Text style={styles.label}>{label}</Text>
@@ -273,7 +279,7 @@ function Field({ label, value, onChange }: { label: string; value: string; onCha
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.bg },
   head: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, paddingBottom: 12, borderBottomColor: C.line, borderBottomWidth: 1 },
   x: { color: C.txt, fontSize: 24, fontWeight: '800' },
@@ -297,7 +303,7 @@ const styles = StyleSheet.create({
   label: { color: C.muted, fontSize: 12, fontWeight: '700', marginBottom: 4 },
   input: { backgroundColor: C.panel2, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, color: C.txt, fontSize: 16, fontWeight: '700' },
   dayRow: { flexDirection: 'row', gap: 10, paddingVertical: 8, borderTopWidth: 1, borderTopColor: C.line },
-  dayDate: { color: C.gold, fontWeight: '800', width: 48 },
+  dayDate: { color: C.goldTxt, fontWeight: '800', width: 48 },
   dayTxt: { color: C.txt, flex: 1 },
   change: { marginTop: 10, paddingTop: 8, borderTopWidth: 1, borderTopColor: C.line },
   changeDate: { color: C.muted, fontSize: 11 },

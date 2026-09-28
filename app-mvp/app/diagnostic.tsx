@@ -5,10 +5,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../src/components/Button';
 import { GrindykSay } from '../src/components/GrindykSay';
 import { say } from '../src/data/phrases';
-import { C } from '../src/theme';
+import { Theme, useStyles } from '../src/theme';
 
 // Вступ до діагностичного тесту: можна пройти або пропустити (тоді базовий трек для початківців)
 export default function Diagnostic() {
+  const styles = useStyles(makeStyles);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const talk = useMemo(() => say('diagIntro'), []);
@@ -30,7 +31,7 @@ export default function Diagnostic() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.bg, paddingHorizontal: 22, justifyContent: 'space-between' },
   h1: { color: C.txt, fontSize: 26, fontWeight: '900', marginTop: 18 },
   p: { color: C.muted, fontSize: 15, lineHeight: 22, marginTop: 10 },

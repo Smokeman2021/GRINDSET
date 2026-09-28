@@ -6,7 +6,7 @@ import { GrindykSay } from '../../src/components/GrindykSay';
 import { Button } from '../../src/components/Button';
 import { breakEvenCpl, totalsOf } from '../../src/data/advice';
 import { useStore } from '../../src/store';
-import { C } from '../../src/theme';
+import { Theme, useStyles, useTheme } from '../../src/theme';
 
 const num = (s: string) => {
   const v = parseFloat(s.replace(',', '.'));
@@ -15,6 +15,8 @@ const num = (s: string) => {
 const money = (v: number) => (Number.isFinite(v) ? `${v < 0 ? '−' : ''}$${Math.abs(v).toFixed(2)}` : '—');
 
 export default function Numbers() {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { campaigns, addCampaign } = useStore();
@@ -57,7 +59,7 @@ export default function Numbers() {
                 <Text style={styles.cName} numberOfLines={1}>
                   {c.name}
                 </Text>
-                <Text style={[styles.badge, c.status === 'active' ? { color: C.accent } : { color: C.muted }]}>{c.status === 'active' ? 'Активна' : 'Пауза'}</Text>
+                <Text style={[styles.badge, c.status === 'active' ? { color: C.accentTxt } : { color: C.muted }]}>{c.status === 'active' ? 'Активна' : 'Пауза'}</Text>
               </View>
               <Text style={styles.sub}>
                 Днів записано: {c.entries.length} · Беззбитковий CPL {money(be)}
@@ -103,15 +105,17 @@ export default function Numbers() {
 }
 
 function Metric({ k, v, tone }: { k: string; v: string; tone?: 'good' | 'bad' }) {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
   return (
     <View style={{ flex: 1 }}>
-      <Text style={[styles.mv, tone === 'good' && { color: C.accent }, tone === 'bad' && { color: C.red }]}>{v}</Text>
+      <Text style={[styles.mv, tone === 'good' && { color: C.accentTxt }, tone === 'bad' && { color: C.redTxt }]}>{v}</Text>
       <Text style={styles.mk}>{k}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 20, paddingBottom: 12, borderBottomColor: C.line, borderBottomWidth: 1 },
   x: { color: C.txt, fontSize: 24, fontWeight: '800' },
   title: { color: C.txt, fontSize: 18, fontWeight: '900' },

@@ -6,7 +6,7 @@ import { isQuizId, nextAfter } from '../src/data/modules';
 import { useStore } from '../src/store';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
-import { C } from '../src/theme';
+import { Theme, useStyles, useTheme } from '../src/theme';
 import { GrindykSay } from '../src/components/GrindykSay';
 import { say, PhraseKind } from '../src/data/phrases';
 import { ACHIEVEMENTS } from '../src/data/achievements';
@@ -16,6 +16,8 @@ import { MemeCard } from '../src/components/MemeCard';
 import { MEMES } from '../src/data/memes';
 
 export default function Results() {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const completeLesson = useStore((s) => s.completeLesson);
@@ -186,18 +188,18 @@ export default function Results() {
             </View>
             <View style={styles.rewardItem}>
               <Icon name="xp" size={34} />
-              <Text style={[styles.reward, { color: C.blue }]}>+{xp} XP</Text>
+              <Text style={[styles.reward, { color: C.blueTxt }]}>+{xp} XP</Text>
             </View>
           </View>
         )}
       </View>
 
       <View style={{ width: '100%' }}>
-        <Row label="Вірних відповідей" value={`${correct}`} color={C.accent} />
+        <Row label="Вірних відповідей" value={`${correct}`} color={C.accentTxt} />
         <Row label="Помилок" value={`${errors}`} color={errors ? C.red : C.accent} />
         <Row label="Точність" value={`${accuracy}%`} color={C.txt} />
-        <Row label="Макс. комбо-бонус" value={`+${maxBonus}%`} color={C.fire} />
-        {isQuiz && <Row label="Бонус за швидкість" value={`+${speed} 🪙`} color={C.blue} />}
+        <Row label="Макс. комбо-бонус" value={`+${maxBonus}%`} color={C.fireTxt} />
+        {isQuiz && <Row label="Бонус за швидкість" value={`+${speed} 🪙`} color={C.blueTxt} />}
       </View>
 
       <View style={styles.nextBox}>
@@ -225,6 +227,8 @@ export default function Results() {
 }
 
 function DiagnosticResult({ correct, errors, newAch }: { correct: number; errors: number; newAch: string[] }) {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const charStart = useStore((s) => s.charStart);
@@ -284,6 +288,7 @@ function DiagnosticResult({ correct, errors, newAch }: { correct: number; errors
 }
 
 function Row({ label, value, color }: { label: string; value: string; color: string }) {
+  const styles = useStyles(makeStyles);
   return (
     <View style={styles.row}>
       <Text style={styles.rowLabel}>{label}</Text>
@@ -292,20 +297,20 @@ function Row({ label, value, color }: { label: string; value: string; color: str
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   screen: { flex: 1, backgroundColor: C.bg, paddingHorizontal: 22, justifyContent: 'space-between' },
   center: { alignItems: 'center' },
   emoji: { fontSize: 60 },
   h1: { color: C.txt, fontSize: 26, fontWeight: '800', marginTop: 8 },
-  memeTag: { color: C.gold, fontWeight: '900', fontSize: 11, letterSpacing: 1, textAlign: 'center', marginBottom: 6 },
-  doubled: { color: C.gold, fontWeight: '800', marginTop: 10 },
+  memeTag: { color: C.goldTxt, fontWeight: '900', fontSize: 11, letterSpacing: 1, textAlign: 'center', marginBottom: 6 },
+  doubled: { color: C.goldTxt, fontWeight: '800', marginTop: 10 },
   diagTxt: { color: C.txt, fontSize: 15, lineHeight: 22, textAlign: 'center' },
   muted: { color: C.muted, fontSize: 14, marginTop: 6, textAlign: 'center' },
   levelUp: {
     flexDirection: 'row',
     gap: 14,
     alignItems: 'center',
-    backgroundColor: 'rgba(90,167,255,0.12)',
+    backgroundColor: C.blueTint,
     borderColor: C.blue,
     borderWidth: 2,
     borderRadius: 16,
@@ -315,7 +320,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 5,
     borderBottomColor: C.blueEdge,
   },
-  levelUpTitle: { color: C.blue, fontWeight: '800', fontSize: 15 },
+  levelUpTitle: { color: C.blueTxt, fontWeight: '800', fontSize: 15 },
   ach: {
     flexDirection: 'row',
     gap: 14,
@@ -334,7 +339,7 @@ const styles = StyleSheet.create({
   achSub: { color: C.muted, fontSize: 13, marginTop: 2 },
   rewardRow: { flexDirection: 'row', gap: 22, marginVertical: 16 },
   rewardItem: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  reward: { color: C.gold, fontSize: 26, fontWeight: '800' },
+  reward: { color: C.goldTxt, fontSize: 26, fontWeight: '800' },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',

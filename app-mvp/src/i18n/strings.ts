@@ -20,6 +20,9 @@ export const STRINGS = {
     titleShop: 'МАГАЗИН',
     titleLeague: 'РЕЙТИНГ',
     language: 'Мова інтерфейсу',
+    theme: 'Оформлення',
+    themeNight: '🌙 Ніч',
+    themeDay: '☀️ День',
     languageNote: 'Модулі 03-10 перекладено, модулі 01-02 і частина інтерфейсу поки лише українською.',
   },
   en: {
@@ -34,6 +37,9 @@ export const STRINGS = {
     titleShop: 'SHOP',
     titleLeague: 'LEADERBOARD',
     language: 'Interface language',
+    theme: 'Appearance',
+    themeNight: '🌙 Night',
+    themeDay: '☀️ Day',
     languageNote: 'Modules 03-10 are translated; modules 01-02 and part of the interface are still Ukrainian-only.',
   },
   ru: {
@@ -48,6 +54,9 @@ export const STRINGS = {
     titleShop: 'МАГАЗИН',
     titleLeague: 'РЕЙТИНГ',
     language: 'Язык интерфейса',
+    theme: 'Оформление',
+    themeNight: '🌙 Ночь',
+    themeDay: '☀️ День',
     languageNote: 'Модули 03-10 переведены, модули 01-02 и часть интерфейса пока только на украинском.',
   },
 } as const;

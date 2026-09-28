@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextStyle, ScrollView, Modal, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import { C } from '../theme';
+import { Theme, useStyles } from '../theme';
 import { findTerm, Term, TERM_RE } from '../data/glossary';
 
 type Block =
@@ -63,7 +63,7 @@ function parse(src: string): Block[] {
 }
 
 // **жирний**, *курсив*, `код`, [→ Бібліотека: X]
-type Ctx = { onRef?: (label: string) => void; onTerm?: (t: Term) => void; seen: Set<string> };
+type Ctx = { onRef?: (label: string) => void; onTerm?: (t: Term) => void; seen: Set<string>; styles: ReturnType<typeof makeStyles> };
 
 // Звичайний текст: перше згадування терміна з глосарію підсвічується і відкриває пояснення
 function plain(text: string, base: TextStyle, ctx: Ctx, keyPrefix: string): React.ReactNode[] {
@@ -86,7 +86,7 @@ function plain(text: string, base: TextStyle, ctx: Ctx, keyPrefix: string): Reac
     ctx.seen.add(term.id);
     if (m.index > 0) out.push(rest.slice(0, m.index));
     out.push(
-      <Text key={`${keyPrefix}-${n++}`} style={[base, styles.term]} onPress={() => ctx.onTerm?.(term)}>
+      <Text key={`${keyPrefix}-${n++}`} style={[base, ctx.styles.term]} onPress={() => ctx.onTerm?.(term)}>
         {m[0]}
       </Text>
     );
@@ -101,25 +101,25 @@ function inline(text: string, base: TextStyle, ctx: Ctx) {
     if (!part) return null;
     if (part.startsWith('**') && part.endsWith('**') && part.length > 4)
       return (
-        <Text key={i} style={[base, styles.bold]}>
+        <Text key={i} style={[base, ctx.styles.bold]}>
           {part.slice(2, -2)}
         </Text>
       );
     if (part.startsWith('`') && part.endsWith('`'))
       return (
-        <Text key={i} style={[base, styles.mono]}>
+        <Text key={i} style={[base, ctx.styles.mono]}>
           {part.slice(1, -1)}
         </Text>
       );
     if (part.startsWith('[→'))
       return (
-        <Text key={i} style={[base, styles.ref]} onPress={() => ctx.onRef?.(part.slice(2, -1).replace(/^\s*Бібліотека:\s*/i, '').trim())}>
+        <Text key={i} style={[base, ctx.styles.ref]} onPress={() => ctx.onRef?.(part.slice(2, -1).replace(/^\s*Бібліотека:\s*/i, '').trim())}>
           {'📚 ' + part.slice(2, -1).trim()}
         </Text>
       );
     if (part.startsWith('*') && part.endsWith('*') && part.length > 2)
       return (
-        <Text key={i} style={[base, styles.italic]}>
+        <Text key={i} style={[base, ctx.styles.italic]}>
           {part.slice(1, -1)}
         </Text>
       );
@@ -128,10 +128,11 @@ function inline(text: string, base: TextStyle, ctx: Ctx) {
 }
 
 export function Markdown({ text, small }: { text: string; small?: boolean }) {
+  const styles = useStyles(makeStyles);
   const router = useRouter();
   const goRef = (label: string) => router.navigate({ pathname: '/library', params: { cat: label } });
   const [popup, setPopup] = useState<Term | null>(null);
-  const ctx: Ctx = { onRef: goRef, onTerm: setPopup, seen: new Set() };
+  const ctx: Ctx = { onRef: goRef, onTerm: setPopup, seen: new Set(), styles };
   const blocks = parse(text);
   const pStyle = small ? [styles.p, styles.pSm] : styles.p;
   const liStyle = small ? [styles.liTxt, styles.liSm] : styles.liTxt;
@@ -206,24 +207,24 @@ export function Markdown({ text, small }: { text: string; small?: boolean }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   p: { color: C.txt, fontSize: 16, lineHeight: 25, marginBottom: 12 },
   pSm: { fontSize: 14, lineHeight: 21, marginBottom: 8 },
   liSm: { fontSize: 14, lineHeight: 21 },
-  term: { color: C.gold, textDecorationLine: 'underline', textDecorationStyle: 'dotted', textDecorationColor: C.gold },
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
+  term: { color: C.goldTxt, textDecorationLine: 'underline', textDecorationStyle: 'dotted', textDecorationColor: C.gold },
+  backdrop: { flex: 1, backgroundColor: C.overlay, justifyContent: 'flex-end' },
   sheet: { backgroundColor: C.panel, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 22, paddingBottom: 34, borderTopWidth: 3, borderTopColor: C.gold },
-  sheetTag: { color: C.gold, fontWeight: '900', fontSize: 11, letterSpacing: 1 },
+  sheetTag: { color: C.goldTxt, fontWeight: '900', fontSize: 11, letterSpacing: 1 },
   sheetTitle: { color: C.txt, fontWeight: '900', fontSize: 22, marginTop: 4 },
   sheetDef: { color: C.txt, fontSize: 16, lineHeight: 24, marginTop: 10 },
   sheetHint: { color: C.muted, fontSize: 12, marginTop: 14 },
   bold: { fontWeight: '800' },
   italic: { fontStyle: 'italic', color: C.muted },
   mono: { fontFamily: 'monospace', backgroundColor: C.panel2 },
-  ref: { color: C.blue, fontWeight: '700' },
+  ref: { color: C.blueTxt, fontWeight: '700' },
   list: { marginBottom: 10 },
   li: { flexDirection: 'row', gap: 8, marginBottom: 6, paddingRight: 8 },
-  bullet: { color: C.accent, fontSize: 16, lineHeight: 24, minWidth: 18, fontWeight: '800' },
+  bullet: { color: C.accentTxt, fontSize: 16, lineHeight: 24, minWidth: 18, fontWeight: '800' },
   liTxt: { color: C.txt, fontSize: 16, lineHeight: 24, flex: 1 },
   codeBox: {
     backgroundColor: C.panel2,

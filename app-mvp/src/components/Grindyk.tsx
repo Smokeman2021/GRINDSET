@@ -1,6 +1,6 @@
 import React from 'react';
 import { Image, View, StyleSheet } from 'react-native';
-import { C } from '../theme';
+import { Theme, useStyles } from '../theme';
 
 export type Mood = 'neutral' | 'happy' | 'fire' | 'think' | 'oops';
 
@@ -21,6 +21,7 @@ export function Grindyk({
   mood?: Mood;
   size?: number;
 }) {
+  const styles = useStyles(makeStyles);
   const face: Mood = mood ?? 'neutral';
   const edge = Math.max(3, Math.round(size * 0.06));
   return (
@@ -41,7 +42,7 @@ export function Grindyk({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   frame: {
     overflow: 'hidden',
     backgroundColor: C.imgBg,

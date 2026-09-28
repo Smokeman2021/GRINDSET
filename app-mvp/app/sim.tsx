@@ -7,7 +7,7 @@ import { GrindykSay } from '../src/components/GrindykSay';
 import { Icon } from '../src/components/Icon';
 import { breakEvenCpl, DAYS, judge, newCase, nextBudget, playDay, SimAction, SimCase, SimDay, Verdict } from '../src/data/sim';
 import { useStore } from '../src/store';
-import { C } from '../src/theme';
+import { Theme, useStyles, useTheme } from '../src/theme';
 
 const money = (v: number) => `${v < 0 ? '−' : ''}$${Math.abs(v).toFixed(2)}`;
 
@@ -20,6 +20,8 @@ const ACTIONS: { id: SimAction; label: string; hint: string }[] = [
 ];
 
 export default function Sim() {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const finishSim = useStore((s) => s.finishSim);
@@ -165,7 +167,7 @@ export default function Sim() {
                 </View>
                 <View style={styles.rewardItem}>
                   <Icon name="xp" size={28} />
-                  <Text style={[styles.reward, { color: C.blue }]}>+{reward.xp} XP</Text>
+                  <Text style={[styles.reward, { color: C.blueTxt }]}>+{reward.xp} XP</Text>
                 </View>
               </View>
             )}
@@ -182,19 +184,21 @@ export default function Sim() {
 }
 
 function Row({ k, v, tone }: { k: string; v: string; tone?: 'good' | 'bad' | 'gold' }) {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
   return (
     <View style={styles.row}>
       <Text style={styles.k}>{k}</Text>
-      <Text style={[styles.v, tone === 'good' && { color: C.accent }, tone === 'bad' && { color: C.red }, tone === 'gold' && { color: C.gold }]}>{v}</Text>
+      <Text style={[styles.v, tone === 'good' && { color: C.accentTxt }, tone === 'bad' && { color: C.redTxt }, tone === 'gold' && { color: C.goldTxt }]}>{v}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   head: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 20, paddingBottom: 12, borderBottomColor: C.line, borderBottomWidth: 1 },
   x: { color: C.muted, fontSize: 22, fontWeight: '700' },
   headTitle: { color: C.txt, fontWeight: '900', fontSize: 16, flex: 1 },
-  headDay: { color: C.gold, fontWeight: '800' },
+  headDay: { color: C.goldTxt, fontWeight: '800' },
   card: { backgroundColor: C.panel, borderRadius: 16, padding: 14, marginBottom: 12, borderWidth: 2, borderBottomWidth: 4, borderColor: C.line },
   cardTitle: { color: C.muted, fontWeight: '800', fontSize: 12, letterSpacing: 1, marginBottom: 8, textTransform: 'uppercase' },
   row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderTopWidth: 1, borderTopColor: C.line },
@@ -202,15 +206,15 @@ const styles = StyleSheet.create({
   v: { color: C.txt, fontWeight: '900', fontSize: 15 },
   small: { color: C.muted, fontSize: 12, lineHeight: 17, marginTop: 8 },
   rule: { color: C.txt, fontSize: 14, lineHeight: 21, marginBottom: 4 },
-  tip: { color: C.gold, fontWeight: '700', marginBottom: 12, textAlign: 'center' },
+  tip: { color: C.goldTxt, fontWeight: '700', marginBottom: 12, textAlign: 'center' },
   decide: { color: C.txt, fontWeight: '900', fontSize: 18, marginVertical: 10 },
   action: { backgroundColor: C.panel, borderRadius: 14, padding: 14, marginBottom: 8, borderWidth: 2, borderBottomWidth: 4, borderColor: C.line },
   actionLabel: { color: C.txt, fontWeight: '800', fontSize: 15 },
   actionHint: { color: C.muted, fontSize: 12, marginTop: 2 },
-  stars: { color: C.gold, fontSize: 40, textAlign: 'center', marginTop: 4 },
+  stars: { color: C.goldTxt, fontSize: 40, textAlign: 'center', marginTop: 4 },
   verdict: { color: C.txt, fontWeight: '900', fontSize: 24, textAlign: 'center' },
   profit: { fontWeight: '800', fontSize: 16, textAlign: 'center', marginVertical: 8 },
   rewardRow: { flexDirection: 'row', justifyContent: 'center', gap: 24, marginTop: 4 },
   rewardItem: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  reward: { color: C.gold, fontWeight: '900', fontSize: 22 },
+  reward: { color: C.goldTxt, fontWeight: '900', fontSize: 22 },
 });

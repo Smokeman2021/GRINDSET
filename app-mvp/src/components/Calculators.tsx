@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
-import { C } from '../theme';
+import { Theme, useStyles, useTheme } from '../theme';
 
 // Прості калькулятори медіабаєра. Усі рахунки локальні; це допомога, а не гарантія результату.
 const num = (s: string) => {
@@ -11,6 +11,8 @@ const money = (v: number) => (Number.isFinite(v) ? `$${v.toFixed(2)}` : '—');
 const pct = (v: number) => (Number.isFinite(v) ? `${v.toFixed(1)}%` : '—');
 
 function Field({ label, value, onChange, suffix }: { label: string; value: string; onChange: (v: string) => void; suffix?: string }) {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
   return (
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
@@ -30,16 +32,19 @@ function Field({ label, value, onChange, suffix }: { label: string; value: strin
 }
 
 function Result({ label, value, tone }: { label: string; value: string; tone?: 'good' | 'bad' }) {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
   return (
     <View style={styles.result}>
       <Text style={styles.rLabel}>{label}</Text>
-      <Text style={[styles.rValue, tone === 'good' && { color: C.accent }, tone === 'bad' && { color: C.red }]}>{value}</Text>
+      <Text style={[styles.rValue, tone === 'good' && { color: C.accentTxt }, tone === 'bad' && { color: C.redTxt }]}>{value}</Text>
     </View>
   );
 }
 
 // 1. Беззбитковий CPA і ROI
 function Breakeven() {
+  const styles = useStyles(makeStyles);
   const [payout, setPayout] = useState('12');
   const [approve, setApprove] = useState('40');
   const [spend, setSpend] = useState('100');
@@ -71,6 +76,7 @@ function Breakeven() {
 
 // 2. Метрики з сирих даних
 function Metrics() {
+  const styles = useStyles(makeStyles);
   const [spend, setSpend] = useState('50');
   const [impr, setImpr] = useState('20000');
   const [clicks, setClicks] = useState('300');
@@ -98,6 +104,7 @@ function Metrics() {
 
 // 3. Правило гранічної вартості ліда (модуль 08)
 function Threshold() {
+  const styles = useStyles(makeStyles);
   const [first, setFirst] = useState('3');
   const [budget, setBudget] = useState('20');
   const f = num(first);
@@ -126,7 +133,7 @@ export function Calculators() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   card: {
     backgroundColor: C.panel,
     borderRadius: 16,
@@ -145,5 +152,5 @@ const styles = StyleSheet.create({
   suffix: { color: C.muted, fontWeight: '700' },
   result: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6, borderTopWidth: 1, borderTopColor: C.line },
   rLabel: { color: C.txt, fontSize: 14 },
-  rValue: { color: C.gold, fontWeight: '900', fontSize: 15 },
+  rValue: { color: C.goldTxt, fontWeight: '900', fontSize: 15 },
 });

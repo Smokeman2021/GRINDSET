@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, Text, StyleSheet, ViewStyle } from 'react-native';
-import { C } from '../theme';
+import { Theme, useStyles } from '../theme';
 
 const EDGE = 5;
 
@@ -17,6 +17,7 @@ export function Button({
   ghost?: boolean;
   style?: ViewStyle;
 }) {
+  const styles = useStyles(makeStyles);
   return (
     <Pressable
       onPress={onPress}
@@ -36,7 +37,7 @@ export function Button({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   btn: {
     backgroundColor: C.accent,
     borderRadius: 16,
@@ -58,10 +59,10 @@ const styles = StyleSheet.create({
     borderBottomColor: C.line,
   },
   disabled: {
-    backgroundColor: '#2a313f',
-    borderBottomColor: '#20262f',
+    backgroundColor: C.disabled,
+    borderBottomColor: C.disabledEdge,
   },
-  txt: { color: '#05140a', fontSize: 17, fontWeight: '800', letterSpacing: 0.5 },
+  txt: { color: C.onAccent, fontSize: 17, fontWeight: '800', letterSpacing: 0.5 },
   ghostTxt: { color: C.muted, fontWeight: '700' },
-  disabledTxt: { color: '#5b6577' },
+  disabledTxt: { color: C.disabledTxt },
 });

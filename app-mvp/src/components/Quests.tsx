@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { questsForDay } from '../data/quests';
 import { useStore } from '../store';
-import { C } from '../theme';
+import { Theme, useStyles, useTheme } from '../theme';
 import { Icon } from './Icon';
 
 function todayStr(): string {
@@ -11,6 +11,8 @@ function todayStr(): string {
 }
 
 export function Quests() {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
   const { questsDate, questProgress, questsClaimed, claimQuest } = useStore();
   const today = todayStr();
   const fresh = questsDate === today;
@@ -56,7 +58,7 @@ export function Quests() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   card: {
     backgroundColor: C.panel,
     borderRadius: 16,
@@ -69,7 +71,7 @@ const styles = StyleSheet.create({
   title: { color: C.muted, fontWeight: '800', fontSize: 12, letterSpacing: 1, marginBottom: 8 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 7 },
   qTitle: { color: C.txt, fontWeight: '700', fontSize: 14, marginBottom: 5 },
-  bar: { height: 8, backgroundColor: '#191e28', borderRadius: 5, overflow: 'hidden' },
+  bar: { height: 8, backgroundColor: C.track, borderRadius: 5, overflow: 'hidden' },
   fill: { height: '100%', borderRadius: 5 },
   btn: {
     minWidth: 76,
@@ -84,8 +86,8 @@ const styles = StyleSheet.create({
     borderBottomColor: C.accentEdge,
   },
   btnOff: { borderColor: C.line, borderBottomColor: C.line },
-  btnTxt: { color: C.accent, fontWeight: '900', fontSize: 12 },
+  btnTxt: { color: C.accentTxt, fontWeight: '900', fontSize: 12 },
   reward: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  rewardTxt: { color: C.gold, fontWeight: '800', fontSize: 12 },
-  claimed: { color: C.accent, fontWeight: '900', fontSize: 20, width: 76, textAlign: 'center' },
+  rewardTxt: { color: C.goldTxt, fontWeight: '800', fontSize: 12 },
+  claimed: { color: C.accentTxt, fontWeight: '900', fontSize: 20, width: 76, textAlign: 'center' },
 });

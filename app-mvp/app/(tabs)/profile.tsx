@@ -20,7 +20,7 @@ import { say } from '../../src/data/phrases';
 import { masteredCount } from '../../src/data/srs';
 import { askPermission } from '../../src/notifications';
 import { GOAL_LABEL, GOAL_XP, DailyGoal, statsOf, useStore } from '../../src/store';
-import { C } from '../../src/theme';
+import { Theme, useStyles, useTheme } from '../../src/theme';
 
 const GOALS: DailyGoal[] = ['casual', 'regular', 'intense'];
 
@@ -33,6 +33,8 @@ function lessonTitle(id: string): string {
 }
 
 export default function Profile() {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const s = useStore();
@@ -127,7 +129,7 @@ export default function Profile() {
             return (
               <Pressable key={a.id} onPress={() => s.setArchetype(a.id)} style={[styles.archCell, on && styles.archCellOn]}>
                 <Image source={f.src} style={{ width: 48 * f.ratio, height: 48 }} resizeMode="contain" />
-                <Text style={[styles.archLbl, on && { color: C.accent }]} numberOfLines={1}>
+                <Text style={[styles.archLbl, on && { color: C.accentTxt }]} numberOfLines={1}>
                   {a.label}
                 </Text>
               </Pressable>
@@ -236,11 +238,20 @@ export default function Profile() {
 
         <Text style={styles.h}>НАЛАШТУВАННЯ</Text>
         <View style={styles.box}>
+          <Text style={styles.setLabel}>{t('theme')}</Text>
+          <View style={styles.goalRow}>
+            {(['night', 'day'] as const).map((n) => (
+              <Pressable key={n} onPress={() => s.setTheme(n)} style={[styles.goalBtn, s.theme === n && styles.goalOn]}>
+                <Text style={[styles.goalTxt, s.theme === n && { color: C.onAccent }]}>{t(n === 'night' ? 'themeNight' : 'themeDay')}</Text>
+              </Pressable>
+            ))}
+          </View>
+
           <Text style={styles.setLabel}>{t('language')}</Text>
           <View style={styles.goalRow}>
             {(['uk', 'en', 'ru'] as Lang[]).map((l) => (
               <Pressable key={l} onPress={() => s.setLang(l)} style={[styles.goalBtn, s.lang === l && styles.goalOn]}>
-                <Text style={[styles.goalTxt, s.lang === l && { color: '#05140a' }]}>{LANG_LABEL[l]}</Text>
+                <Text style={[styles.goalTxt, s.lang === l && { color: C.onAccent }]}>{LANG_LABEL[l]}</Text>
               </Pressable>
             ))}
           </View>
@@ -250,8 +261,8 @@ export default function Profile() {
           <View style={styles.goalRow}>
             {GOALS.map((g) => (
               <Pressable key={g} onPress={() => s.setDailyGoal(g)} style={[styles.goalBtn, s.dailyGoal === g && styles.goalOn]}>
-                <Text style={[styles.goalTxt, s.dailyGoal === g && { color: '#05140a' }]}>{GOAL_LABEL[g]}</Text>
-                <Text style={[styles.goalSub, s.dailyGoal === g && { color: '#0a2a17' }]}>{GOAL_XP[g]} XP</Text>
+                <Text style={[styles.goalTxt, s.dailyGoal === g && { color: C.onAccent }]}>{GOAL_LABEL[g]}</Text>
+                <Text style={[styles.goalSub, s.dailyGoal === g && { color: C.onAccent }]}>{GOAL_XP[g]} XP</Text>
               </Pressable>
             ))}
           </View>
@@ -276,7 +287,7 @@ export default function Profile() {
               <View style={styles.goalRow}>
                 {['07:00', '08:00', '09:00'].map((t) => (
                   <Pressable key={t} onPress={() => s.setNotif({ notifMorning: t })} style={[styles.goalBtn, s.notifMorning === t && styles.goalOn]}>
-                    <Text style={[styles.goalTxt, s.notifMorning === t && { color: '#05140a' }]}>{t}</Text>
+                    <Text style={[styles.goalTxt, s.notifMorning === t && { color: C.onAccent }]}>{t}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -284,7 +295,7 @@ export default function Profile() {
               <View style={styles.goalRow}>
                 {['19:00', '20:30', '22:00'].map((t) => (
                   <Pressable key={t} onPress={() => s.setNotif({ notifEvening: t })} style={[styles.goalBtn, s.notifEvening === t && styles.goalOn]}>
-                    <Text style={[styles.goalTxt, s.notifEvening === t && { color: '#05140a' }]}>{t}</Text>
+                    <Text style={[styles.goalTxt, s.notifEvening === t && { color: C.onAccent }]}>{t}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -316,7 +327,7 @@ export default function Profile() {
             Навчальний контент про performance-маркетинг. Не фінансова порада і не гарантія доходу. Результати залежать від бюджету, ніші та виконання. Політики Meta змінюються: звіряйся з офіційною документацією.
           </Text>
           <Pressable onPress={() => (confirmReset ? (s.reset(), router.replace('/')) : setConfirmReset(true))} style={styles.link}>
-            <Text style={[styles.linkTxt, { color: C.red }]}>
+            <Text style={[styles.linkTxt, { color: C.redTxt }]}>
               {confirmReset ? '⚠️ Натисни ще раз: видалити весь прогрес' : '🗑 Скинути прогрес'}
             </Text>
           </Pressable>
@@ -327,6 +338,7 @@ export default function Profile() {
 }
 
 function StatBox({ label, value }: { label: string; value: string }) {
+  const styles = useStyles(makeStyles);
   return (
     <View style={styles.stat}>
       <Text style={styles.statVal}>{value}</Text>
@@ -335,7 +347,7 @@ function StatBox({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   hero: { alignItems: 'center', marginBottom: 6 },
   badge: {
     position: 'absolute',
@@ -350,7 +362,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 4,
     borderBottomColor: C.accentEdge,
   },
-  badgeTxt: { color: '#05140a', fontSize: 18, fontWeight: '900', marginTop: -2 },
+  badgeTxt: { color: C.onAccent, fontSize: 18, fontWeight: '900', marginTop: -2 },
   name: { color: C.txt, fontWeight: '900', fontSize: 22, marginTop: 10 },
   edit: { color: C.muted, fontSize: 14 },
   nameInput: {
@@ -363,8 +375,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: C.accent,
   },
-  lvl: { color: C.gold, fontWeight: '800', fontSize: 14, marginTop: 4, textAlign: 'center' },
-  xpBar: { alignSelf: 'stretch', height: 12, borderRadius: 8, backgroundColor: '#191e28', overflow: 'hidden', marginTop: 12 },
+  lvl: { color: C.goldTxt, fontWeight: '800', fontSize: 14, marginTop: 4, textAlign: 'center' },
+  xpBar: { alignSelf: 'stretch', height: 12, borderRadius: 8, backgroundColor: C.track, overflow: 'hidden', marginTop: 12 },
   xpFill: { height: '100%', backgroundColor: C.blue, borderRadius: 8 },
   xpTxt: { color: C.muted, fontSize: 12, marginTop: 6 },
   h: { color: C.muted, fontWeight: '800', fontSize: 12, letterSpacing: 1, marginTop: 22, marginBottom: 10 },
@@ -385,7 +397,7 @@ const styles = StyleSheet.create({
   archLbl: { color: C.muted, fontSize: 10, marginTop: 4 },
   statRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10 },
   statHead: { flexDirection: 'row', justifyContent: 'space-between' },
-  statBar: { height: 8, borderRadius: 6, backgroundColor: '#191e28', overflow: 'hidden', marginTop: 6 },
+  statBar: { height: 8, borderRadius: 6, backgroundColor: C.track, overflow: 'hidden', marginTop: 6 },
   statFill: { height: '100%', backgroundColor: C.blue, borderRadius: 6 },
   statPlus: {
     width: 28,
@@ -397,7 +409,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 3,
     borderBottomColor: C.accentEdge,
   },
-  statPlusTxt: { color: '#05140a', fontWeight: '900', fontSize: 16, marginTop: -2 },
+  statPlusTxt: { color: C.onAccent, fontWeight: '900', fontSize: 16, marginTop: -2 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   stat: {
     width: '31%',
@@ -450,7 +462,7 @@ const styles = StyleSheet.create({
   },
   hTitle: { color: C.txt, fontWeight: '700', fontSize: 14 },
   hSub: { color: C.muted, fontSize: 12, marginTop: 2 },
-  hXp: { color: C.blue, fontWeight: '800' },
+  hXp: { color: C.blueTxt, fontWeight: '800' },
   box: { backgroundColor: C.panel, borderRadius: 16, padding: 14, borderWidth: 2, borderColor: C.line },
   setLabel: { color: C.txt, fontWeight: '800', fontSize: 15, marginBottom: 8 },
   setSub: { color: C.muted, fontSize: 12, lineHeight: 16 },

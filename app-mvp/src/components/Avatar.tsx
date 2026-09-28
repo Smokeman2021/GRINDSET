@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import { FRAMES } from '../data/shop';
-import { C } from '../theme';
+import { Theme, useStyles } from '../theme';
 
 export function Avatar({ photo, name, frame = 'green', size = 96 }: { photo: string | null; name: string; frame?: string; size?: number }) {
+  const styles = useStyles(makeStyles);
   const f = FRAMES[frame] ?? FRAMES.green;
   return (
     <View
@@ -29,7 +30,7 @@ export function Avatar({ photo, name, frame = 'green', size = 96 }: { photo: str
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   box: { overflow: 'hidden', alignItems: 'center', justifyContent: 'center', backgroundColor: C.panel2 },
   img: { width: '100%', height: '100%' },
 });
