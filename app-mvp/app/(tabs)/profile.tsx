@@ -42,6 +42,7 @@ export default function Profile() {
   const [draft, setDraft] = useState('');
   const [talk, setTalk] = useState(() => say('profile'));
   const [confirmReset, setConfirmReset] = useState(false);
+  const [genderFilter, setGenderFilter] = useState<'m' | 'f'>(s.archetype ? (s.archetype[0] as 'm' | 'f') : 'm');
 
   const prog = levelProgress(s.xp);
   const stats = statsOf(s);
@@ -122,8 +123,15 @@ export default function Profile() {
             <Text style={styles.empty}>Обери свій образ нижче</Text>
           )}
         </View>
+        <View style={styles.genderRow}>
+          {(['m', 'f'] as const).map((g) => (
+            <Pressable key={g} onPress={() => setGenderFilter(g)} style={[styles.genderBtn, genderFilter === g && styles.goalOn]}>
+              <Text style={[styles.goalTxt, genderFilter === g && { color: C.onAccent }]}>{g === 'm' ? '♂ Чоловічий' : '♀ Жіночий'}</Text>
+            </Pressable>
+          ))}
+        </View>
         <View style={styles.archGrid}>
-          {ARCHETYPES.map((a) => {
+          {ARCHETYPES.filter((a) => a.gender === genderFilter).map((a) => {
             const f = avatarFrame(a.id, 1);
             const on = s.archetype === a.id;
             return (
@@ -381,6 +389,16 @@ const makeStyles = (C: Theme) => StyleSheet.create({
   xpTxt: { color: C.muted, fontSize: 12, marginTop: 6 },
   h: { color: C.muted, fontWeight: '800', fontSize: 12, letterSpacing: 1, marginTop: 22, marginBottom: 10 },
   charBox: { alignItems: 'center', justifyContent: 'center', minHeight: 210, marginBottom: 12 },
+  genderRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
+  genderBtn: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: C.line,
+    backgroundColor: C.panel2,
+  },
   archGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   archCell: {
     width: '22%',
