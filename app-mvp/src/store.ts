@@ -8,6 +8,7 @@ import { Metric, questsForDay } from './data/quests';
 import { reviewed, srsKey, SrsMap } from './data/srs';
 import type { Campaign, Entry } from './data/advice';
 import { outcomeFor, rankOf, standings, weekStartStr, LeagueOutcome } from './data/league';
+import type { ArchetypeId } from './data/avatars';
 
 export type CharStart = 'caveman' | 'sapiens' | 'early';
 export type DailyGoal = 'casual' | 'regular' | 'intense';
@@ -24,6 +25,7 @@ type State = {
   onboarded: boolean;
   playerName: string;
   playerPhoto: string | null; // фото гравця (uri / data-uri); поки null — плейсхолдер з ініціалом
+  archetype: ArchetypeId | null; // обраний архетип персонажа-аватара (повний зріст, еволюціонує по модулях)
   charStart: CharStart;
   energy: number;
   energyAt: number; // мс: від якого моменту рахуємо відновлення енергії
@@ -90,6 +92,7 @@ type State = {
   finishOnboarding: (name: string, goal: DailyGoal) => void;
   setPlayerName: (name: string) => void;
   setPlayerPhoto: (uri: string | null) => void;
+  setArchetype: (id: ArchetypeId) => void;
   setDailyGoal: (goal: DailyGoal) => void;
   setStrictEnergy: (v: boolean) => void;
   setNotif: (p: Partial<{ notifEnabled: boolean; notifMorning: string; notifEvening: string }>) => void;
@@ -108,6 +111,7 @@ type State = {
   updateCampaign: (id: string, patch: Partial<Campaign>) => void;
   removeCampaign: (id: string) => void;
   saveEntry: (id: string, entry: Entry) => void;
+  saveEntries: (id: string, entries: Entry[]) => void;
   addChange: (id: string, text: string) => void;
   spendEnergy: (n: number) => void;
   useComboShield: () => boolean;
@@ -232,6 +236,7 @@ const FRESH = {
   onboarded: false,
   playerName: '',
   playerPhoto: null,
+  archetype: null as ArchetypeId | null,
   charStart: 'caveman' as CharStart,
   energy: MAX_ENERGY,
   energyAt: 0,
@@ -305,6 +310,8 @@ export const useStore = create<State>()(
       setPlayerName: (name) => set({ playerName: name.trim().slice(0, 14) }),
 
       setPlayerPhoto: (uri) => set({ playerPhoto: uri }),
+
+      setArchetype: (id) => set({ archetype: id }),
 
       setDailyGoal: (goal) => set({ dailyGoal: goal }),
 
@@ -422,6 +429,17 @@ export const useStore = create<State>()(
           campaigns: st.campaigns.map((c) =>
             c.id === id ? { ...c, entries: [...c.entries.filter((e) => e.date !== entry.date), entry].sort((a, b) => a.date.localeCompare(b.date)) } : c
           ),
+        })),
+
+      // масове оновлення (імпорт із таблиці): дати з таблиці перезаписують ручні записи
+      saveEntries: (id, entries) =>
+        set((st) => ({
+          campaigns: st.campaigns.map((c) => {
+            if (c.id !== id) return c;
+            const dates = new Set(entries.map((e) => e.date));
+            const merged = [...c.entries.filter((e) => !dates.has(e.date)), ...entries].sort((x, y) => x.date.localeCompare(y.date));
+            return { ...c, entries: merged, sheetSyncedAt: Date.now() };
+          }),
         })),
 
       addChange: (id, text) =>

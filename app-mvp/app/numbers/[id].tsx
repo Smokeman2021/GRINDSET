@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../../src/components/Button';
 import { analyze, breakEvenCpl, totalsOf } from '../../src/data/advice';
 import { askPermission } from '../../src/notifications';
+import { fetchSheet } from '../../src/data/sheets';
 import { useStore } from '../../src/store';
 import { C } from '../../src/theme';
 
@@ -34,7 +35,10 @@ export default function CampaignScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { campaigns, saveEntry, addChange, updateCampaign, removeCampaign } = useStore();
+  const { campaigns, saveEntry, saveEntries, addChange, updateCampaign, removeCampaign } = useStore();
+  const [sheetInput, setSheetInput] = useState('');
+  const [sheetMsg, setSheetMsg] = useState('');
+  const [syncing, setSyncing] = useState(false);
   const c = campaigns.find((x) => x.id === id);
 
   const [date, setDate] = useState(dstr(new Date()));
@@ -44,6 +48,25 @@ export default function CampaignScreen() {
   const [leads, setLeads] = useState('');
   const [change, setChange] = useState('');
   const [confirmDel, setConfirmDel] = useState(false);
+
+  const syncSheet = async (link: string) => {
+    if (!c) return;
+    setSyncing(true);
+    const res = await fetchSheet(link);
+    setSyncing(false);
+    if (res.error) {
+      setSheetMsg(res.error);
+      return;
+    }
+    saveEntries(c.id, res.entries);
+    updateCampaign(c.id, { sheetUrl: link });
+    setSheetMsg(`Імпортовано днів: ${res.entries.length}${res.skipped ? `, пропущено рядків: ${res.skipped}` : ''}`);
+  };
+
+  // при відкритті кампанії з привʼязаною таблицею оновлюємо дані
+  useEffect(() => {
+    if (c?.sheetUrl) syncSheet(c.sheetUrl);
+  }, [c?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // при зміні дати підставляємо збережені значення
   useEffect(() => {
@@ -153,6 +176,26 @@ export default function CampaignScreen() {
             })}
           </View>
         )}
+
+        <View style={styles.card}>
+          <Text style={styles.cTitle}>Google Таблиця</Text>
+          <Text style={styles.small}>
+            Веди дані в таблиці, а я підтягну. Перший рядок: Дата, Витрати, Покази, Кліки, Ліди. Опублікуй таблицю (Файл, Опублікувати в Інтернеті, формат CSV) або відкрий доступ за посиланням.
+          </Text>
+          <TextInput
+            style={[styles.input, { marginTop: 8 }]}
+            value={sheetInput || c.sheetUrl || ''}
+            onChangeText={setSheetInput}
+            placeholder="https://docs.google.com/spreadsheets/..."
+            placeholderTextColor={C.muted}
+            autoCapitalize="none"
+          />
+          <View style={{ marginTop: 8 }}>
+            <Button title={syncing ? 'Синхронізую…' : 'Синхронізувати'} disabled={syncing || !(sheetInput || c.sheetUrl)} onPress={() => syncSheet(sheetInput || c.sheetUrl || '')} />
+          </View>
+          {!!sheetMsg && <Text style={styles.small}>{sheetMsg}</Text>}
+          {c.sheetSyncedAt && <Text style={styles.small}>Остання синхронізація: {new Date(c.sheetSyncedAt).toLocaleString('uk-UA')}</Text>}
+        </View>
 
         <View style={styles.card}>
           <Text style={styles.cTitle}>Журнал змін</Text>

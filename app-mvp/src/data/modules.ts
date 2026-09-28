@@ -65,3 +65,8 @@ export function nextAfter(id: string): Lesson | undefined {
 export function isQuizId(id: string): boolean {
   return MODULES.some((m) => m.quizzes.some((q) => q.id === id));
 }
+
+// скільки коронок модулів вже пройдено — визначає стадію еволюції аватара
+export function crownsCompleted(completed: string[]): number {
+  return MODULES.filter((m) => completed.includes(m.checkpoint.id)).length;
+}

@@ -11,6 +11,8 @@ export type Campaign = {
   entries: Entry[];
   changes: Change[];
   remindTimes: string[]; // «HH:MM» кілька разів на день; порожньо = без нагадувань
+  sheetUrl?: string; // посилання на Google Таблицю з даними
+  sheetSyncedAt?: number;
 };
 
 export type Advice = { level: 'good' | 'warn' | 'bad' | 'info'; text: string };

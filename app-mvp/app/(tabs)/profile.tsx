@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Switch } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Switch, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -11,7 +11,9 @@ import { ACHIEVEMENTS } from '../../src/data/achievements';
 import { MemeCard } from '../../src/components/MemeCard';
 import { MEMES } from '../../src/data/memes';
 import { levelProgress, levelTitle } from '../../src/data/levels';
-import { ALL_LESSONS } from '../../src/data/modules';
+import { ALL_LESSONS, crownsCompleted } from '../../src/data/modules';
+import { ARCHETYPES, ArchetypeId, avatarStage, avatarFrame } from '../../src/data/avatars';
+import { CharacterAvatar } from '../../src/components/CharacterAvatar';
 import { say } from '../../src/data/phrases';
 import { masteredCount } from '../../src/data/srs';
 import { askPermission } from '../../src/notifications';
@@ -41,6 +43,7 @@ export default function Profile() {
   const stats = statsOf(s);
   const acc = s.totalCorrect + s.totalErrors > 0 ? Math.round((s.totalCorrect / (s.totalCorrect + s.totalErrors)) * 100) : 0;
   const unlocked = useMemo(() => new Set(s.unlocked), [s.unlocked]);
+  const stage = avatarStage(crownsCompleted(s.completed));
 
   // Фото стискаємо до 320 px і зберігаємо як data-uri: так воно переживає перезапуск і працює на вебі
   const pickPhoto = async () => {
@@ -105,6 +108,29 @@ export default function Profile() {
         </View>
 
         <GrindykSay text={talk.text} pose={talk.pose} height={100} onPress={() => setTalk(say('profile'))} />
+
+        <Text style={styles.h}>ПЕРСОНАЖ · СТАДІЯ {stage}/10</Text>
+        <View style={styles.charBox}>
+          {s.archetype ? (
+            <CharacterAvatar archetype={s.archetype} stage={stage} height={200} />
+          ) : (
+            <Text style={styles.empty}>Обери свій образ нижче</Text>
+          )}
+        </View>
+        <View style={styles.archGrid}>
+          {ARCHETYPES.map((a) => {
+            const f = avatarFrame(a.id, 1);
+            const on = s.archetype === a.id;
+            return (
+              <Pressable key={a.id} onPress={() => s.setArchetype(a.id)} style={[styles.archCell, on && styles.archCellOn]}>
+                <Image source={f.src} style={{ width: 48 * f.ratio, height: 48 }} resizeMode="contain" />
+                <Text style={[styles.archLbl, on && { color: C.accent }]} numberOfLines={1}>
+                  {a.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
 
         <Text style={styles.h}>СТАТИСТИКА</Text>
         <View style={styles.grid}>
@@ -295,6 +321,21 @@ const styles = StyleSheet.create({
   xpFill: { height: '100%', backgroundColor: C.blue, borderRadius: 8 },
   xpTxt: { color: C.muted, fontSize: 12, marginTop: 6 },
   h: { color: C.muted, fontWeight: '800', fontSize: 12, letterSpacing: 1, marginTop: 22, marginBottom: 10 },
+  charBox: { alignItems: 'center', justifyContent: 'center', minHeight: 210, marginBottom: 12 },
+  archGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  archCell: {
+    width: '22%',
+    flexGrow: 1,
+    alignItems: 'center',
+    backgroundColor: C.panel,
+    borderRadius: 12,
+    paddingVertical: 8,
+    borderWidth: 2,
+    borderBottomWidth: 4,
+    borderColor: C.line,
+  },
+  archCellOn: { borderColor: C.accent, borderBottomColor: C.accentEdge },
+  archLbl: { color: C.muted, fontSize: 10, marginTop: 4 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   stat: {
     width: '31%',
