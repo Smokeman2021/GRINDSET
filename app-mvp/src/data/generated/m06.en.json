@@ -1,0 +1,650 @@
+{
+ "id": "m6",
+ "number": "06",
+ "title": "Creative Work and Copywriting",
+ "restricted": false,
+ "finalRestricted": false,
+ "lessons": [
+  {
+   "id": "m6l1",
+   "code": "6.1",
+   "title": "What is \"kreo\" and why is it the key factor for success?",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "CreO — Where Campaigns Win or Lose",
+     "body": "**Creative** — an ad that a user sees in their feed. It consists of a visual element (an image or video) and text (headline, body copy, call-to-action button).\n\nTwo media buyers. The same offer. The same audience. The same budget. But different creatives. The result can vary by a factor of 3 to 10 in terms of CPA.\n\nThat’s why creative is the key operational factor in a campaign’s success. Facebook’s algorithm finds the audience and optimizes—but it can only get a person to click. Whether or not that click happens is determined by the creative.",
+     "restricted": false
+    },
+    {
+     "title": "Three creative challenges in 3 seconds",
+     "body": "A person scrolls through a feed at a speed of 300–400 pixels per second. You have about 1.7 seconds to stop their finger. If you don’t stop it, the ad has failed, regardless of the quality of the rest.\n\n**Task 1: Stop** (first second)\nSomething in the ad must make the finger stop. An unexpected visual, a recognizable pain point, a thought-provoking question, a shocking fact—anything that goes beyond what’s expected in a news feed.\n\n**Task 2: Capture Interest** (seconds 2–3)\nThe person has stopped—now give them a reason to keep watching. Deepen the pain, build suspense, or promise a solution.\n\n**Task 3: Drive Action** (until the end of the creative)\nLead them to click. Make it clear what they’ll get if they click.\n\nIf the creative fails at the first task, the second and third don’t even stand a chance.",
+     "restricted": false
+    },
+    {
+     "title": "Creative Fatigue",
+     "body": "Creative has a limited shelf life. The same audience sees it several times—CTR gradually drops, CPM rises, and CPA worsens.\n\n**Metrics to monitor: Frequency** [→ Lesson 2.5]\n\nSigns of creative burnout for cold audiences:\n- Frequency approaches 2.5–3.0—start preparing new creatives\n- Frequency of 3.5–4.0 with a simultaneous rise in CPA—it’s time for a change\n- Frequency of 5+—critical; the creative has burned out\n\nAdditional sign: CTR drops by more than 30–40% relative to its peak value while CPM remains the same.\n\n**How many creatives are needed:** For active campaigns, a minimum of 2–3 new creatives per week while scaling. For small budgets and narrow audiences—more frequently.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "Frequency 5.2 and CPA rose from $8 to $20 in two weeks. What happened?",
+     "options": [
+      "The audience has become more expensive due to competitors",
+      "The creative has worn out—the audience is oversaturated with the same ad over and over again",
+      "Pixel has stopped tracking conversions correctly",
+      "Facebook has changed its algorithm"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "What is the creative team's first task in the first second of the ad?",
+     "options": [
+      "Explain the product's benefits",
+      "Stop the person scrolling through their feed",
+      "Show price and discount",
+      "Name the brand"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Scenario: Two creative ads targeting the same audience:\n\n| Metric | Creative A | Creative B |\n|----------|--------|--------|\n| Format | Image | 20-second video |\n| Start | Brand logo | Woman grimacing from back pain |\n| CTR | 0.7% | 3.1% |\n| CPC | $0.43 | $0.10 |\n| CR | 4% | 4% |\n| CPA | $10.75 | $2.50 |",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "Why does Creo B have a CPA that is 4 times lower with the same CR?",
+      "options": [
+       "A video is always better than a still image",
+       "CreO B stops because of recognizable pain—higher CTR → lower CPC → lower CPA with the same CR",
+       "CreO B has a larger budget",
+       "The algorithm gives priority to videos"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "CreO A starts with a logo. Why is that a mistake?",
+      "options": [
+       "The logo takes up too much space",
+       "An unfamiliar logo gives you no reason to stop—the first second is wasted",
+       "Facebook is restricting ads featuring logos",
+       "The logo increases production costs"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m6l2",
+   "code": "6.2",
+   "title": "Creative Formats",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Still image",
+     "body": "A single image with text.\n\n**Pros:** Quick to create (Canva, 20–30 minutes), easy to test multiple variations, no editing required.\n\n**Cons:** Less engaging than video, harder to tell a complete story.\n\n**When to use:**\n- Quick test of a new audience (minimal production time)\n- A simple offer with a very strong USP that fits on a single image\n- Retargeting (people are already familiar with the product)\n- When there’s no time or resources for a video\n\n**Technical Requirements for 2025:**\n- Feed: 1:1 (1080×1080) or 4:5 (1080×1350) — 4:5 takes up more space in the feed\n- Stories: 9:16 (1080×1920)\n- Minimum size: 600×315 pixels\n\n**Text on Images:** Facebook previously limited text to 20% of the image area. While this restriction has been formally lifted, images with too much text still reduce reach. The rule of thumb: keep text on images to a minimum and use the ad’s text field to its fullest.",
+     "restricted": false
+    },
+    {
+     "title": "Video",
+     "body": "The most powerful format for most affiliate marketing niches, especially where there is a transformation (before/after) or an emotional story.\n\n**Pros:** higher CTR when done right, allows you to tell the full story, more time with the audience, and the ability to show the product in action.\n\n**Cons:** more complex and time-consuming to produce; requires a strong opening frame.\n\n**Optimal duration:**\n- 15–30 seconds — optimal for most offers. Long enough for a complete structure, not too long for people to lose interest.\n- Up to 60 seconds — for complex products that require more explanation.\n- Over 60 seconds — rarely justified for a first impression.\n\n**Important:** Most people watch videos without sound in their feed. Subtitles or text overlays are a must.\n\n**Technical requirements:**\n- Feed: 4:5 (1080×1350)—takes up more space in the feed\n- Stories and Reels: 9:16 (1080×1920)\n- Minimum resolution: 1080p\n- Format: MP4 or MOV",
+     "restricted": false
+    },
+    {
+     "title": "Carousel",
+     "body": "Several images or videos in a single ad that can be swiped through. Each image can have its own link.\n\n**When it’s useful for arbitrage:**\n- E-commerce with multiple products\n- Showcasing multiple benefits of a single product\n- Step-by-step instructions (Step 1, Step 2, Step 3)\n\n**When it’s NOT suitable:**\n- For most product and niche offers that require a single, focused proposition\n\n**Rule of thumb for product offers:** Start with a “before/after” video or a video showing a problem and its solution. If there’s no video, use a 4:5 image with a strong visual. Carousels are rarely used for product offers.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "A media buyer wants to quickly test a new audience with minimal production costs. What format should they use?",
+     "options": [
+      "Videos always yield a higher CTR",
+      "A picture is the fastest to produce and is suitable for a quick test",
+      "Carousel — More Information in a Single View",
+      "The format doesn't matter"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "The optimal video length for a product post in the Facebook Feed:",
+     "options": [
+      "5–10 seconds",
+      "15–30 seconds—enough to get the structure right, but not too long",
+      "2–3 minutes",
+      "60–90 seconds"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Task A: Knee pain relief cream—you want to showcase a transformation: a person who couldn’t walk is now active.\nTask B: A store with 5 different health products—you want to showcase the product range.\nTask C: A new offer—you need to quickly test the audience’s reaction without producing a video.",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "What's the format for A?",
+      "options": [
+       "Picture",
+       "Video",
+       "Carousel"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "Format for B?",
+      "options": [
+       "Picture",
+       "Video",
+       "Carousel"
+      ],
+      "answer": 2,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "Format for B?",
+      "options": [
+       "Picture",
+       "Video",
+       "Carousel"
+      ],
+      "answer": 0,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m6l3",
+   "code": "6.3",
+   "title": "Structure of a converting creosote",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "The Hook—the first 1–3 seconds",
+     "body": "**Hook** — the sole purpose: to make a person stop and keep watching.\n\n**Types of hooks that work in product/niche marketing:**\n\n**Pain-based hook:** Show a person with a problem that the audience can relate to. A woman who can’t bend over. A man grimacing as he climbs the stairs. No words—just a visual of pain. It’s effective because it appeals to personal experience.\n\n**Question hook:** a direct appeal to the audience. “Have your knees been hurting for several months?” “Can’t sleep properly because of back pain?” Anyone who answers “yes” is automatically interested.\n\n**Hook through results:** Show the final result right away. “Here’s what happened to my pain after 10 days.” The intrigue: How did she achieve this?\n\n**Hook through surprise:** something that breaks the mold of typical feed content. An unusual camera angle, an unexpected comparison, a provocative statement.\n\n**What DOESN’T work as a hook:**\n- A logo or brand name (an unknown brand won’t grab attention)\n- A generic, pretty picture of the product\n- “Special offer” or “X% off” without any context about the problem\n- Stock photos of people smiling with the product",
+     "restricted": false
+    },
+    {
+     "title": "Introduction to the issue (3–8 seconds)",
+     "body": "The person has paused. Now the goal is to deepen their understanding of the pain. They need to think, “This is definitely about me.”\n\nThe more precisely the problem is described, the stronger the sense of identification. “My back hurts” is too vague. “My back hurts after sitting at the computer for 8 hours, and the pills only help for a few hours” is strong and specific.",
+     "restricted": false
+    },
+    {
+     "title": "Solution (8–20 seconds)",
+     "body": "We present the product as a solution to this specific problem. Not a list of ingredients—but how it works and the results.\n\nWeak: “SpineRelief cream contains collagen, echinacea, and vitamin D.”\nStrong: “SpineRelief penetrates the skin directly into the muscles and reduces inflammation within 20 minutes—without pills or side effects.”",
+     "restricted": false
+    },
+    {
+     "title": "Proof (15–30 seconds)",
+     "body": "Why should you believe it? Evidence:\n\n- **Testimonials from real people** — name, age, specific results. \"Maria, 58: After 2 weeks, I can go for walks with my grandchildren again.\" This is the most powerful type of proof for health and wellness products.\n- **Statistics** — “97% of customers felt relief after just the first week.” Specific details build trust.\n- **Before/After** — a visual comparison. If you have real before-and-after images, this is very effective.\n- **Authority** — a doctor or specialist makes a recommendation. But be careful — statements from medical authorities are strictly regulated in Facebook ads.",
+     "restricted": false
+    },
+    {
+     "title": "CTA (last 3–5 seconds)",
+     "body": "**Call to Action (CTA)** — a clear instruction on what a person should do right now.\n\n\"Click the button below and order with a 30% discount before the end of the day.\"\n\nA specific CTA > a general one: “Order now with a discount” > “Learn more” > “Go to.”\n\nA sense of urgency increases the CTR: “Today only,” “Only 50 left,” “Discount valid through the end of the week”—but only if this promise is fulfilled on the landing page.",
+     "restricted": false
+    },
+    {
+     "title": "Complete Structure",
+     "body": "```\nHook (0–3 sec) → Problem (3–8 sec) → Solution (8–20 sec) → Proof (15–30 sec) → CTA (last 3–5 sec)\n```\n\nThe proof and solution may overlap. The key is that the hook always comes first and the CTA always comes last.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "order",
+     "q": "The correct structure of \"kreo\":",
+     "items": [
+      "Hook",
+      "The Problem",
+      "Decision",
+      "Proof",
+      "CTA"
+     ],
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "The commercial starts with a 3-second segment showing the brand's name and logo. Is there a problem?",
+     "options": [
+      "The logo isn't suitable for Facebook",
+      "If the first few seconds don't grab the viewer's attention—an unknown brand won't stop them from scrolling past it",
+      "The brand should come last",
+      "No problem"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Scenario — 40-second video:\n- 0–8 sec: Detailed breakdown of the cream’s ingredients — collagen, bamboo extract, vitamin D\n- 9–20 sec: close-ups of the packaging from various angles\n- 21–35 sec: a woman with knee pain → applies the cream → walks without pain\n- 36–40 sec: “Order Now”\nCTR: 0.5%",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "The biggest mistake?",
+      "options": [
+       "The video is too long",
+       "No hook—the first 8 seconds are just a boring post that doesn't catch anyone's attention in the feed",
+       "The CTA is too short",
+       "\"Before/after\" should go at the beginning"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "How can you improve the first 3 seconds?",
+      "options": [
+       "Add music to the track analysis",
+       "Start with a woman grimacing from knee pain—a hook based on a familiar pain",
+       "Show a close-up of the packaging",
+       "Add the text \"50% OFF\""
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "Is the sequence correct without any new footage?",
+      "options": [
+       "Ingredients → Before/After → Packaging → CTA",
+       "Before/After (hook + problem) → Composition (solution) → Packaging → CTA",
+       "CTA → Before/After → Warehouse → Packaging",
+       "Packaging → Warehouse → Before/After → CTA"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m6l4",
+   "code": "6.4",
+   "title": "Copywriting: Text That Sells",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "The Difference Between a Description and Sales Copy",
+     "body": "Ad copy isn’t a product description. It’s a conversation with someone who has a problem.\n\n**Description:** “SpineRelief Cream. Natural ingredients. 50 ml. Made in Poland.”\n\n**Sales Copy:** “Does your back hurt after work, and are pills no longer helping? SpineRelief relieves pain right down to the muscles—no injections and no prescription required. 97% of customers felt a difference after the first week.”\n\nThe first one talks about the product. The second one speaks to the person and addresses their problem.",
+     "restricted": false
+    },
+    {
+     "title": "Text Structure in a Facebook Ad",
+     "body": "**Primary Text** — appears above the image.\n\nFacebook shows only the first 2–3 lines before the “See More” button. Therefore, the first line is the most important.\n\nStructure:\n- Line 1: A hook or a thought-provoking question (“Have your knees been hurting for several months?”)\n- Lines 2–3: Expand on the pain point or build suspense\n- Next (after “See More”): Solution → Proof → Limited-time offer → CTA\n\n**Headline** — appears below the image. 5–7 words maximum. Must include the main benefit or solution: “Back pain will disappear in 7 days” or “Pain-free after the first week.”",
+     "restricted": false
+    },
+    {
+     "title": "Principles of Sales Copywriting",
+     "body": "**Talk about the person, not the product:**\n- Weak: \"Our cream is made using patented technology with 15 natural ingredients\"\n- Strong: \"In 7 days, you'll be able to bend over again without pain\"\n\n**Be specific, not vague:**\n- Weak: “It works fast.”\n- Strong: “97% of customers felt relief within 7 days.”\n\n**Short sentences:**\nLong sentences are hard to read on a mobile device. One line—one idea.\n\n**The audience’s language:**\nHow does the audience describe their pain? “My back aches,” “I have a sharp pain in my knee,” “I can’t bend over”—these are better than medical jargon.\n\n**Emotion Before Facts:**\nPeople make decisions emotionally and justify them rationally. First, appeal to their emotions (pain, fear, desire for results), then provide facts to justify the decision.",
+     "restricted": false
+    },
+    {
+     "title": "The AIDA Formula",
+     "body": "**A (Attention):** Capture their attention and spark their interest\n\"Have your knees been hurting for several months?\"\n\n**I (Interest):** Uncover the problem and promise a solution\n“Most people take painkillers for years, but they only provide temporary relief.”\n\n**D (Desire):** Strengthen the desire for results\n\"Imagine that in just one week, you’ll be able to walk without pain again, climb stairs, and play with your kids.\"\n\n**A (Action):** A clear call to action\n\"↓ Click below and order with a 30% discount—delivery tomorrow.\"",
+     "restricted": false
+    },
+    {
+     "title": "What Is Prohibited in Posts According to Facebook's Rules",
+     "body": "Facebook strictly regulates ads in the health and medicine category:\n- Prohibited: \"Will cure,\" \"Guaranteed to eliminate,\" \"Treats X disease\"\n- Prohibited: References to personal characteristics in a negative light (“Do you suffer from excess weight?”)\n- Prohibited: Before-and-after images that clearly show a physical transformation without context\n\nInstead of “will cure pain” → “will help you feel relief”\nInstead of “do you suffer from pain?” → “do you experience back pain?”\n\nIt’s a subtle difference, but an important one for passing moderation.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "The first line of text is the most important. Why?",
+     "options": [
+      "Facebook ranks ads based on the first line",
+      "Facebook shows only the first 2–3 lines before the \"See More\" button—if they're not interested, they won't read any further",
+      "The algorithm analyzes the first line for targeting",
+      "The first line specifies the CPM"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "\"Our cream is made from natural ingredients using a patented technology from 2019.\" What's wrong with that?",
+     "options": [
+      "Too short",
+      "Focus on the product rather than the person and their problem",
+      "Price not included",
+      "Too long"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nA media buyer wrote copy for a back pain cream:\n\n\"SpineRelief cream for back pain. A unique formula with 12 natural ingredients. Paraben-free. Made in Poland. Delivery in 2–3 days. Price: 89 zlotys. Order on the website.”\n\nCTR 0.3%, no conversions.",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "The main problem?",
+      "options": [
+       "The price is too high",
+       "The text describes the product but doesn't speak to someone who has a problem—there's no pain, no emotion, and no reason to click",
+       "The text is too long",
+       "No phone number"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "Which first line will be the stronger hook?",
+      "options": [
+       "\"SpineRelief — a cream for back pain from a Polish manufacturer\"",
+       "\"Has your back been hurting for several months, and nothing seems to help?\"",
+       "\"12 Natural Ingredients for Your Health\"",
+       "\"Order now and get a discount\""
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "According to the AIDA formula, which element is completely missing?",
+      "options": [
+       "Action (no CTA)",
+       "Attention and Desire — there is no hook and no intensification of the desire to achieve a result",
+       "Interest — No product description",
+       "Everyone present"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m6l5",
+   "code": "6.5",
+   "title": "Competitor Analysis Using Spy Tools",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Analysis Algorithm",
+     "body": "In M03, we learned where to look [→ Lesson 3.5]. Now—how to analyze and what to do with the results.\n\n**Step 1: Gather Long-Running Ads**\nIn your chosen tool (Meta Ad Library or AdHeart), find 10–15 ads in your niche that have been active for 30+ days. This is your sample.\n\n**Step 2: Identify patterns**\n\nFor each ad, note:\n- Format (video/image, duration)\n- Hook type (pain point/question/result/surprise)\n- Who’s in the creative (woman 40+/man/doctor/ordinary person)\n- Type of proof (testimonials/numbers/before-and-after)\n- Text structure (question at the beginning? How many lines?)\n- CTA (discount/urgency/free shipping)\n\n**Step 3: Find recurring patterns**\n\nIf 8 out of 10 creatives feature a 20–30-second video, a pain-based hook, a woman aged 50+, and testimonials at the end—that’s a proven approach for the niche. Test it.\n\n**Step 4: Formulate a hypothesis**\n\n\"What works well in this niche: 25–30-second videos, a hook based on a specific physical pain (not a general one), a female character aged 50–60, proof through testimonials from real people with their names and results, and a CTA featuring a discount and a sense of urgency.\"\n\n**Step 5: Create your creative content based on this principle**\n\nA new person, new copy, new editing. The same structural approach but with fresh, original content.",
+     "restricted": false
+    },
+    {
+     "title": "What to Look for in Your Competitors' Content",
+     "body": "When reading the text of successful ads, pay attention to:\n- What words they use to describe pain (“aches,” “shoots,” “can’t walk properly”)\n- What numbers and time frames (“after 7 days,” “97% of customers”)\n- What specific benefits they promise\n\nThis isn’t about copying—it’s about understanding the language your audience speaks.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "The ad has been running on Spy for two months. What does this tell the media buyer?",
+     "options": [
+      "The competitor forgot to turn it off",
+      "This approach to content creation is likely profitable—it’s worth analyzing exactly what makes it work",
+      "The audience is saturated with the product",
+      "I need to make an exact replica of this one"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "After analyzing 12 creatives: 9 begin with a question to the audience. Conclusion:",
+     "options": [
+      "Asking questions is a bad idea",
+      "The question serves as a good hook and resonates well with this audience—it's worth testing",
+      "Competitors simply copy each other",
+      "These questions are required under Facebook's rules"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nMediaBuyer analyzed 12 long-running campaigns (30+ days) in the “weight loss products” niche on AdHeart:\n- 10 out of 12 were videos\n- 9 out of 12 are 20–35 seconds long\n- 8 out of 12 start with a woman looking at herself in the mirror with dissatisfaction\n- 7 out of 12 feature customer testimonials with names and photos\n- 10 out of 12 include a discount in the CTA\n- 3 out of 12 are images; all three have a shorter active period",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "Which hypothesis correctly reflects the patterns?",
+      "options": [
+       "A picture is better than a video",
+       "A 20–35-second video, the “dissatisfaction with oneself” hook, reviews, and a discount in the CTA—this is the most proven approach",
+       "Reviews hurt conversion rates",
+       "The length of the video doesn't matter"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "Mediabuyer copies the most successful creative work exactly. What's wrong with that?",
+      "options": [
+       "It is technically impossible",
+       "Facebook's algorithm already \"knows\" this video—a new audience won't get the \"fresh content\" effect, plus there's a copyright infringement issue",
+       "Facebook will block the duplicate",
+       "Copying is standard practice"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m6l6",
+   "code": "6.6",
+   "title": "How to Make a Creative Without a Designer or Camera Operator",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "The \"good enough\" principle",
+     "body": "Perfectionism in creative production slows down testing. If you spend 3 days on “perfect” creative instead of 2–3 hours on “good enough,” you’ll test 5–10 times slower.\n\nRule: Make it good enough to test your hypothesis. If the hypothesis works, then invest in a higher-quality version.",
+     "restricted": false
+    },
+    {
+     "title": "Image Tools",
+     "body": "**Canva (canva.com)** — the go-to tool for quick banners. Thousands of templates, all the sizes you need (1:1, 4:5, 9:16), and simple drag-and-drop functionality. The free version covers 80% of your needs. Canva Pro is ~$12–15/month.\n\nRules for affiliate marketing banners:\n- One main visual that immediately catches the eye (a person in pain, before/after, the product in action)\n- A high-contrast headline that can be read in 1 second\n- Minimal text on the image\n\nDetails — [→ Library: Design Tools]",
+     "restricted": false
+    },
+    {
+     "title": "Video Tools",
+     "body": "**CapCut** — the go-to app in the creative community for video editing. Available in mobile and desktop versions. Features: auto-captions, templates for vertical content, transitions, AI effects. The free tier is robust; CapCut Pro costs ~$8–10/month.\n\nDetails — [→ Library: Video Editors]\n\n**DaVinci Resolve** — a free professional editor (Studio version is a one-time payment of $295). More powerful but has a steep learning curve. For teams that want deeper control over quality.",
+     "restricted": false
+    },
+    {
+     "title": "Where to get video footage",
+     "body": "**Stock Videos (Free):**\n- Pexels.com — the largest free library, high-quality content\n- Pixabay.com — an alternative\n\n**Stock Videos (Paid):**\n- Shutterstock, Getty Images, VideoBlocks — for commercial use\n\n**From an affiliate partner or advertiser:**\nMany networks provide video footage or ready-made creative assets along with the offer. Ask your account manager.\n\n**UGC (User-Generated Content):**\nReviews filmed by ordinary people on their phones. Maximum authenticity and trust. UGC looks like organic content rather than an ad—which is why it often converts better than studio-produced video.\n\n**AI-Generated Video (2025–2026):**\n- Kling — best value for money (~$10/month), clips up to 2–3 minutes\n- Runway Gen-4/4.5 — best creative control (~$12–15/month)\n- Veo (Google) — premium quality, integration with Google\n\nDetails — [→ Library: AI Tools]",
+     "restricted": false
+    },
+    {
+     "title": "AI for Images",
+     "body": "**Midjourney** — best for artistic and lifestyle images. $10/month (~200 images).\n\n**Flux (Black Forest Labs)** — the best photorealism and precise prompt execution. Pricing per image (~$0.04/image via API).\n\n**Ideogram** — the only tool that reliably renders text on images. Useful for banners with text directly on the image.\n\nDetails — [→ Library: AI Tools]",
+     "restricted": false
+    },
+    {
+     "title": "A practical example of a video in 2 hours",
+     "body": "1. Search for 4–5 clips on Pexels: a woman holding her back, applying cream, a woman moving freely\n2. Open CapCut and upload the clips\n3. Organize them by structure: hook (pain) → solution (cream) → result (free movement)\n4. Add subtitles using the auto-caption feature\n5. Add text overlays: a question at the beginning, the product name in the middle, and a CTA at the end\n6. Add light background music (instrumental)\n7. Export in 4:5 aspect ratio for the Feed and 9:16 for Stories\n\nResult: a basic creative video in 2–3 hours without filming or a designer.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "The media buyer wants to produce the first creative video as quickly as possible. The right approach:",
+     "options": [
+      "Hire a videographer",
+      "Stock videos + CapCut + the right structure—that's all you need for your first test",
+      "Wait until the partner provides the finished creative",
+      "AI-generated content only"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "Why does UGC (videos from everyday people) often convert better than studio-produced content?",
+     "options": [
+      "UGC is cheaper to produce",
+      "UGC looks like organic content—it builds greater trust with the audience",
+      "Facebook's algorithm gives priority to videos uploaded from a phone",
+      "UGC is always of higher quality"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nA new offer for joints. $0 production budget. I have Canva (free), CapCut (free), and access to Pexels.",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "Is this the correct sequence of steps?",
+      "options": [
+       "First, create the perfect banner in Canva, then make a video",
+       "Find 4–5 stock videos on Pexels → put together a video in CapCut using the hook→problem→solution→CTA structure → at the same time, create a banner in Canva for an A/B test",
+       "Start by analyzing 50 competitors",
+       "Order UGC from a blogger"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "The media buyer spent three days on the perfect creative but hasn't launched it yet. What's he doing wrong?",
+      "options": [
+       "Three days—that's normal",
+       "Perfectionism slows down the test—it's better to do it \"good enough\" in 2–3 hours and get real data",
+       "It takes more time to create high-quality creative work",
+       "Three days is not enough"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m6l7",
+   "code": "6.7",
+   "title": "A/B Test for Creative",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Rules for Proper A/B Testing",
+     "body": "**Rule 1: One variable at a time**\nWhen testing subject lines, keep everything else the same. When testing formats, only the format should differ. Changing multiple variables at once makes the results unreadable.\n\n**Rule 2: Sufficient Budget and Time**\nAt $10/day—a minimum of 3–5 days and at least 1,000–2,000 impressions per variant. Conclusions based on spending $3–5 and 200 impressions are statistical noise, not data.\n\n**Rule 3: Identical launch conditions**\nSame launch time, same audience, same budget for each variant. If one ad set launched on Monday and another on Friday—auction competitiveness differs, and the results are not comparable.\n\n**Rule 4: Significant Difference**\nIf Creative A yielded a CPA of $8.2 and Creative B yielded $8.5 with 5 conversions—that’s not a difference; it’s noise. A significant difference is 30%+ with at least 10–15 conversions per variant.",
+     "restricted": false
+    },
+    {
+     "title": "What to Test First",
+     "body": "Prioritized from greatest to least impact:\n\n1. **Hook type** (question vs. pain point vs. result) — greatest impact on CTR and CPA\n2. **Format** (video vs. image; video length) — significant impact\n3. **Character** (woman 40+ vs. man vs. doctor) — significant impact\n4. **Approach to proof** (testimonials vs. statistics vs. before-and-after) — noticeable impact\n5. **CTA** (different phrasing and discounts) — minor impact\n\nStart with the hook—it determines whether a person will even stop to look.",
+     "restricted": false
+    },
+    {
+     "title": "How to Document Findings",
+     "body": "Without recording the results, tests are useless—in two weeks, you won’t remember what you tested or what the outcome was.\n\nMinimum test results table:\n- Creative name / hypothesis\n- Test dates\n- Budget\n- CTR\n- CPA\n- Conclusion: confirmed / not confirmed / more data needed",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "Mediabuyer is testing two creative concepts: different hooks, different copy, and different durations. Creative A is better. What does he know for sure?",
+     "options": [
+      "The Creo A Hook Is the Best",
+      "CreO is generally better, but it's unclear exactly what worked because there were three variables at play at the same time",
+      "Lyrics: Creo A Stronger",
+      "The duration of Creo A is optimal"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "After 1 day of testing: Creative A — 2 conversions at $6 each; Creative B — 1 conversion at $8. Should I pause Creative B?",
+     "options": [
+      "Yeah—Creo A is clearly better",
+      "No—3 conversions in total are just statistical noise; we need at least another 2–4 days.",
+      "Yes—the difference between $6 and $8 is significant",
+      "It depends on the budget"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nOffer: joint cream, GEO Poland, $5 payout upon approval. The target audience has already been identified (broad, women and men aged 40–65). Budget for the creative test: $150.",
+    "situationRestricted": false,
+    "isFinal": true,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "Where do you start before making cream?",
+      "options": [
+       "You launch it right away with the first creative",
+       "Analyze 10–15 long-standing posts in your niche using Meta Ad Library or AdHeart to identify patterns",
+       "Order a professional video",
+       "You're testing images because it's cheaper"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "I decided to test two hooks: questions vs. pain. How should I set up the test?",
+      "options": [
+       "Two ads in one ad set",
+       "Two separate ad sets with the same audience and budget, launched at the same time; the only difference is the hook",
+       "First, the first week; then the second",
+       "Ask a store manager"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "After 4 days: Creative A (question) — 12 conversions, CPA $4.8. Creative B (pain) — 7 conversions, CPA $7.2. Payout $5. What's next?",
+      "options": [
+       "Turn both off",
+       "Scale up Creo A (profitable at $4.8 < $5), discontinue Creo B (unprofitable), and test new hook variations for further improvement",
+       "Give Creo B another week",
+       "Combine both approaches into a single creative concept"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  }
+ ],
+ "summary": "After completing this module, the student will:\n\n- Understand that creative is the key factor in success and recognize the signs of burnout\n- Know the three formats and when to use each one\n- Be able to build a creative structure: hook → problem → solution → proof → CTA\n- Understand the principles of copywriting: speaking to people, AIDA, and the audience’s language\n- Be able to analyze competitors and identify patterns\n- Be able to create basic creative content without a team in 2–3 hours\n- Knows the rules of A/B testing for creative and what to test first\n\n**Next module:** Landing pages and pre-landing pages—where to find them, how to evaluate them, and how to improve conversion rates (CR)."
+}

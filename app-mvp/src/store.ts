@@ -12,6 +12,7 @@ import type { ArchetypeId } from './data/avatars';
 import { FRESH_STATS, POINTS_PER_LEVEL, StatAlloc, StatId, STAT_MAX } from './data/stats';
 import type { EquipSlot } from './data/equipment';
 import type { Lang } from './i18n/strings';
+import { setContentLang } from './data/modules';
 
 export type CharStart = 'caveman' | 'sapiens' | 'early';
 export type DailyGoal = 'casual' | 'regular' | 'intense';
@@ -338,7 +339,10 @@ export const useStore = create<State>()(
       setEquip: (slot, itemId) =>
         set((s) => ({ equipped: itemId ? { ...s.equipped, [slot]: itemId } : { ...s.equipped, [slot]: undefined } })),
 
-      setLang: (lang) => set({ lang }),
+      setLang: (lang) => {
+        setContentLang(lang);
+        set({ lang });
+      },
 
       setDailyGoal: (goal) => set({ dailyGoal: goal }),
 
@@ -596,12 +600,16 @@ export const useStore = create<State>()(
           })
         ),
 
-      reset: () => set({ ...FRESH }),
+      reset: () => {
+        setContentLang('uk');
+        set({ ...FRESH });
+      },
     }),
     {
       name: 'grindset-state',
       storage: createJSONStorage(() => AsyncStorage),
       onRehydrateStorage: () => (state) => {
+        setContentLang(state?.lang ?? 'uk');
         state?.checkStreak();
         state?.setHydrated();
       },

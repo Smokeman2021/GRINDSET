@@ -1,6 +1,7 @@
 // Контент Модуля 01 як дані застосунку.
 // Структура: спочатку ТЕОРІЯ (teach) — Гріндік пояснює коротко + приклад,
 // потім ПИТАННЯ на цю теорію. Подається як стандарт індустрії, store-safe.
+import type { Lang } from '../i18n/strings';
 
 export type Step =
   | {
@@ -637,7 +638,22 @@ export function shuffleQuestion(q: Question): Question {
   return q;
 }
 
-export function buildQuiz(id: string, title: string, sourceIds: string[], source: Lesson[] = LESSONS): Lesson {
+const QUIZ_INTRO: Record<Lang, { title: string; body: string }> = {
+  uk: {
+    title: 'Квіз на час',
+    body: 'Питання за матеріалом останніх уроків, варіанти перемішані. На кожне 20 секунд, на задачу з цифрами 30. Чим швидше відповідаєш, тим більший бонус до нагороди. Не встиг — питання рахується помилкою.',
+  },
+  en: {
+    title: 'Timed quiz',
+    body: 'Questions on the latest lessons, options shuffled. 20 seconds per question, 30 for a number task. The faster you answer, the bigger the reward bonus. Miss the timer and it counts as a mistake.',
+  },
+  ru: {
+    title: 'Квиз на время',
+    body: 'Вопросы по материалу последних уроков, варианты перемешаны. На каждый 20 секунд, на задачу с цифрами 30. Чем быстрее отвечаешь, тем больше бонус к награде. Не успел — вопрос считается ошибкой.',
+  },
+};
+
+export function buildQuiz(id: string, title: string, sourceIds: string[], source: Lesson[] = LESSONS, lang: Lang = 'uk'): Lesson {
   const pools: Question[][] = sourceIds.map((sid) => {
     const lesson = source.find((l) => l.id === sid);
     return (lesson?.steps ?? []).filter(isQuizzable);
@@ -667,8 +683,7 @@ export function buildQuiz(id: string, title: string, sourceIds: string[], source
     steps: [
       {
         type: 'teach',
-        title: 'Квіз на час',
-        body: 'Питання за матеріалом останніх уроків, варіанти перемішані. На кожне 20 секунд, на задачу з цифрами 30. Чим швидше відповідаєш, тим більший бонус до нагороди. Не встиг — питання рахується помилкою.',
+        ...QUIZ_INTRO[lang],
       },
       ...picked,
     ],

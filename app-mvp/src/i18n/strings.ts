@@ -20,7 +20,7 @@ export const STRINGS = {
     titleShop: 'МАГАЗИН',
     titleLeague: 'РЕЙТИНГ',
     language: 'Мова інтерфейсу',
-    languageNote: 'Уроки поки лише українською. Переклад контенту — окремий етап.',
+    languageNote: 'Модулі 03-10 перекладено, модулі 01-02 і частина інтерфейсу поки лише українською.',
   },
   en: {
     tabLessons: 'Lessons',
@@ -34,7 +34,7 @@ export const STRINGS = {
     titleShop: 'SHOP',
     titleLeague: 'LEADERBOARD',
     language: 'Interface language',
-    languageNote: 'Lessons are Ukrainian-only for now. Content translation is a separate stage.',
+    languageNote: 'Modules 03-10 are translated; modules 01-02 and part of the interface are still Ukrainian-only.',
   },
   ru: {
     tabLessons: 'Уроки',
@@ -48,6 +48,6 @@ export const STRINGS = {
     titleShop: 'МАГАЗИН',
     titleLeague: 'РЕЙТИНГ',
     language: 'Язык интерфейса',
-    languageNote: 'Уроки пока только на украинском. Перевод контента — отдельный этап.',
+    languageNote: 'Модули 03-10 переведены, модули 01-02 и часть интерфейса пока только на украинском.',
   },
 } as const;

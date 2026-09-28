@@ -13,7 +13,7 @@ import Svg, { Path } from 'react-native-svg';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Lesson } from '../../src/data/lessons';
-import { MODULES, PATH } from '../../src/data/modules';
+import { ALL_LESSONS, MODULES, PATH } from '../../src/data/modules';
 import { GOAL_XP, GOAL_LABEL, ENERGY_PER_LESSON, useStore } from '../../src/store';
 import { C } from '../../src/theme';
 import { TopBar } from '../../src/components/TopBar';
@@ -223,7 +223,8 @@ export default function Home() {
           })}
 
           {/* кишені між вигинами: квіз + Гріндік у різних позах */}
-          {QUIZ_SLOTS.map(({ quiz, bend }) => {
+          {QUIZ_SLOTS.map(({ quiz: quiz0, bend }) => {
+            const quiz = ALL_LESSONS.find((l) => l.id === quiz0.id) ?? quiz0; // актуальна мова контенту
             const unlocked = (quiz.requires ?? []).every((id) => completed.includes(id));
             const done = completed.includes(quiz.id);
             const pose: PoseName = done ? 'cheer' : unlocked ? 'stand' : 'think';
