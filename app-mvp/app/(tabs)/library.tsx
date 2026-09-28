@@ -11,6 +11,7 @@ import { INCLUDE_RESTRICTED } from '../../src/data/restricted';
 import { say } from '../../src/data/phrases';
 import { useT } from '../../src/i18n';
 import { Theme, useStyles, useTheme } from '../../src/theme';
+import { Glow } from '../../src/components/Glow';
 
 export default function Library() {
   const C = useTheme();
@@ -36,6 +37,7 @@ export default function Library() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <Glow />
       <TopBar title={t('titleLibrary')} />
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 30 }}>
         <GrindykSay text={talk.text} pose={talk.pose} height={100} onPress={() => setTalk(say('library'))} />

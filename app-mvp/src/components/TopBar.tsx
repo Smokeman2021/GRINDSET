@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
-import { Theme, useStyles, useTheme } from '../theme';
+import { cardShadow, Theme, useStyles, useTheme } from '../theme';
 import { Icon, IconName } from './Icon';
 
 // Верхня панель показників: стрік, XP, коїни, енергія. Тап по коїнах/енергії веде в магазин.
@@ -56,5 +56,6 @@ const makeStyles = (C: Theme) => StyleSheet.create({
     paddingHorizontal: 9,
     borderBottomWidth: 3,
     borderBottomColor: C.edge,
+    ...cardShadow(C, 'sm'),
   },
 });

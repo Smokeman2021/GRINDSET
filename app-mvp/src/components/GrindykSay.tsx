@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { pose, PoseName } from '../data/poses';
-import { Theme, useStyles } from '../theme';
+import { cardShadow, Theme, useStyles } from '../theme';
 
 // Гріндік з хмаркою репліки. Постійно ледь «дихає», а хмарка з’являється з пружинкою.
 // onPress (наприклад, нова репліка) вішається на весь блок.
@@ -81,6 +81,7 @@ const makeStyles = (C: Theme) => StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
     marginBottom: 28,
+    ...cardShadow(C, 'sm'),
   },
   bubbleFlip: {},
   txt: { color: C.txt, fontSize: 15, lineHeight: 21, fontWeight: '600' },

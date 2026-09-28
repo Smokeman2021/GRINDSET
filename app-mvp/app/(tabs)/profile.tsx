@@ -20,7 +20,8 @@ import { say } from '../../src/data/phrases';
 import { masteredCount } from '../../src/data/srs';
 import { askPermission } from '../../src/notifications';
 import { GOAL_LABEL, GOAL_XP, DailyGoal, statsOf, useStore } from '../../src/store';
-import { Theme, useStyles, useTheme } from '../../src/theme';
+import { cardShadow, Theme, useStyles, useTheme } from '../../src/theme';
+import { Glow } from '../../src/components/Glow';
 
 const GOALS: DailyGoal[] = ['casual', 'regular', 'intense'];
 
@@ -71,6 +72,7 @@ export default function Profile() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <Glow />
       <TopBar title={t('titleProfile')} />
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 40 }}>
         <View style={styles.hero}>
@@ -410,6 +412,7 @@ const makeStyles = (C: Theme) => StyleSheet.create({
     borderWidth: 2,
     borderBottomWidth: 4,
     borderColor: C.line,
+    ...cardShadow(C, 'sm'),
   },
   archCellOn: { borderColor: C.accent, borderBottomColor: C.accentEdge },
   archLbl: { color: C.muted, fontSize: 10, marginTop: 4 },
@@ -481,7 +484,7 @@ const makeStyles = (C: Theme) => StyleSheet.create({
   hTitle: { color: C.txt, fontWeight: '700', fontSize: 14 },
   hSub: { color: C.muted, fontSize: 12, marginTop: 2 },
   hXp: { color: C.blueTxt, fontWeight: '800' },
-  box: { backgroundColor: C.panel, borderRadius: 16, padding: 14, borderWidth: 2, borderColor: C.line },
+  box: { backgroundColor: C.panel, borderRadius: 16, padding: 14, borderWidth: 2, borderColor: C.line, ...cardShadow(C, 'sm') },
   setLabel: { color: C.txt, fontWeight: '800', fontSize: 15, marginBottom: 8 },
   setSub: { color: C.muted, fontSize: 12, lineHeight: 16 },
   goalRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },

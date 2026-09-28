@@ -9,6 +9,7 @@ import { useStore } from '../../src/store';
 import { say, PhraseKind } from '../../src/data/phrases';
 import { useT } from '../../src/i18n';
 import { Theme, useStyles, useTheme } from '../../src/theme';
+import { Glow } from '../../src/components/Glow';
 
 export default function League() {
   const C = useTheme();
@@ -40,6 +41,7 @@ export default function League() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <Glow />
       <TopBar title={tr('titleLeague')} />
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 30 }}>
         <View style={[styles.hero, { borderColor: t.color }]}>

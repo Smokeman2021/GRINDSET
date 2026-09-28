@@ -23,6 +23,8 @@ import { GrindykSay } from '../../src/components/GrindykSay';
 import { pose as poseFile, PoseName } from '../../src/data/poses';
 import { homeSay, say } from '../../src/data/phrases';
 import { dueKeys } from '../../src/data/srs';
+import { Glow } from '../../src/components/Glow';
+import { cardShadow } from '../../src/theme';
 
 
 const LAST = PATH.length - 1;
@@ -153,6 +155,7 @@ export default function Home() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <Glow />
       <TopBar />
 
       <ScrollView ref={scrollRef} contentContainerStyle={{ padding: 22, paddingBottom: insets.bottom + 30 }}>
@@ -336,6 +339,7 @@ const makeStyles = (C: Theme) => StyleSheet.create({
     borderBottomWidth: 4,
     borderColor: C.blue,
     borderBottomColor: C.blueEdge,
+    ...cardShadow(C, 'sm'),
   },
   practiceTitle: { color: C.txt, fontWeight: '800', fontSize: 15 },
   practiceSub: { color: C.muted, fontSize: 12, marginTop: 2 },
@@ -449,6 +453,7 @@ const makeStyles = (C: Theme) => StyleSheet.create({
     backgroundColor: C.panel,
     borderBottomWidth: 7,
     borderBottomColor: C.edge,
+    ...cardShadow(C, 'sm'),
   },
   nodeDone: { backgroundColor: C.accent, borderBottomColor: C.accentEdge },
   nodeCur: { backgroundColor: C.accent, borderBottomColor: C.accentEdge },

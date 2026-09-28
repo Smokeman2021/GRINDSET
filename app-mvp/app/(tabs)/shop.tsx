@@ -8,6 +8,7 @@ import { Icon } from '../../src/components/Icon';
 import { ITEMS, ShopCategory, FRAMES } from '../../src/data/shop';
 import { ENERGY_REGEN_MS, MAX_ENERGY, MAX_STREAK_FREEZES, useStore } from '../../src/store';
 import { Theme, useStyles, useTheme } from '../../src/theme';
+import { Glow } from '../../src/components/Glow';
 import { shopSay, ShopMsg } from '../../src/data/phrases';
 import { useT } from '../../src/i18n';
 
@@ -57,6 +58,7 @@ export default function Shop() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <Glow />
       <TopBar title={t('titleShop')} />
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 30 }}>
         <GrindykSay text={talk.text} pose={talk.pose} height={110} onPress={() => setTalk(shopSay('welcome'))} />

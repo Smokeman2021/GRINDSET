@@ -94,6 +94,18 @@ export const DAY: Theme = {
 
 export const THEMES: Record<ThemeName, Theme> = { night: NIGHT as Theme, day: DAY };
 
+// М'яка глибина під картками: у Ночі — розмите світіння, у Дні — короткий чіткий відступ (як у Duolingo)
+export function cardShadow(C: Theme, size: 'sm' | 'md' | 'lg' = 'md') {
+  const r = size === 'sm' ? 4 : size === 'lg' ? 14 : 8;
+  return {
+    shadowColor: C.shadow,
+    shadowOpacity: C.shadowOpacity,
+    shadowRadius: C.name === 'night' ? r : r / 3,
+    shadowOffset: { width: 0, height: C.name === 'night' ? r / 2 : 2 },
+    elevation: size === 'sm' ? 2 : size === 'lg' ? 8 : 4,
+  } as const;
+}
+
 export function useTheme(): Theme {
   const name = useStore((s) => s.theme);
   return THEMES[name] ?? NIGHT;
