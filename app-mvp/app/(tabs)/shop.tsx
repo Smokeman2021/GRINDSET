@@ -9,6 +9,7 @@ import { ITEMS, ShopCategory, FRAMES } from '../../src/data/shop';
 import { ENERGY_REGEN_MS, MAX_ENERGY, MAX_STREAK_FREEZES, useStore } from '../../src/store';
 import { C } from '../../src/theme';
 import { shopSay, ShopMsg } from '../../src/data/phrases';
+import { useT } from '../../src/i18n';
 
 const CATEGORIES: ShopCategory[] = ['Енергія', 'Захист', 'Бустери', 'Косметика'];
 
@@ -23,6 +24,7 @@ export default function Shop() {
   const { coins, energy, energyAt, streakFreezes, comboShields, hints, doubleCoins, frames, frame, buyItem, equipFrame, refreshEnergy } =
     useStore();
   const [talk, setTalk] = useState(() => shopSay('welcome'));
+  const t = useT();
 
   useFocusEffect(
     React.useCallback(() => {
@@ -53,7 +55,7 @@ export default function Shop() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <TopBar title="МАГАЗИН" />
+      <TopBar title={t('titleShop')} />
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 30 }}>
         <GrindykSay text={talk.text} pose={talk.pose} height={110} onPress={() => setTalk(shopSay('welcome'))} />
 

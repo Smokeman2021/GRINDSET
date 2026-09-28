@@ -7,11 +7,13 @@ import { GrindykSay } from '../../src/components/GrindykSay';
 import { DEMOTE_BOTTOM, LEAGUE_SIZE, PROMOTE_TOP, rankOf, standings, TIERS, weekFraction } from '../../src/data/league';
 import { useStore } from '../../src/store';
 import { say, PhraseKind } from '../../src/data/phrases';
+import { useT } from '../../src/i18n';
 import { C } from '../../src/theme';
 
 export default function League() {
   const insets = useSafeAreaInsets();
   const { tier, weekId, weekXp, playerName, lastWeek, checkStreak } = useStore();
+  const tr = useT();
   const [tick, setTick] = useState(0);
 
   useFocusEffect(
@@ -36,7 +38,7 @@ export default function League() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <TopBar title="РЕЙТИНГ" />
+      <TopBar title={tr('titleLeague')} />
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 30 }}>
         <View style={[styles.hero, { borderColor: t.color }]}>
           <Text style={styles.heroIcon}>{t.icon}</Text>

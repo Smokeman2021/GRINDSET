@@ -9,6 +9,9 @@ import { reviewed, srsKey, SrsMap } from './data/srs';
 import type { Campaign, Entry } from './data/advice';
 import { outcomeFor, rankOf, standings, weekStartStr, LeagueOutcome } from './data/league';
 import type { ArchetypeId } from './data/avatars';
+import { FRESH_STATS, POINTS_PER_LEVEL, StatAlloc, StatId, STAT_MAX } from './data/stats';
+import type { EquipSlot } from './data/equipment';
+import type { Lang } from './i18n/strings';
 
 export type CharStart = 'caveman' | 'sapiens' | 'early';
 export type DailyGoal = 'casual' | 'regular' | 'intense';
@@ -23,9 +26,11 @@ export type LastWeek = { tier: number; rank: number; outcome: LeagueOutcome; wee
 type State = {
   hydrated: boolean;
   onboarded: boolean;
+  lang: Lang; // мова інтерфейсу; контент уроків поки завжди українською
   playerName: string;
   playerPhoto: string | null; // фото гравця (uri / data-uri); поки null — плейсхолдер з ініціалом
   archetype: ArchetypeId | null; // обраний архетип персонажа-аватара (повний зріст, еволюціонує по модулях)
+  equipped: Partial<Record<EquipSlot, string>>; // itemId зі src/data/equipment.ts на слот; поки каталог порожній
   charStart: CharStart;
   energy: number;
   energyAt: number; // мс: від якого моменту рахуємо відновлення енергії
@@ -52,6 +57,10 @@ type State = {
   doubleCoins: number;
   frames: string[]; // куплені рамки аватара (крім класичної)
   frame: string;
+
+  // характеристики персонажа
+  statPoints: number; // невитрачені очки
+  stats: StatAlloc;
 
   // статистика
   totalCorrect: number;
@@ -93,6 +102,9 @@ type State = {
   setPlayerName: (name: string) => void;
   setPlayerPhoto: (uri: string | null) => void;
   setArchetype: (id: ArchetypeId) => void;
+  allocStat: (id: StatId) => void;
+  setEquip: (slot: EquipSlot, itemId: string | null) => void;
+  setLang: (lang: Lang) => void;
   setDailyGoal: (goal: DailyGoal) => void;
   setStrictEnergy: (v: boolean) => void;
   setNotif: (p: Partial<{ notifEnabled: boolean; notifMorning: string; notifEvening: string }>) => void;
@@ -234,9 +246,11 @@ function bump(p: Partial<Record<Metric, number>>, m: Metric, by: number, mode: '
 
 const FRESH = {
   onboarded: false,
+  lang: 'uk' as Lang,
   playerName: '',
   playerPhoto: null,
   archetype: null as ArchetypeId | null,
+  equipped: {} as Partial<Record<EquipSlot, string>>,
   charStart: 'caveman' as CharStart,
   energy: MAX_ENERGY,
   energyAt: 0,
@@ -261,6 +275,8 @@ const FRESH = {
   doubleCoins: 0,
   frames: [] as string[],
   frame: 'green',
+  statPoints: 0,
+  stats: { ...FRESH_STATS },
   totalCorrect: 0,
   totalErrors: 0,
   perfectLessons: 0,
@@ -312,6 +328,17 @@ export const useStore = create<State>()(
       setPlayerPhoto: (uri) => set({ playerPhoto: uri }),
 
       setArchetype: (id) => set({ archetype: id }),
+
+      allocStat: (id) =>
+        set((s) => {
+          if (s.statPoints <= 0 || (s.stats[id] ?? 0) >= STAT_MAX) return {};
+          return { statPoints: s.statPoints - 1, stats: { ...s.stats, [id]: (s.stats[id] ?? 0) + 1 } };
+        }),
+
+      setEquip: (slot, itemId) =>
+        set((s) => ({ equipped: itemId ? { ...s.equipped, [slot]: itemId } : { ...s.equipped, [slot]: undefined } })),
+
+      setLang: (lang) => set({ lang }),
 
       setDailyGoal: (goal) => set({ dailyGoal: goal }),
 
@@ -370,6 +397,7 @@ export const useStore = create<State>()(
           if (perfect) qp = bump(qp, 'perfect', 1);
           if (extra?.isQuiz) qp = bump(qp, 'quiz', 1);
           if (extra?.maxCombo) qp = bump(qp, 'combo', extra.maxCombo, 'max');
+          const newLevel = levelForXp(xp);
           const patch: Partial<State> = {
             ...week,
             ...q0,
@@ -377,7 +405,8 @@ export const useStore = create<State>()(
             completed,
             coins: s.coins + coinsEarned,
             xp,
-            level: levelForXp(xp),
+            level: newLevel,
+            statPoints: s.statPoints + Math.max(0, newLevel - s.level) * POINTS_PER_LEVEL,
             xpToday: s.xpToday + xpEarned,
             weekXp: (week.weekXp ?? s.weekXp) + xpEarned,
             totalCoinsEarned: s.totalCoinsEarned + coinsEarned,
@@ -459,6 +488,7 @@ export const useStore = create<State>()(
           const week = rolloverWeek(st);
           const q0 = questsRoll(st);
           const nxp = st.xp + xp;
+          const newLevel = levelForXp(nxp);
           return withAchievements(st, {
             ...week,
             ...q0,
@@ -467,7 +497,8 @@ export const useStore = create<State>()(
             simRuns: runs + 1,
             coins: st.coins + coins,
             xp: nxp,
-            level: levelForXp(nxp),
+            level: newLevel,
+            statPoints: st.statPoints + Math.max(0, newLevel - st.level) * POINTS_PER_LEVEL,
             xpToday: st.xpToday + xp,
             weekXp: (week.weekXp ?? st.weekXp) + xp,
             totalCoinsEarned: st.totalCoinsEarned + coins,

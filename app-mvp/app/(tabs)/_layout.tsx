@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { C } from '../../src/theme';
 import { useStore } from '../../src/store';
 import { scheduleAll } from '../../src/notifications';
+import { useT } from '../../src/i18n';
 
 function TabIcon({ glyph, focused }: { glyph: string; focused: boolean }) {
   return (
@@ -17,6 +18,7 @@ function TabIcon({ glyph, focused }: { glyph: string; focused: boolean }) {
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const { notifEnabled, notifMorning, notifEvening, streak, playerName, campaigns } = useStore();
+  const t = useT();
   const checksKey = JSON.stringify(campaigns.filter((c) => c.status === 'active' && c.remindTimes.length).map((c) => [c.id, c.name, c.remindTimes]));
 
   // Переплановуємо нагадування на 7 діб уперед при запуску і зміні налаштувань
@@ -45,23 +47,23 @@ export default function TabsLayout() {
     >
       <Tabs.Screen
         name="home"
-        options={{ title: 'Уроки', tabBarIcon: ({ focused }) => <TabIcon glyph="🏠" focused={focused} /> }}
+        options={{ title: t('tabLessons'), tabBarIcon: ({ focused }) => <TabIcon glyph="🏠" focused={focused} /> }}
       />
       <Tabs.Screen
         name="library"
-        options={{ title: 'Бібліотека', tabBarIcon: ({ focused }) => <TabIcon glyph="📚" focused={focused} /> }}
+        options={{ title: t('tabLibrary'), tabBarIcon: ({ focused }) => <TabIcon glyph="📚" focused={focused} /> }}
       />
       <Tabs.Screen
         name="shop"
-        options={{ title: 'Магазин', tabBarIcon: ({ focused }) => <TabIcon glyph="🛍️" focused={focused} /> }}
+        options={{ title: t('tabShop'), tabBarIcon: ({ focused }) => <TabIcon glyph="🛍️" focused={focused} /> }}
       />
       <Tabs.Screen
         name="league"
-        options={{ title: 'Рейтинг', tabBarIcon: ({ focused }) => <TabIcon glyph="🏆" focused={focused} /> }}
+        options={{ title: t('tabLeague'), tabBarIcon: ({ focused }) => <TabIcon glyph="🏆" focused={focused} /> }}
       />
       <Tabs.Screen
         name="profile"
-        options={{ title: 'Профіль', tabBarIcon: ({ focused }) => <TabIcon glyph="👤" focused={focused} /> }}
+        options={{ title: t('tabProfile'), tabBarIcon: ({ focused }) => <TabIcon glyph="👤" focused={focused} /> }}
       />
     </Tabs>
   );

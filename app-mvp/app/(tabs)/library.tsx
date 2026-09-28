@@ -9,11 +9,13 @@ import { TERMS } from '../../src/data/glossary';
 import { Calculators } from '../../src/components/Calculators';
 import { INCLUDE_RESTRICTED } from '../../src/data/restricted';
 import { say } from '../../src/data/phrases';
+import { useT } from '../../src/i18n';
 import { C } from '../../src/theme';
 
 export default function Library() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const t = useT();
   const params = useLocalSearchParams<{ cat?: string }>();
   const [talk, setTalk] = useState(() => say('library'));
   const cats = useMemo(
@@ -32,7 +34,7 @@ export default function Library() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <TopBar title="БІБЛІОТЕКА" />
+      <TopBar title={t('titleLibrary')} />
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 30 }}>
         <GrindykSay text={talk.text} pose={talk.pose} height={100} onPress={() => setTalk(say('library'))} />
 

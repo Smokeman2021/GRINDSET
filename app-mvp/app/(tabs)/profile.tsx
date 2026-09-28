@@ -14,6 +14,8 @@ import { levelProgress, levelTitle } from '../../src/data/levels';
 import { ALL_LESSONS, crownsCompleted } from '../../src/data/modules';
 import { ARCHETYPES, ArchetypeId, avatarStage, avatarFrame } from '../../src/data/avatars';
 import { CharacterAvatar } from '../../src/components/CharacterAvatar';
+import { STAT_DEFS, STAT_MAX } from '../../src/data/stats';
+import { useT, LANG_LABEL, Lang } from '../../src/i18n';
 import { say } from '../../src/data/phrases';
 import { masteredCount } from '../../src/data/srs';
 import { askPermission } from '../../src/notifications';
@@ -44,6 +46,7 @@ export default function Profile() {
   const acc = s.totalCorrect + s.totalErrors > 0 ? Math.round((s.totalCorrect / (s.totalCorrect + s.totalErrors)) * 100) : 0;
   const unlocked = useMemo(() => new Set(s.unlocked), [s.unlocked]);
   const stage = avatarStage(crownsCompleted(s.completed));
+  const t = useT();
 
   // Фото стискаємо до 320 px і зберігаємо як data-uri: так воно переживає перезапуск і працює на вебі
   const pickPhoto = async () => {
@@ -65,7 +68,7 @@ export default function Profile() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <TopBar title="ПРОФІЛЬ" />
+      <TopBar title={t('titleProfile')} />
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 40 }}>
         <View style={styles.hero}>
           <Pressable onPress={pickPhoto}>
@@ -127,6 +130,40 @@ export default function Profile() {
                 <Text style={[styles.archLbl, on && { color: C.accent }]} numberOfLines={1}>
                   {a.label}
                 </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <Text style={styles.h}>
+          ХАРАКТЕРИСТИКИ{s.statPoints > 0 ? ` · ${s.statPoints} очок` : ''}
+        </Text>
+        <View style={styles.box}>
+          {STAT_DEFS.map((d) => {
+            const v = s.stats[d.id] ?? 0;
+            return (
+              <Pressable
+                key={d.id}
+                disabled={s.statPoints <= 0 || v >= STAT_MAX}
+                onPress={() => s.allocStat(d.id)}
+                style={({ pressed }) => [styles.statRow, pressed && s.statPoints > 0 && { opacity: 0.7 }]}
+              >
+                <Text style={{ fontSize: 20 }}>{d.icon}</Text>
+                <View style={{ flex: 1 }}>
+                  <View style={styles.statHead}>
+                    <Text style={styles.setLabel}>{d.label}</Text>
+                    <Text style={styles.setSub}>{v}/{STAT_MAX}</Text>
+                  </View>
+                  <Text style={styles.setSub}>{d.desc}</Text>
+                  <View style={styles.statBar}>
+                    <View style={[styles.statFill, { width: `${(v / STAT_MAX) * 100}%` }]} />
+                  </View>
+                </View>
+                {s.statPoints > 0 && v < STAT_MAX && (
+                  <View style={styles.statPlus}>
+                    <Text style={styles.statPlusTxt}>+</Text>
+                  </View>
+                )}
               </Pressable>
             );
           })}
@@ -199,6 +236,16 @@ export default function Profile() {
 
         <Text style={styles.h}>НАЛАШТУВАННЯ</Text>
         <View style={styles.box}>
+          <Text style={styles.setLabel}>{t('language')}</Text>
+          <View style={styles.goalRow}>
+            {(['uk', 'en', 'ru'] as Lang[]).map((l) => (
+              <Pressable key={l} onPress={() => s.setLang(l)} style={[styles.goalBtn, s.lang === l && styles.goalOn]}>
+                <Text style={[styles.goalTxt, s.lang === l && { color: '#05140a' }]}>{LANG_LABEL[l]}</Text>
+              </Pressable>
+            ))}
+          </View>
+          <Text style={[styles.setSub, { marginBottom: 16 }]}>{t('languageNote')}</Text>
+
           <Text style={styles.setLabel}>Ціль дня</Text>
           <View style={styles.goalRow}>
             {GOALS.map((g) => (
@@ -336,6 +383,21 @@ const styles = StyleSheet.create({
   },
   archCellOn: { borderColor: C.accent, borderBottomColor: C.accentEdge },
   archLbl: { color: C.muted, fontSize: 10, marginTop: 4 },
+  statRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10 },
+  statHead: { flexDirection: 'row', justifyContent: 'space-between' },
+  statBar: { height: 8, borderRadius: 6, backgroundColor: '#191e28', overflow: 'hidden', marginTop: 6 },
+  statFill: { height: '100%', backgroundColor: C.blue, borderRadius: 6 },
+  statPlus: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: C.accent,
+    borderBottomWidth: 3,
+    borderBottomColor: C.accentEdge,
+  },
+  statPlusTxt: { color: '#05140a', fontWeight: '900', fontSize: 16, marginTop: -2 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   stat: {
     width: '31%',
