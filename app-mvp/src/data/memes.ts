@@ -17,4 +17,8 @@ export const MEMES: Meme[] = [
   { id: 'm-lvl5', pose: 'rest', top: 'КАБІНЕТ КОЖНІ 1–2 ГОДИНИ', bottom: 'Я: ЗАТО КАВА ПО ГРАФІКУ', bg: '#332a24', unlockedBy: 'lvl5' },
   { id: 'm-glasses', pose: 'crown', top: 'ТЕСТ БЕЗ ЖОДНОЇ ПОМИЛКИ', bottom: 'ТРИМАЙ ЗОЛОТІ ОКУЛЯРИ', bg: '#3a3a1f', unlockedBy: 'glasses' },
   { id: 'm-lvl10', pose: 'coin', top: 'JUNIOR. РЕАЛЬНО ВМІЄ', bottom: 'МАМА ПИШАЄТЬСЯ. БАТЬКО ЧЕКАЄ ЗВІТ', bg: '#1f3a2a', unlockedBy: 'lvl10' },
+  { id: 'm-streak7', pose: 'cheer', top: "БАН У П'ЯТНИЦЮ ВВЕЧЕРІ", bottom: 'ПІДТРИМКА ВІДПОВІДАЄ У ПОНЕДІЛОК', bg: '#3a2a1f', unlockedBy: 'streak7' },
+  { id: 'm-streak30', pose: 'crown', top: 'ХОЛД, ЯКИЙ НІКОЛИ НЕ ЗАКІНЧУЄТЬСЯ', bottom: 'Я ЙОГО ВЖЕ ЗАПРОСИВ НА ВЕСІЛЛЯ', bg: '#2a1f2f', unlockedBy: 'streak30' },
+  { id: 'm-perfect5', pose: 'think', top: 'ОЧІКУВАННЯ: КАБІНЕТ ПІСЛЯ НАЛАШТУВАННЯ', bottom: 'РЕАЛЬНІСТЬ: КАБІНЕТ ПІСЛЯ ПЕРШОГО СПИСАННЯ', bg: '#1f2a3a', unlockedBy: 'perfect5' },
+  { id: 'm-shop', pose: 'point', top: 'КУПИВ БУСТЕР ЗА КОЇНИ', bottom: 'КАБІНЕТ: А ТЕПЕР КУПИ РЕКЛАМУ ЗА ГРИВНІ', bg: '#332a1a', unlockedBy: 'shop' },
 ];
