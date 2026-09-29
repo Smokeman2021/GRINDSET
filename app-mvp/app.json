@@ -6,12 +6,14 @@
     "scheme": "grindset",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
+    "icon": "./assets/app-icon.png",
     "ios": {
       "supportsTablet": false
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0d0f14"
+        "foregroundImage": "./assets/app-icon.png",
+        "backgroundColor": "#36e27a"
       }
     },
     "web": {

@@ -6,11 +6,13 @@ import { TopBar } from '../../src/components/TopBar';
 import { GrindykSay } from '../../src/components/GrindykSay';
 import { CARDS, CATEGORIES, categoryFor, PRICES_AS_OF } from '../../src/data/library';
 import { TERMS } from '../../src/data/glossary';
+import { ADS_MANAGER_TOUR } from '../../src/data/adsManagerTour';
+import { Markdown } from '../../src/components/Markdown';
 import { Calculators } from '../../src/components/Calculators';
 import { INCLUDE_RESTRICTED } from '../../src/data/restricted';
 import { say } from '../../src/data/phrases';
 import { useT } from '../../src/i18n';
-import { Theme, useStyles, useTheme } from '../../src/theme';
+import { cardShadow, Theme, useStyles, useTheme } from '../../src/theme';
 import { Glow } from '../../src/components/Glow';
 
 export default function Library() {
@@ -22,7 +24,10 @@ export default function Library() {
   const params = useLocalSearchParams<{ cat?: string }>();
   const [talk, setTalk] = useState(() => say('library'));
   const cats = useMemo(
-    () => [{ id: 'Калькулятори', icon: '🧮' }, { id: 'Словник', icon: '📖' }, ...CATEGORIES].filter((c) => c.id === 'Калькулятори' || c.id === 'Словник' || CARDS.some((k) => k.category === c.id && (INCLUDE_RESTRICTED || !k.risky))),
+    () =>
+      [{ id: 'Калькулятори', icon: '🧮' }, { id: 'Рекламний кабінет', icon: '🖥️' }, { id: 'Словник', icon: '📖' }, ...CATEGORIES].filter(
+        (c) => c.id === 'Калькулятори' || c.id === 'Рекламний кабінет' || c.id === 'Словник' || CARDS.some((k) => k.category === c.id && (INCLUDE_RESTRICTED || !k.risky))
+      ),
     []
   );
   const fromLink = params.cat ? categoryFor(params.cat) : undefined;
@@ -61,6 +66,30 @@ export default function Library() {
         </ScrollView>
 
         {cat === 'Калькулятори' && <Calculators />}
+
+        {cat === 'Рекламний кабінет' && (
+          <>
+            <Text style={styles.tourIntro}>
+              Реальні екрани Facebook Ads Manager — точний вигляд, кольори й поведінка, зняті з живого кабінету. Поки це довідник для читання; клікабельний тренажер — наступний крок.
+            </Text>
+            {ADS_MANAGER_TOUR.map((s) => {
+              const isOpen = open === `ads-${s.id}`;
+              return (
+                <Pressable key={s.id} onPress={() => setOpen(isOpen ? null : `ads-${s.id}`)} style={styles.termRow}>
+                  <View style={styles.head}>
+                    <Text style={styles.termTitle}>{s.title}</Text>
+                    <Text style={styles.arrow}>{isOpen ? '▲' : '▼'}</Text>
+                  </View>
+                  {isOpen && (
+                    <View style={{ marginTop: 8 }}>
+                      <Markdown text={s.body} small />
+                    </View>
+                  )}
+                </Pressable>
+              );
+            })}
+          </>
+        )}
 
         {cat === 'Словник' &&
           TERMS.map((t) => {
@@ -122,7 +151,8 @@ export default function Library() {
 }
 
 const makeStyles = (C: Theme) => StyleSheet.create({
-  termRow: { backgroundColor: C.panel, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14, marginBottom: 6, borderWidth: 2, borderColor: C.line },
+  tourIntro: { color: C.muted, fontSize: 13, lineHeight: 19, marginBottom: 12 },
+  termRow: { backgroundColor: C.panel, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14, marginBottom: 6, borderWidth: 2, borderColor: C.line, ...cardShadow(C, 'sm') },
   termTitle: { color: C.txt, fontWeight: '800', fontSize: 15, flex: 1 },
   terms: { color: C.goldTxt, fontSize: 12, lineHeight: 18, marginTop: 6 },
   termDef: { color: C.txt, fontSize: 14, lineHeight: 21, marginTop: 8 },

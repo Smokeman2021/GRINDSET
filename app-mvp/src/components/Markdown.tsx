@@ -6,6 +6,7 @@ import { findTerm, Term, TERM_RE } from '../data/glossary';
 
 type Block =
   | { t: 'p'; text: string }
+  | { t: 'h'; level: 1 | 2 | 3; text: string }
   | { t: 'ul'; items: string[] }
   | { t: 'ol'; items: string[] }
   | { t: 'code'; text: string }
@@ -24,7 +25,11 @@ function parse(src: string): Block[] {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
-    if (trimmed.startsWith('```')) {
+    const heading = /^(#{1,3})\s+(.*)$/.exec(trimmed);
+    if (heading) {
+      flush();
+      blocks.push({ t: 'h', level: heading[1].length as 1 | 2 | 3, text: heading[2] });
+    } else if (trimmed.startsWith('```')) {
       flush();
       const code: string[] = [];
       i++;
@@ -140,6 +145,12 @@ export function Markdown({ text, small }: { text: string; small?: boolean }) {
     <View>
       {blocks.map((b, i) => {
         if (b.t === 'p') return <Text key={i} style={pStyle}>{inline(b.text, styles.p, ctx)}</Text>;
+        if (b.t === 'h')
+          return (
+            <Text key={i} style={[styles.h, b.level === 1 && styles.h1, b.level === 3 && styles.h3]}>
+              {b.text}
+            </Text>
+          );
         if (b.t === 'code')
           return (
             <View key={i} style={styles.codeBox}>
@@ -209,6 +220,9 @@ export function Markdown({ text, small }: { text: string; small?: boolean }) {
 
 const makeStyles = (C: Theme) => StyleSheet.create({
   p: { color: C.txt, fontSize: 16, lineHeight: 25, marginBottom: 12 },
+  h: { color: C.txt, fontWeight: '900', fontSize: 17, marginTop: 14, marginBottom: 8 },
+  h1: { fontSize: 20 },
+  h3: { fontSize: 15, color: C.accentTxt, letterSpacing: 0.4 },
   pSm: { fontSize: 14, lineHeight: 21, marginBottom: 8 },
   liSm: { fontSize: 14, lineHeight: 21 },
   term: { color: C.goldTxt, textDecorationLine: 'underline', textDecorationStyle: 'dotted', textDecorationColor: C.gold },
