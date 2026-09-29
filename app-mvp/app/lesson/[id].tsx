@@ -12,6 +12,7 @@ import { say, PhraseKind } from '../../src/data/phrases';
 import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
 import { Reaction, reactionKind } from '../../src/components/Reaction';
+import { playSfx } from '../../src/sound';
 import { boostLeftMs } from '../../src/notifications';
 import { Markdown } from '../../src/components/Markdown';
 import { BundleStep, MatchStep, MultiStep, NumericStep, OrderStep, StoryStep } from '../../src/components/steps';
@@ -92,6 +93,7 @@ export default function LessonScreen() {
         setCombo(0);
         setErrors((e) => e + 1);
         pushResult(false);
+        playSfx('wrong');
       }
     }, 200);
     return () => clearInterval(timer);
@@ -125,6 +127,7 @@ export default function LessonScreen() {
 
   function record(ok: boolean) {
     pushResult(ok);
+    playSfx(ok ? 'correct' : 'wrong');
     if (ok) {
       const nextCombo = combo + 1;
       const bonus = Math.min(20, nextCombo * 2);

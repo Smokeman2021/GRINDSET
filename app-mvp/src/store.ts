@@ -38,6 +38,7 @@ type State = {
   energyAt: number; // мс: від якого моменту рахуємо відновлення енергії
   lastBonusDate: string | null; // дата останнього щоденного бонусу енергії
   strictEnergy: boolean; // true: без енергії нові уроки закриті
+  soundEnabled: boolean; // короткі ігрові звуки (правильно/помилка/корона/монета)
   notifEnabled: boolean; // нагадування (зранку, ввечері, X2 посеред дня)
   notifMorning: string;
   notifEvening: string;
@@ -110,6 +111,7 @@ type State = {
   setEquip: (slot: EquipSlot, itemId: string | null) => void;
   setLang: (lang: Lang) => void;
   setTheme: (theme: 'night' | 'day') => void;
+  setSoundEnabled: (v: boolean) => void;
   setDailyGoal: (goal: DailyGoal) => void;
   setStrictEnergy: (v: boolean) => void;
   setNotif: (p: Partial<{ notifEnabled: boolean; notifMorning: string; notifEvening: string }>) => void;
@@ -263,6 +265,7 @@ const FRESH = {
   energyAt: 0,
   lastBonusDate: null,
   strictEnergy: false,
+  soundEnabled: true,
   notifEnabled: true,
   notifMorning: '08:00',
   notifEvening: '20:30',
@@ -348,6 +351,8 @@ export const useStore = create<State>()(
         set((s) => ({ equipped: itemId ? { ...s.equipped, [slot]: itemId } : { ...s.equipped, [slot]: undefined } })),
 
       setTheme: (theme) => set({ theme }),
+
+      setSoundEnabled: (v) => set({ soundEnabled: v }),
 
       setLang: (lang) => {
         setContentLang(lang);

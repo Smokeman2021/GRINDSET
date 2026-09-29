@@ -6,6 +6,7 @@ import { Button } from '../src/components/Button';
 import { GrindykSay } from '../src/components/GrindykSay';
 import { Reaction } from '../src/components/Reaction';
 import { Icon } from '../src/components/Icon';
+import { playSfx } from '../src/sound';
 import { ADS_SIM_STEPS } from '../src/data/adsSim';
 import { useStore } from '../src/store';
 import { Theme, useStyles, useTheme } from '../src/theme';
@@ -55,6 +56,7 @@ export default function AdsSim() {
     if (picked) return; // вже відповіли на цей крок, чекаємо «Далі»
     const opt = step.options.find((o) => o.id === optId)!;
     setPicked(optId);
+    playSfx(opt.correct ? 'correct' : 'wrong');
     if (!opt.correct) {
       setWrongIds((w) => [...w, optId]);
       setMistakes((m) => m + 1);
@@ -71,6 +73,7 @@ export default function AdsSim() {
       const stars = mistakes === 0 ? 3 : mistakes <= 2 ? 2 : 1;
       setReward(finishAdsSim(stars));
       setPhase('end');
+      playSfx('crown');
       return;
     }
     setStepIdx((i) => i + 1);

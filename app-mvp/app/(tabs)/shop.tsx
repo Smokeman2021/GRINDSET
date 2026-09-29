@@ -11,6 +11,7 @@ import { Theme, useStyles, useTheme } from '../../src/theme';
 import { Glow } from '../../src/components/Glow';
 import { shopSay, ShopMsg } from '../../src/data/phrases';
 import { useT } from '../../src/i18n';
+import { playSfx } from '../../src/sound';
 
 const CATEGORIES: ShopCategory[] = ['Енергія', 'Захист', 'Бустери', 'Косметика'];
 
@@ -51,6 +52,7 @@ export default function Shop() {
       return;
     }
     const res = buyItem(id);
+    if (res === 'ok') playSfx('coin');
     setTalk(shopSay(res as ShopMsg));
   };
 

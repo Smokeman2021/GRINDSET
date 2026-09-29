@@ -14,6 +14,7 @@ import { DIAGNOSTIC_ID, MISTAKES_ID, PRACTICE_ID, skippableUpTo } from '../src/d
 import { MODULES } from '../src/data/modules';
 import { MemeCard } from '../src/components/MemeCard';
 import { MEMES } from '../src/data/memes';
+import { playSfx } from '../src/sound';
 
 export default function Results() {
   const C = useTheme();
@@ -72,9 +73,14 @@ export default function Results() {
       if (after > before) {
         setLeveledUp(true);
         Animated.spring(scale, { toValue: 1, friction: 4, useNativeDriver: true }).start();
+        playSfx('levelup');
+      } else if (isCheckpoint && passed) {
+        playSfx('crown');
+      } else if (!isDiagnostic && passed) {
+        playSfx('correct');
       }
     }
-  }, [id, coins, xp, passed, completeLesson, scale, correct, errors, doubled, isDiagnostic, isMistakes]);
+  }, [id, coins, xp, passed, completeLesson, scale, correct, errors, doubled, isDiagnostic, isMistakes, isCheckpoint]);
 
   const perfect = errors === 0;
   const accuracy = correct + errors > 0 ? Math.round((correct / (correct + errors)) * 100) : 0;

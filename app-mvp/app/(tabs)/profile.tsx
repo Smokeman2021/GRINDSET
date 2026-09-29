@@ -324,6 +324,18 @@ export default function Profile() {
               thumbColor="#fff"
             />
           </View>
+          <View style={[styles.switchRow, { marginTop: 16 }]}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.setLabel}>Звуки</Text>
+              <Text style={styles.setSub}>Коротка мелодія на правильну відповідь, помилку, корону й рівень.</Text>
+            </View>
+            <Switch
+              value={s.soundEnabled}
+              onValueChange={s.setSoundEnabled}
+              trackColor={{ true: C.accent, false: C.line }}
+              thumbColor="#fff"
+            />
+          </View>
         </View>
 
         <Text style={styles.h}>ІНШЕ</Text>
