@@ -70,8 +70,15 @@ export default function Library() {
         {cat === 'Рекламний кабінет' && (
           <>
             <Text style={styles.tourIntro}>
-              Реальні екрани Facebook Ads Manager — точний вигляд, кольори й поведінка, зняті з живого кабінету. Поки це довідник для читання; клікабельний тренажер — наступний крок.
+              Реальні екрани Facebook Ads Manager — точний вигляд, кольори й поведінка, зняті з живого кабінету.
             </Text>
+            <Pressable onPress={() => router.push('/adsim')} style={styles.simBtn}>
+              <Text style={{ fontSize: 24 }}>🕹️</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.simBtnTitle}>Тренажер кабінету</Text>
+                <Text style={styles.simBtnSub}>5 рішень від старту кампанії до публікації — клікабельно, з реакцією на помилку</Text>
+              </View>
+            </Pressable>
             {ADS_MANAGER_TOUR.map((s) => {
               const isOpen = open === `ads-${s.id}`;
               return (
@@ -152,6 +159,22 @@ export default function Library() {
 
 const makeStyles = (C: Theme) => StyleSheet.create({
   tourIntro: { color: C.muted, fontSize: 13, lineHeight: 19, marginBottom: 12 },
+  simBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: C.panel,
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 14,
+    borderWidth: 2,
+    borderBottomWidth: 4,
+    borderColor: C.gold,
+    borderBottomColor: C.goldEdge,
+    ...cardShadow(C, 'sm'),
+  },
+  simBtnTitle: { color: C.txt, fontWeight: '900', fontSize: 15 },
+  simBtnSub: { color: C.muted, fontSize: 12, marginTop: 2, lineHeight: 16 },
   termRow: { backgroundColor: C.panel, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14, marginBottom: 6, borderWidth: 2, borderColor: C.line, ...cardShadow(C, 'sm') },
   termTitle: { color: C.txt, fontWeight: '800', fontSize: 15, flex: 1 },
   terms: { color: C.goldTxt, fontSize: 12, lineHeight: 18, marginTop: 6 },

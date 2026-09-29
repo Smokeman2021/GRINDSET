@@ -86,6 +86,8 @@ type State = {
   // симулятор кампанії
   simDate: string;
   simRuns: number;
+  adsSimDate: string;
+  adsSimRuns: number;
 
   // щоденні завдання
   questsDate: string;
@@ -122,6 +124,7 @@ type State = {
   recordAnswers: (results: AnswerResult[]) => void;
   claimQuest: (id: string) => void;
   finishSim: (stars: number) => { coins: number; xp: number };
+  finishAdsSim: (stars: number) => { coins: number; xp: number };
   addCampaign: (c: Omit<Campaign, 'id' | 'entries' | 'changes' | 'status' | 'startDate'>) => string;
   updateCampaign: (id: string, patch: Partial<Campaign>) => void;
   removeCampaign: (id: string) => void;
@@ -296,6 +299,8 @@ const FRESH = {
   srs: {} as SrsMap,
   simDate: '',
   simRuns: 0,
+  adsSimDate: '',
+  adsSimRuns: 0,
   questsDate: '',
   questProgress: {} as Partial<Record<Metric, number>>,
   questsClaimed: [] as string[],
@@ -512,6 +517,38 @@ export const useStore = create<State>()(
             weekXp: (week.weekXp ?? st.weekXp) + xp,
             totalCoinsEarned: st.totalCoinsEarned + coins,
             history: [{ id: 'sim', date: new Date().toISOString(), correct: stars, errors: 0, xp, coins }, ...st.history].slice(0, 60),
+          });
+        });
+        return { coins, xp };
+      },
+
+      // Нагорода тренажера кабінету: та сама логіка, окремий добовий ліміт
+      finishAdsSim: (stars) => {
+        const s = get();
+        const today = todayStr();
+        const runs = s.adsSimDate === today ? s.adsSimRuns : 0;
+        const k = runs === 0 ? 1 : 0.3;
+        const coins = Math.round([0, 15, 30, 50][stars] * k);
+        const xp = Math.round([3, 8, 14, 20][stars] * k);
+        set((st) => {
+          const week = rolloverWeek(st);
+          const q0 = questsRoll(st);
+          const nxp = st.xp + xp;
+          const newLevel = levelForXp(nxp);
+          return withAchievements(st, {
+            ...week,
+            ...q0,
+            questProgress: bump(q0.questProgress ?? st.questProgress, 'xp', xp),
+            adsSimDate: today,
+            adsSimRuns: runs + 1,
+            coins: st.coins + coins,
+            xp: nxp,
+            level: newLevel,
+            statPoints: st.statPoints + Math.max(0, newLevel - st.level) * POINTS_PER_LEVEL,
+            xpToday: st.xpToday + xp,
+            weekXp: (week.weekXp ?? st.weekXp) + xp,
+            totalCoinsEarned: st.totalCoinsEarned + coins,
+            history: [{ id: 'adsim', date: new Date().toISOString(), correct: stars, errors: 0, xp, coins }, ...st.history].slice(0, 60),
           });
         });
         return { coins, xp };
