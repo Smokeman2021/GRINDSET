@@ -7,7 +7,9 @@ import { GrindykSay } from '../../src/components/GrindykSay';
 import { CARDS, CATEGORIES, categoryFor, PRICES_AS_OF } from '../../src/data/library';
 import { TERMS } from '../../src/data/glossary';
 import { ADS_MANAGER_TOUR } from '../../src/data/adsManagerTour';
+import { BM_ADSMANAGER } from '../../src/data/bm/adsmanager';
 import { Markdown } from '../../src/components/Markdown';
+import { ScreenHotspot, hotspotFeedback } from '../../src/components/ScreenHotspot';
 import { Calculators } from '../../src/components/Calculators';
 import { INCLUDE_RESTRICTED } from '../../src/data/restricted';
 import { say } from '../../src/data/phrases';
@@ -33,6 +35,7 @@ export default function Library() {
   const fromLink = params.cat ? categoryFor(params.cat) : undefined;
   const [cat, setCat] = useState<string>(fromLink ?? cats[0]?.id ?? '');
   const [open, setOpen] = useState<string | null>(null);
+  const [bmPicked, setBmPicked] = useState<string | null>(null);
 
   React.useEffect(() => {
     if (fromLink) setCat(fromLink);
@@ -79,6 +82,20 @@ export default function Library() {
                 <Text style={styles.simBtnSub}>5 рішень від старту кампанії до публікації — клікабельно, з реакцією на помилку</Text>
               </View>
             </Pressable>
+
+            <View style={styles.bmCard}>
+              <Text style={styles.bmTag}>НОВЕ · СПРАВЖНІЙ СКРІНШОТ</Text>
+              <Text style={styles.simBtnSub}>{BM_ADSMANAGER[0].talk}</Text>
+              <Text style={[styles.simBtnTitle, { marginTop: 8, marginBottom: 8 }]}>{BM_ADSMANAGER[0].task}</Text>
+              <ScreenHotspot screen={BM_ADSMANAGER[0]} picked={bmPicked} onPick={setBmPicked} />
+              {bmPicked && <Text style={styles.bmFeedback}>{hotspotFeedback(BM_ADSMANAGER[0], bmPicked)}</Text>}
+              {bmPicked && (
+                <Pressable onPress={() => setBmPicked(null)} style={styles.bmReset}>
+                  <Text style={styles.bmResetTxt}>Спробувати ще раз</Text>
+                </Pressable>
+              )}
+            </View>
+
             {ADS_MANAGER_TOUR.map((s) => {
               const isOpen = open === `ads-${s.id}`;
               return (
@@ -175,6 +192,19 @@ const makeStyles = (C: Theme) => StyleSheet.create({
   },
   simBtnTitle: { color: C.txt, fontWeight: '900', fontSize: 15 },
   simBtnSub: { color: C.muted, fontSize: 12, marginTop: 2, lineHeight: 16 },
+  bmCard: {
+    backgroundColor: C.panel,
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 14,
+    borderWidth: 2,
+    borderColor: C.blue,
+    ...cardShadow(C, 'sm'),
+  },
+  bmTag: { color: C.blueTxt, fontWeight: '900', fontSize: 10, letterSpacing: 1, marginBottom: 6 },
+  bmFeedback: { color: C.txt, fontSize: 13, lineHeight: 19, marginTop: 12, backgroundColor: C.panel2, borderRadius: 10, padding: 10 },
+  bmReset: { alignSelf: 'center', marginTop: 10, paddingVertical: 8, paddingHorizontal: 16 },
+  bmResetTxt: { color: C.blueTxt, fontWeight: '800', fontSize: 13 },
   termRow: { backgroundColor: C.panel, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14, marginBottom: 6, borderWidth: 2, borderColor: C.line, ...cardShadow(C, 'sm') },
   termTitle: { color: C.txt, fontWeight: '800', fontSize: 15, flex: 1 },
   terms: { color: C.goldTxt, fontSize: 12, lineHeight: 18, marginTop: 6 },
