@@ -196,4 +196,18 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'engagement', xPct: 76.49, yPct: 79.75, wPct: 22.34, hPct: 4.85, correct: false, feedback: 'Engagement показує лайки/коментарі під постом — це про взаємодію з контентом, не про загальну картину результатів.' },
     ],
   },
+  {
+    id: 'events-overview',
+    section: 'events-manager',
+    title: 'Events Manager · Огляд',
+    talk: 'Тут видно, скільки подій насправді долітає з пікселя по кожному датасету. Порожній датасет — перша ознака, що трекінг десь відвалився ще до того, як ти побачив це в результатах кампанії.',
+    task: 'Де перевірити, що піксель взагалі щось ловить?',
+    image: require('../../../assets/bm/adsmanager/events-overview.png'),
+    imgW: 1512,
+    imgH: 793,
+    hotspots: [
+      { id: 'dataset-vse', xPct: 20.50, yPct: 22.95, wPct: 49.80, hPct: 6.05, correct: true, feedback: 'Так — 195.5K подій за 28 днів. Живий графік і ненульова цифра тут — перша перевірка, що трекінг працює.' },
+      { id: 'dataset-roditeli', xPct: 20.50, yPct: 48.93, wPct: 49.80, hPct: 5.55, correct: false, feedback: '"No event activity" — цей датасет взагалі нічого не отримує. З нього не побачиш, чи працює трекінг, бо він просто підключений неправильно.' },
+    ],
+  },
 ];
