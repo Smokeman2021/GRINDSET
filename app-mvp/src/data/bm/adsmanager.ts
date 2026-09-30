@@ -210,4 +210,18 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'dataset-roditeli', xPct: 20.50, yPct: 48.93, wPct: 49.80, hPct: 5.55, correct: false, feedback: '"No event activity" — цей датасет взагалі нічого не отримує. З нього не побачиш, чи працює трекінг, бо він просто підключений неправильно.' },
     ],
   },
+  {
+    id: 'pixel-dataset-detail',
+    section: 'events-manager',
+    title: 'Events Manager · Датасет зблизька',
+    talk: 'Погана якість даних коштує реальних грошей — Facebook сам показує, скільки бюджету "зіпсовано" неточним трекінгом, і що конкретно виправити.',
+    task: 'Де видно, скільки грошей витрачається марно через погану якість даних пікселя?',
+    image: require('../../../assets/bm/adsmanager/pixel-dataset-detail.png'),
+    imgW: 1512,
+    imgH: 793,
+    hotspots: [
+      { id: 'affected-spend', xPct: 41.93, yPct: 30.90, wPct: 28.44, hPct: 8.20, correct: true, feedback: 'Так — $387 витрат позначені як "affected by low data quality". Це не дрібниця, і Facebook одразу підказує, що саме виправити (ціна/валюта в подіях).' },
+      { id: 'dataset-id', xPct: 84.66, yPct: 69.99, wPct: 11.90, hPct: 5.04, correct: false, feedback: 'Це просто технічний ID датасета — потрібен для інтеграцій, але сам по собі нічого не каже про якість даних.' },
+    ],
+  },
 ];
