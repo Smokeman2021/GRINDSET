@@ -48,6 +48,21 @@ export const BM_ADSMANAGER: BmScreen[] = [
     ],
   },
   {
+    id: 'ads-list',
+    section: 'ads-manager',
+    title: 'Оголошення (заповнений список)',
+    talk: 'Це нижній рівень: кожне оголошення — конкретний креатив всередині групи оголошень. Реальні фото товару тут заховані, бо це вже чужі рекламні матеріали.',
+    task: 'Так виглядає список оголошень — фото, статус показу, результати.',
+    image: require('../../../assets/bm/adsmanager/ads-list.png'),
+    imgW: 1135,
+    imgH: 595,
+    hotspots: [
+      { id: 'create', kind: 'nav', xPct: 7.05, yPct: 39.66, wPct: 8.99, hPct: 6.55, label: '+ Create', leadsTo: 'campaign-objective' },
+      { id: 'tab-campaigns', kind: 'nav', xPct: 7.05, yPct: 30.59, wPct: 13.22, hPct: 7.39, label: 'Campaigns', leadsTo: 'campaigns-list' },
+      { id: 'tab-adsets', kind: 'nav', xPct: 21.15, yPct: 30.59, wPct: 9.69, hPct: 7.39, label: 'Ad sets', leadsTo: 'adsets-list' },
+    ],
+  },
+  {
     id: 'campaign-objective',
     section: 'ads-manager',
     title: 'Створення кампанії · Мета',
