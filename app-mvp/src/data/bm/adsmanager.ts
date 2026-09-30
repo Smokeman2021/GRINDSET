@@ -326,4 +326,18 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'whatsapp-manager', kind: 'nav', xPct: 24.14, yPct: 94.58, wPct: 13.23, hPct: 3.53, label: 'WhatsApp Manager', leadsTo: 'whatsapp-manager-overview' },
     ],
   },
+  {
+    id: 'commerce-manager-overview',
+    section: 'business-settings',
+    title: 'Commerce Manager',
+    talk: 'Це для товарного каталогу (Dynamic Ads, шопінг-теги) — окремий інструмент від звичайних лід-кампаній. У лід-ген воронці каталог зазвичай не потрібен, але важливо знати, що це не те саме, що Ads Manager.',
+    task: 'Де зберігається товарний каталог, якщо він колись знадобиться для Dynamic Ads?',
+    image: require('../../../assets/bm/adsmanager/commerce-manager-overview.png'),
+    imgW: 1568,
+    imgH: 770,
+    hotspots: [
+      { id: 'catalog-card', xPct: 35.59, yPct: 78.57, wPct: 45.85, hPct: 9.74, correct: true, feedback: 'Так — це реальний товарний каталог з ID. Саме сюди підвантажуються товари для Dynamic Ads.' },
+      { id: 'add-account', xPct: 73.34, yPct: 14.81, wPct: 8.04, hPct: 3.64, correct: false, feedback: 'Це створення нового Commerce-акаунта — не каталог товарів.' },
+    ],
+  },
 ];
