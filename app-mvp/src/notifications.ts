@@ -3,6 +3,29 @@
 import { Platform } from 'react-native';
 import { pickPush } from './data/pushTexts';
 
+// НЕ імпортувати пакет 'expo-notifications' цілим ('import expo-notifications') —
+// його index.js має побічний ефект: re-export з DevicePushTokenAutoRegistration.fx,
+// а той файл при самому завантаженні (ще до виклику будь-якої функції) підписується на
+// push-токен і з SDK 53+ кидає ЖОРСТКУ помилку на Android у Expo Go (push там просто
+// прибрали). Ця помилка летить як необроблений глобальний exception, а не reject
+// промісу — тому try/catch нижче її не ловить. Рішення: тягнути тільки конкретні
+// підмодулі, які цього side-effect файла не зачіпають.
+async function loadNotifModules() {
+  const [sched, cancel, perms, types] = await Promise.all([
+    import('expo-notifications/build/scheduleNotificationAsync'),
+    import('expo-notifications/build/cancelAllScheduledNotificationsAsync'),
+    import('expo-notifications/build/NotificationPermissions'),
+    import('expo-notifications/build/Notifications.types'),
+  ]);
+  return {
+    scheduleNotificationAsync: sched.scheduleNotificationAsync,
+    cancelAllScheduledNotificationsAsync: cancel.cancelAllScheduledNotificationsAsync,
+    getPermissionsAsync: perms.getPermissionsAsync,
+    requestPermissionsAsync: perms.requestPermissionsAsync,
+    SchedulableTriggerInputTypes: types.SchedulableTriggerInputTypes,
+  };
+}
+
 export const BOOST_MINUTES = 10;
 
 export type NotifPrefs = { enabled: boolean; morning: string; evening: string }; // час у форматі HH:MM
@@ -45,7 +68,7 @@ export type CheckReminder = { id: string; name: string; times: string[] };
 export async function scheduleAll(prefs: NotifPrefs, streak: number, name: string, checks: CheckReminder[] = []): Promise<void> {
   if (Platform.OS === 'web') return;
   try {
-    const N = await import('expo-notifications');
+    const N = await loadNotifModules();
     await N.cancelAllScheduledNotificationsAsync();
     const perm = await N.getPermissionsAsync();
     if (!perm.granted) return;
@@ -88,7 +111,7 @@ export async function scheduleAll(prefs: NotifPrefs, streak: number, name: strin
 export async function askPermission(): Promise<boolean> {
   if (Platform.OS === 'web') return false;
   try {
-    const N = await import('expo-notifications');
+    const N = await loadNotifModules();
     const cur = await N.getPermissionsAsync();
     if (cur.granted) return true;
     const res = await N.requestPermissionsAsync();
