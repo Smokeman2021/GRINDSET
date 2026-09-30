@@ -224,4 +224,18 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'dataset-id', xPct: 84.66, yPct: 69.99, wPct: 11.90, hPct: 5.04, correct: false, feedback: 'Це просто технічний ID датасета — потрібен для інтеграцій, але сам по собі нічого не каже про якість даних.' },
     ],
   },
+  {
+    id: 'pixel-test-events',
+    section: 'events-manager',
+    title: 'Events Manager · Test events',
+    talk: 'Тест-подій — це те, чим перевіряєш трекер ДО того, як запустив кампанію, а не після того, як гроші вже злиті. Сервер і сайт перевіряються окремо — це різні механізми.',
+    task: 'Хочеш перевірити саме піксель у браузері на сайті (JS-подія при заповненні форми) — який розділ відкриваєш?',
+    image: require('../../../assets/bm/adsmanager/pixel-test-events.png'),
+    imgW: 1512,
+    imgH: 793,
+    hotspots: [
+      { id: 'confirm-server', xPct: 45.50, yPct: 50.19, wPct: 51.72, hPct: 5.30, correct: false, feedback: 'Це про server-side/Conversions API — події, які відправляє сервер, а не браузер користувача. Інший механізм.' },
+      { id: 'confirm-website', xPct: 45.50, yPct: 58.26, wPct: 51.72, hPct: 5.80, correct: true, feedback: 'Так — тут перевіряєш саме браузерний піксель на сайті: чи спрацьовує JS-подія, коли людина реально заповнює форму.' },
+    ],
+  },
 ];
