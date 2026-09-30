@@ -280,4 +280,18 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'assign-partner', xPct: 48.28, yPct: 31.53, wPct: 9.79, hPct: 4.29, correct: false, feedback: '"Assign partner" — це про доступ для партнерів, а не про статус верифікації самого домену.' },
     ],
   },
+  {
+    id: 'mbs-home',
+    section: 'business-settings',
+    title: 'Meta Business Suite · Головна',
+    talk: 'Це окремий інструмент від Ads Manager — тут керуєш самою сторінкою й контентом, а не рекламою. Коментарі під постами теж вимагають відповіді, інакше це б\'є по довірі до сторінки.',
+    task: 'Де реальні непрочитані коментарі від людей, які чекають на відповідь?',
+    image: require('../../../assets/bm/adsmanager/mbs-home.png'),
+    imgW: 1512,
+    imgH: 793,
+    hotspots: [
+      { id: 'comments', xPct: 25.53, yPct: 41.99, wPct: 59.79, hPct: 4.03, correct: true, feedback: 'Так — 5 непрочитаних коментарів. Це реальні люди, які написали під постом і чекають на відповідь.' },
+      { id: 'see-full-plan', xPct: 77.71, yPct: 51.20, wPct: 6.61, hPct: 3.53, correct: false, feedback: 'Це список рекомендованих Facebook завдань для розкрутки сторінки — не повідомлення від живих людей.' },
+    ],
+  },
 ];
