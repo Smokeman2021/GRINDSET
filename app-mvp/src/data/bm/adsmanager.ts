@@ -396,4 +396,18 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'daily-limit', xPct: 23.97, yPct: 68.93, wPct: 35.69, hPct: 4.00, correct: true, feedback: 'Так — "Daily spending limit (set by Meta)" це стеля, яку сам Facebook ставить на добові витрати акаунта, незалежно від твоїх бюджетів кампаній.' },
     ],
   },
+  {
+    id: 'pixel-setup',
+    section: 'events-manager',
+    title: 'Events Manager · Підключення пікселя',
+    talk: 'Ось звідки береться той самий код пікселя, який вставляють у сайт чи прелендинг. Без нього трекер і Facebook просто не бачать, що людина зробила на сторінці.',
+    task: 'Де реально скопіювати код пікселя, щоб вставити його на сайт?',
+    image: require('../../../assets/bm/adsmanager/pixel-setup.png'),
+    imgW: 1568,
+    imgH: 770,
+    hotspots: [
+      { id: 'copy-code', xPct: 33.04, yPct: 49.74, wPct: 6.38, hPct: 4.16, correct: true, feedback: 'Так — "Copy code" копіює реальний код пікселя, який далі вставляється в <head> сайту чи прелендинга.' },
+      { id: 'change-method', xPct: 32.97, yPct: 56.10, wPct: 8.67, hPct: 2.86, correct: false, feedback: 'Це повертає до вибору способу встановлення (самому / розробнику / через партнера) — коду тут не отримаєш.' },
+    ],
+  },
 ];
