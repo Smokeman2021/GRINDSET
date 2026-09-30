@@ -354,4 +354,18 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'get-results', xPct: 59.27, yPct: 42.67, wPct: 13.75, hPct: 12.00, correct: true, feedback: 'Так — сюди прийде email з результатами, і там же, в Experiments, видно переможця та цифри.' },
     ],
   },
+  {
+    id: 'mbs-content-ad-posts',
+    section: 'business-settings',
+    title: 'Meta Business Suite · Content (Ad Posts)',
+    talk: 'Вкладка "Ad Posts" показує саме той контент сторінки, який зараз крутиться як реклама — окремо від просто опублікованих постів. Це той самий матеріал, що і в Ads Manager, просто з боку сторінки.',
+    task: 'Який рядок показує, що цей reel вже прив\'язаний до реклами?',
+    image: require('../../../assets/bm/adsmanager/mbs-content-ad-posts.png'),
+    imgW: 1568,
+    imgH: 770,
+    hotspots: [
+      { id: 'reel-row1', xPct: 23.34, yPct: 41.30, wPct: 40.18, hPct: 6.23, correct: true, feedback: 'Так — цей рядок у вкладці "Ad Posts" і є той reel, що вже використовується в рекламі, з датою публікації.' },
+      { id: 'boost-btn', xPct: 63.39, yPct: 42.47, wPct: 3.95, hPct: 3.51, correct: false, feedback: '"Boost" створює НОВУ просту рекламу з цього поста — це інша дія, а не показ уже існуючого звʼязку з рекламою.' },
+    ],
+  },
 ];
