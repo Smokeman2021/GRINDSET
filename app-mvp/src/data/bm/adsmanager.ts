@@ -78,6 +78,23 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'leads', xPct: 2.15, yPct: 62.0, wPct: 47.1, hPct: 8.6, correct: true, feedback: 'Так. Facebook сам шукає людей, схильних лишити заявку — саме те, що потрібно зв\'язці.' },
       { id: 'app', xPct: 2.15, yPct: 71.9, wPct: 47.1, hPct: 8.6, correct: false, feedback: 'Це для встановлень застосунку, у зв\'язці немає додатка.' },
       { id: 'sales', xPct: 2.15, yPct: 81.6, wPct: 47.1, hPct: 8.6, correct: false, feedback: 'Продажі оптимізують покупки в каталозі товарів — тут потрібні заявки, а не покупки.' },
+      { id: 'continue', kind: 'nav', xPct: 83.38, yPct: 94.12, wPct: 15.54, hPct: 5.88, label: 'Continue', leadsTo: 'campaign-settings' },
+    ],
+  },
+  {
+    id: 'campaign-settings',
+    section: 'ads-manager',
+    title: 'Створення кампанії · Налаштування',
+    talk: 'Після вибору мети — назва кампанії. Тут працює те саме правило, що і в списку: [товар] [дата] [ЦА] [спосіб] - [номер], а не "Кампанія 1".',
+    task: 'Де тут задається структурована назва кампанії?',
+    image: require('../../../assets/bm/adsmanager/campaign-settings.png'),
+    imgW: 938,
+    imgH: 492,
+    hotspots: [
+      { id: 'campaign-name', xPct: 9.38, yPct: 33.54, wPct: 52.98, hPct: 9.15, correct: true, feedback: 'Так — саме тут вписується назва кампанії. Одразу за схемою, а не "Кампанія 1", яку потім доведеться розшифровувати.' },
+      { id: 'show-more', xPct: 9.38, yPct: 44.31, wPct: 13.86, hPct: 4.07, correct: false, feedback: '«Show more options» відкриває спецкатегорії реклами та бюджет кампанії — назву там не задаси.' },
+      { id: 'close', kind: 'nav', xPct: 8.53, yPct: 89.43, wPct: 10.34, hPct: 9.15, label: 'Close', leadsTo: 'ads-list' },
+      { id: 'next', kind: 'nav', xPct: 91.47, yPct: 89.43, wPct: 8.53, hPct: 9.15, label: 'Next', leadsTo: 'adset-settings' },
     ],
   },
 ];
