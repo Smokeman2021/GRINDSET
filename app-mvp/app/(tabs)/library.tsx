@@ -96,6 +96,14 @@ export default function Library() {
               )}
             </View>
 
+            <Pressable onPress={() => router.push('/bm')} style={styles.simBtn}>
+              <Text style={{ fontSize: 24 }}>🗺️</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.simBtnTitle}>Карта кабінету</Text>
+                <Text style={styles.simBtnSub}>Усі зняті екрани одразу — переходь по кнопках так само, як у живому Ads Manager</Text>
+              </View>
+            </Pressable>
+
             {ADS_MANAGER_TOUR.map((s) => {
               const isOpen = open === `ads-${s.id}`;
               return (
