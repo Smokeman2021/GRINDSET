@@ -424,4 +424,18 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'optimize', xPct: 48.66, yPct: 57.14, wPct: 19.77, hPct: 12.34, correct: true, feedback: 'Так — "show ads to people who are most likely to take specific actions" це і є прямий вплив на оптимізацію показу реклами.' },
     ],
   },
+  {
+    id: 'payment-methods',
+    section: 'billing',
+    title: 'Рахунки й оплата · Способи оплати',
+    talk: 'Кілька карток прив\'язані до бізнес-портфеля одразу — це резерв: якщо одну картку заблокує банк чи Facebook, акаунти не стають миттєво без оплати, бо є чим замінити.',
+    task: 'Де побачити всі картки, прив\'язані до бізнес-портфеля?',
+    image: require('../../../assets/bm/adsmanager/payment-methods.png'),
+    imgW: 1527,
+    imgH: 700,
+    hotspots: [
+      { id: 'card1', xPct: 24.04, yPct: 27.86, wPct: 23.12, hPct: 18.29, correct: true, feedback: 'Так — кожна картка тут з останніми цифрами і терміном дії. Кілька карток одночасно — це і є той самий резерв на випадок блокування.' },
+      { id: 'add-button', xPct: 73.48, yPct: 66.86, wPct: 23.12, hPct: 18.29, correct: false, feedback: 'Це для ДОДАВАННЯ нової картки — існуючі картки тут не переглянеш.' },
+    ],
+  },
 ];
