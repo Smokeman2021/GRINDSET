@@ -368,4 +368,18 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'boost-btn', xPct: 63.39, yPct: 42.47, wPct: 3.95, hPct: 3.51, correct: false, feedback: '"Boost" створює НОВУ просту рекламу з цього поста — це інша дія, а не показ уже існуючого звʼязку з рекламою.' },
     ],
   },
+  {
+    id: 'bs-instagram',
+    section: 'business-settings',
+    title: 'Business Settings · Instagram-акаунти',
+    talk: 'Той самий принцип, що й з рекламними акаунтами та сторінками: Instagram теж окремий актив зі своїм списком доступу, підключений до бізнесу.',
+    task: 'Скільки людей мають повний доступ до цього Instagram-акаунта?',
+    image: require('../../../assets/bm/adsmanager/bs-instagram.png'),
+    imgW: 1568,
+    imgH: 770,
+    hotspots: [
+      { id: 'full-access', xPct: 50.38, yPct: 24.68, wPct: 8.29, hPct: 4.55, correct: true, feedback: 'Так — "Full access" тут так само, як з рекламними акаунтами і сторінками: кількість людей з повним контролем над цим Instagram-акаунтом.' },
+      { id: 'add-button', xPct: 92.79, yPct: 12.08, wPct: 3.95, hPct: 3.51, correct: false, feedback: '"+ Add" підключає НОВИЙ Instagram-акаунт до бізнесу — не показує доступ до вже підключеного.' },
+    ],
+  },
 ];
