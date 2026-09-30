@@ -182,4 +182,18 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'rule-on-all', xPct: 5.10, yPct: 49.35, wPct: 93.43, hPct: 6.49, correct: false, feedback: 'Це протилежне правило — щоранку вмикає назад усе, що стоїть на паузі. Воно не зупиняє злив бюджету, а навпаки.' },
     ],
   },
+  {
+    id: 'ads-reporting',
+    section: 'ads-manager',
+    title: 'Звіти (Ads Reporting)',
+    talk: 'Замість того щоб вручну гортати колонки в кабінеті, звіт можна зібрати один раз під свою задачу й повертатись до нього щодня.',
+    task: 'Хочеш загальну картину по всіх кампаніях за період. З якого шаблону почати?',
+    image: require('../../../assets/bm/adsmanager/ads-reporting.png'),
+    imgW: 1374,
+    imgH: 721,
+    hotspots: [
+      { id: 'overall-performance', xPct: 76.78, yPct: 50.90, wPct: 21.55, hPct: 4.85, correct: true, feedback: 'Так — "Overall Performance" одразу показує основні метрики по всіх кампаніях. Звідси й починай, деталі докрутиш пізніше.' },
+      { id: 'engagement', xPct: 76.49, yPct: 79.75, wPct: 22.34, hPct: 4.85, correct: false, feedback: 'Engagement показує лайки/коментарі під постом — це про взаємодію з контентом, не про загальну картину результатів.' },
+    ],
+  },
 ];
