@@ -97,4 +97,32 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'next', kind: 'nav', xPct: 91.47, yPct: 89.43, wPct: 8.53, hPct: 9.15, label: 'Next', leadsTo: 'adset-settings' },
     ],
   },
+  {
+    id: 'adset-settings',
+    section: 'ads-manager',
+    title: 'Група оголошень · Конверсія',
+    talk: 'На рівні групи оголошень ти кажеш Facebook, де саме відбувається конверсія — сайт, дзвінок, застосунок. Це має збігатися з тим, куди реально веде твоя реклама.',
+    task: 'Де вказується, звідки саме йдуть заявки?',
+    image: require('../../../assets/bm/adsmanager/adset-conversion.png'),
+    imgW: 1374,
+    imgH: 721,
+    hotspots: [
+      { id: 'adset-name', xPct: 41.34, yPct: 23.30, wPct: 46.07, hPct: 5.55, correct: false, feedback: 'Це просто назва групи оголошень — вона не каже Facebook, звідки йдуть заявки.' },
+      { id: 'conversion-location', xPct: 41.34, yPct: 65.88, wPct: 46.07, hPct: 5.96, correct: true, feedback: 'Так — тут вказуєш, де саме людина лишає заявку (сайт, дзвінок, застосунок). Має збігатися з реальною прив\'язкою реклами.' },
+    ],
+  },
+  {
+    id: 'adset-budget',
+    section: 'ads-manager',
+    title: 'Група оголошень · Бюджет і розклад',
+    talk: 'Тут видно, скільки насправді витрачається щодня і як бюджет кампанії розподіляється по групах оголошень — це і є Campaign Budget Optimization.',
+    task: 'Де подивитись, скільки реально йде грошей щодня?',
+    image: require('../../../assets/bm/adsmanager/adset-budget.png'),
+    imgW: 1249,
+    imgH: 655,
+    hotspots: [
+      { id: 'dynamic-creative', xPct: 35.23, yPct: 24.43, wPct: 38.43, hPct: 8.40, correct: false, feedback: 'Це перемикач динамічного креативу — не про гроші.' },
+      { id: 'budget-strategy', xPct: 35.23, yPct: 43.51, wPct: 36.03, hPct: 20.61, correct: true, feedback: 'Так — тут видно, що денний бюджет кампанії ($25) автоматично розподіляється по групах оголошень. Завжди перевіряй цю суму, а не здогадуйся.' },
+    ],
+  },
 ];
