@@ -410,4 +410,18 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'change-method', xPct: 32.97, yPct: 56.10, wPct: 8.67, hPct: 2.86, correct: false, feedback: 'Це повертає до вибору способу встановлення (самому / розробнику / через партнера) — коду тут не отримаєш.' },
     ],
   },
+  {
+    id: 'custom-conversions',
+    section: 'events-manager',
+    title: 'Events Manager · Custom Conversions',
+    talk: 'Стандартні події (Lead, Purchase) підходять не завжди — Custom Conversions дозволяє зробити ціль з будь-якої твоєї URL чи події і навчити Facebook оптимізувати покази саме під неї.',
+    task: 'Яка перевага Custom Conversions прямо впливає на те, кому показується реклама?',
+    image: require('../../../assets/bm/adsmanager/custom-conversions.png'),
+    imgW: 1568,
+    imgH: 770,
+    hotspots: [
+      { id: 'measure', xPct: 25.51, yPct: 57.14, wPct: 19.77, hPct: 12.34, correct: false, feedback: 'Це про вимірювання — бачити цифри. Впливу на те, кому показується реклама, тут ще нема.' },
+      { id: 'optimize', xPct: 48.66, yPct: 57.14, wPct: 19.77, hPct: 12.34, correct: true, feedback: 'Так — "show ads to people who are most likely to take specific actions" це і є прямий вплив на оптимізацію показу реклами.' },
+    ],
+  },
 ];
