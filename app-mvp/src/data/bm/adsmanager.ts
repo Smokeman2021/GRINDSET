@@ -47,4 +47,22 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'tab-ads', kind: 'nav', xPct: 40.2, yPct: 29.0, wPct: 4.0, hPct: 5.3, label: 'Ads', leadsTo: 'ads-list' },
     ],
   },
+  {
+    id: 'campaign-objective',
+    section: 'ads-manager',
+    title: 'Створення кампанії · Мета',
+    talk: 'Перше і найважливіше рішення при створенні кампанії — мета. Від неї залежить, кого й як Facebook буде тобі показувати.',
+    task: 'Курс вчить лід-ген воронку (заявка → трекер → виплата). Яку мету обираєш?',
+    image: require('../../../assets/bm/adsmanager/campaign-objective.png'),
+    imgW: 650,
+    imgH: 629,
+    hotspots: [
+      { id: 'awareness', xPct: 2.15, yPct: 32.6, wPct: 47.1, hPct: 8.6, correct: false, feedback: 'Впізнаваність оптимізує покази й охоплення, а не заявки. Для лід-ген воронки не підходить.' },
+      { id: 'traffic', xPct: 2.15, yPct: 42.5, wPct: 47.1, hPct: 8.6, correct: false, feedback: 'Трафік жене дешеві кліки, але не лідів: багато переходів, мало заявок.' },
+      { id: 'engagement', xPct: 2.15, yPct: 52.3, wPct: 47.1, hPct: 8.6, correct: false, feedback: 'Взаємодія оптимізує лайки й коментарі під постом, а не заявки на лендінгу.' },
+      { id: 'leads', xPct: 2.15, yPct: 62.0, wPct: 47.1, hPct: 8.6, correct: true, feedback: 'Так. Facebook сам шукає людей, схильних лишити заявку — саме те, що потрібно зв\'язці.' },
+      { id: 'app', xPct: 2.15, yPct: 71.9, wPct: 47.1, hPct: 8.6, correct: false, feedback: 'Це для встановлень застосунку, у зв\'язці немає додатка.' },
+      { id: 'sales', xPct: 2.15, yPct: 81.6, wPct: 47.1, hPct: 8.6, correct: false, feedback: 'Продажі оптимізують покупки в каталозі товарів — тут потрібні заявки, а не покупки.' },
+    ],
+  },
 ];

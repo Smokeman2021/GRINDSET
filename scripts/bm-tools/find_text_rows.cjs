@@ -1,17 +1,18 @@
-// Знаходить точні y-межі кожного рядка синього тексту (посилання) у стовпці x0..x1,
-// скануючи пікселі напряму — без залежності від DOM-таймінгу.
+// Знаходить точні y-межі кожного рядка кольорового тексту (напр. синього посилання) у
+// стовпці x0..x1, скануючи пікселі напряму — без залежності від DOM-таймінгу.
+// Метод "не сірий піксель" (r/g/b помітно розходяться) замість пошуку конкретного кольору:
+// JPEG-стиснення зсуває колір, тому точний match на "Meta link blue" повертає порожньо.
 const sharp = require('sharp');
 
 async function findRows(file, x0, x1, opts = {}) {
-  const tol = opts.tol ?? 40;
-  const target = opts.color ?? [24, 119, 242]; // Meta link blue
+  const notGrayTol = opts.notGrayTol ?? 15;
   const img = sharp(file);
   const { data, info } = await img.ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const ch = info.channels;
   const isMatch = (x, y) => {
     const i = (y * info.width + x) * ch;
-    const dr = data[i] - target[0], dg = data[i + 1] - target[1], db = data[i + 2] - target[2];
-    return Math.sqrt(dr * dr + dg * dg + db * db) < tol;
+    const r = data[i], g = data[i + 1], b = data[i + 2];
+    return Math.abs(r - g) > notGrayTol || Math.abs(g - b) > notGrayTol || Math.abs(r - b) > notGrayTol;
   };
   const rowHas = new Array(info.height).fill(false);
   for (let y = 0; y < info.height; y++) {
