@@ -238,4 +238,18 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'confirm-website', xPct: 45.50, yPct: 58.26, wPct: 51.72, hPct: 5.80, correct: true, feedback: 'Так — тут перевіряєш саме браузерний піксель на сайті: чи спрацьовує JS-подія, коли людина реально заповнює форму.' },
     ],
   },
+  {
+    id: 'bs-ad-accounts',
+    section: 'business-settings',
+    title: 'Business Settings · Рекламні акаунти',
+    talk: 'У Business Settings доступ видається ОКРЕМО на кожен рекламний акаунт — не один раз на весь бізнес. Тут видно лише кількість людей із доступом, а не хто саме (це свідомо приховано).',
+    task: 'Де перевірити, скільком людям виданий повний доступ до конкретного рекламного акаунта?',
+    image: require('../../../assets/bm/adsmanager/bs-ad-accounts.png'),
+    imgW: 1512,
+    imgH: 793,
+    hotspots: [
+      { id: 'full-access', xPct: 50.26, yPct: 22.44, wPct: 8.60, hPct: 4.41, correct: true, feedback: 'Так — колонка "Full access" показує, скільки людей можуть повністю керувати саме цим рекламним акаунтом.' },
+      { id: 'add-button', xPct: 91.27, yPct: 11.10, wPct: 6.94, hPct: 4.03, correct: false, feedback: '"+ Add" — це додавання нового рекламного акаунта до бізнесу, а не перевірка доступу до існуючого.' },
+    ],
+  },
 ];
