@@ -294,4 +294,18 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'see-full-plan', xPct: 77.71, yPct: 51.20, wPct: 6.61, hPct: 3.53, correct: false, feedback: 'Це список рекомендованих Facebook завдань для розкрутки сторінки — не повідомлення від живих людей.' },
     ],
   },
+  {
+    id: 'leads-center-welcome',
+    section: 'business-settings',
+    title: 'Leads Center',
+    talk: 'Тут усі заявки з реклами й Inbox потрапляють в один пайплайн зі стадіями — це і є той самий "трекер" на рівні самого Facebook, ще до твого зовнішнього трекера.',
+    task: 'Яка перевага Leads Center найближча до ідеї воронки продажів (заявка → етапи → результат)?',
+    image: require('../../../assets/bm/adsmanager/leads-center-welcome.png'),
+    imgW: 1512,
+    imgH: 793,
+    hotspots: [
+      { id: 'save-time', xPct: 12.17, yPct: 41.61, wPct: 25.13, hPct: 3.28, correct: false, feedback: 'Це просто про зручність — всі заявки в одному місці, без стадій та етапів.' },
+      { id: 'triage', xPct: 12.17, yPct: 46.91, wPct: 31.75, hPct: 3.28, correct: true, feedback: 'Так — "pipeline management" це і є рух заявки по стадіях, та сама воронка, яку вчить курс.' },
+    ],
+  },
 ];
