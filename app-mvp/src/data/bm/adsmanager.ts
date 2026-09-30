@@ -308,4 +308,22 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'triage', xPct: 12.17, yPct: 46.91, wPct: 31.75, hPct: 3.28, correct: true, feedback: 'Так — "pipeline management" це і є рух заявки по стадіях, та сама воронка, яку вчить курс.' },
     ],
   },
+  {
+    id: 'mbs-all-tools',
+    section: 'business-settings',
+    title: 'Meta Business Suite · Усі інструменти',
+    talk: 'Це справжня мапа всього, що взагалі є в кабінеті: реклама, дані, оплата, продажі. Більшість інструментів ти ніколи не відкриєш — і це нормально, головне знати, що вони тут є, коли знадобляться.',
+    task: 'Це хаб-екран — з нього можна перейти в уже знайомі розділи або в ще не досліджені.',
+    image: require('../../../assets/bm/adsmanager/mbs-all-tools.png'),
+    imgW: 1512,
+    imgH: 793,
+    hotspots: [
+      { id: 'ads-reporting', kind: 'nav', xPct: 25.46, yPct: 20.43, wPct: 11.90, hPct: 3.53, label: 'Ads Reporting', leadsTo: 'ads-reporting' },
+      { id: 'automated-rules', kind: 'nav', xPct: 25.46, yPct: 29.00, wPct: 11.90, hPct: 3.53, label: 'Automated rules', leadsTo: 'automated-rules' },
+      { id: 'events-manager', kind: 'nav', xPct: 25.46, yPct: 37.58, wPct: 11.90, hPct: 3.53, label: 'Events Manager', leadsTo: 'events-overview' },
+      { id: 'billing', kind: 'nav', xPct: 24.14, yPct: 56.00, wPct: 11.90, hPct: 3.53, label: 'Billing & payments', leadsTo: 'billing-overview' },
+      { id: 'commerce-manager', kind: 'nav', xPct: 42.59, yPct: 60.28, wPct: 13.23, hPct: 3.53, label: 'Commerce Manager', leadsTo: 'commerce-manager-overview' },
+      { id: 'whatsapp-manager', kind: 'nav', xPct: 24.14, yPct: 94.58, wPct: 13.23, hPct: 3.53, label: 'WhatsApp Manager', leadsTo: 'whatsapp-manager-overview' },
+    ],
+  },
 ];
