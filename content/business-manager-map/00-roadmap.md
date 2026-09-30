@@ -72,7 +72,7 @@ generic photo-плейсхолдер (сірий прямокутник + іко
 | Група оголошень · Конверсія/Бюджет | 🟡 | adset-settings + adset-budget, task-хотспоти точні, Аудиторія/Placements ще не зняті, ще не в застосунку |
 | Оголошення · Креатив (Destination/Tracking) | 🟡 | ad-destination + ad-tracking, реальне поле URL parameters для sub_id/click_id, Media/Primary text ще не зняті, ще не в застосунку |
 | Звіти (Ads Reporting) | ⬜ | |
-| Аудиторії (Custom/Lookalike) | ⬜ | |
+| Аудиторії (Custom/Lookalike) | 🟡 | audiences-empty (порожній стан, 3 task-хотспоти: Custom/Lookalike/Saved), ще не в застосунку |
 | Автоматизовані правила | ⬜ | |
 | A/B-тести (Experiments) | ⬜ | |
 | Каталог у межах кабінету | ⬜ | |

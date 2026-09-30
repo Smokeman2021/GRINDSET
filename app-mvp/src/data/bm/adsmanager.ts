@@ -153,4 +153,19 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'url-parameters', xPct: 32.03, yPct: 62.60, wPct: 35.63, hPct: 6.11, correct: true, feedback: 'Так. Сюди вписуєш параметри трекера (sub_id, click_id тощо) — без них не зрозумієш, яка кампанія/адсет/оголошення принесло заявку.' },
     ],
   },
+  {
+    id: 'audiences-empty',
+    section: 'ads-manager',
+    title: 'Аудиторії',
+    talk: 'Три типи аудиторій — кожен для своєї задачі. Custom — це люди, які вже мали контакт з тобою (сайт, ліди). Lookalike — нові люди, схожі на них. Saved — просто збережений набір інтересів/демографії, без реальної поведінки людей.',
+    task: 'Хочеш достукатись до людей, які заходили на лендінг, але не лишили заявку. Яку аудиторію створюєш?',
+    image: require('../../../assets/bm/adsmanager/audiences-empty.png'),
+    imgW: 1374,
+    imgH: 721,
+    hotspots: [
+      { id: 'custom', xPct: 8.88, yPct: 44.66, wPct: 16.74, hPct: 5.41, correct: true, feedback: 'Так — Custom audience будується з реальних відвідувачів твого сайту (через піксель/датасет). Це і є ретаргетинг тих, хто не долистав до заявки.' },
+      { id: 'lookalike', xPct: 8.88, yPct: 67.68, wPct: 16.74, hPct: 5.41, correct: false, feedback: 'Lookalike шукає НОВИХ людей, схожих на твою аудиторію — це для масштабування, а не для повернення тих самих відвідувачів.' },
+      { id: 'saved', xPct: 8.88, yPct: 87.38, wPct: 16.74, hPct: 5.41, correct: false, feedback: 'Saved audience — це просто збережені інтереси/демографія, без прив\'язки до реальних відвідувачів твого сайту.' },
+    ],
+  },
 ];
