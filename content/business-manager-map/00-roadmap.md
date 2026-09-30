@@ -104,7 +104,7 @@ net|ua|site)$/i`) проходить по всіх текстових вузла
 | Звіти (Ads Reporting) | 🟡 | ads-reporting, task-хотспот на шаблоні Overall Performance, ще не в застосунку |
 | Аудиторії (Custom/Lookalike) | 🟡 | audiences-empty (порожній стан, 3 task-хотспоти: Custom/Lookalike/Saved), ще не в застосунку |
 | Автоматизовані правила | 🟡 | automated-rules, 2 реальні правила з акаунта (вимкнути без лідів / увімкнути все зранку), ще не в застосунку |
-| A/B-тести (Experiments) | ⬜ | |
+| A/B-тести (Experiments) | 🟡 | ab-test-intro (пояснювальний екран, без реальних тестів на акаунті), ще не в застосунку |
 | Каталог у межах кабінету | ⬜ | |
 
 ## Events Manager / Дані

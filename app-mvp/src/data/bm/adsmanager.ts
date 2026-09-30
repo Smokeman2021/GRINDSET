@@ -340,4 +340,18 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'add-account', xPct: 73.34, yPct: 14.81, wPct: 8.04, hPct: 3.64, correct: false, feedback: 'Це створення нового Commerce-акаунта — не каталог товарів.' },
     ],
   },
+  {
+    id: 'ab-test-intro',
+    section: 'ads-manager',
+    title: 'A/B-тести (Experiments)',
+    talk: 'A/B-тест — це не здогадки "яка картинка краща", а перевірка з контролем: Facebook сам ділить аудиторію так, щоб одна людина бачила лише одну версію, і чесно каже, яка перемогла.',
+    task: 'Де побачити підсумок тесту й зрозуміти переможця?',
+    image: require('../../../assets/bm/adsmanager/ab-test-intro.png'),
+    imgW: 1527,
+    imgH: 750,
+    hotspots: [
+      { id: 'choose-what', xPct: 26.39, yPct: 42.67, wPct: 12.44, hPct: 10.00, correct: false, feedback: 'Це крок налаштування тесту (що саме порівнюємо) — переможця тут ще нема.' },
+      { id: 'get-results', xPct: 59.27, yPct: 42.67, wPct: 13.75, hPct: 12.00, correct: true, feedback: 'Так — сюди прийде email з результатами, і там же, в Experiments, видно переможця та цифри.' },
+    ],
+  },
 ];
