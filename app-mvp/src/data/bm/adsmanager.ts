@@ -55,12 +55,13 @@ export const BM_ADSMANAGER: BmScreen[] = [
     talk: 'Це нижній рівень: кожне оголошення — конкретний креатив всередині групи оголошень. Реальні фото товару тут заховані, бо це вже чужі рекламні матеріали.',
     task: 'Так виглядає список оголошень — фото, статус показу, результати.',
     image: require('../../../assets/bm/adsmanager/ads-list.png'),
-    imgW: 1135,
-    imgH: 595,
+    imgW: 1527,
+    imgH: 750,
     hotspots: [
-      { id: 'create', kind: 'nav', xPct: 7.05, yPct: 39.66, wPct: 8.99, hPct: 6.55, label: '+ Create', leadsTo: 'campaign-objective' },
-      { id: 'tab-campaigns', kind: 'nav', xPct: 7.05, yPct: 30.59, wPct: 13.22, hPct: 7.39, label: 'Campaigns', leadsTo: 'campaigns-list' },
-      { id: 'tab-adsets', kind: 'nav', xPct: 21.15, yPct: 30.59, wPct: 9.69, hPct: 7.39, label: 'Ad sets', leadsTo: 'adsets-list' },
+      { id: 'create', kind: 'nav', xPct: 5.31, yPct: 28.13, wPct: 5.11, hPct: 5.47, label: '+ Create', leadsTo: 'campaign-objective' },
+      { id: 'tab-campaigns', kind: 'nav', xPct: 5.89, yPct: 22.93, wPct: 8.38, hPct: 3.73, label: 'Campaigns', leadsTo: 'campaigns-list' },
+      { id: 'tab-adsets', kind: 'nav', xPct: 19.32, yPct: 22.93, wPct: 6.68, hPct: 3.73, label: 'Ad sets', leadsTo: 'adsets-list' },
+      { id: 'breakdown', kind: 'nav', xPct: 73.22, yPct: 28.13, wPct: 7.99, hPct: 5.47, label: 'Breakdown', leadsTo: 'ads-reporting-gender' },
     ],
   },
   {
@@ -175,6 +176,7 @@ export const BM_ADSMANAGER: BmScreen[] = [
     hotspots: [
       { id: 'female-row', xPct: 0, yPct: 61.87, wPct: 37.10, hPct: 3.20, correct: true, feedback: 'Так — усі 85 лідів прийшли від Female, по $1.17 за лід. Male і Uncategorized — порожні: у цю аудиторію чоловіки й люди без вказаного гендеру взагалі не потрапляли або не конвертувались.' },
       { id: 'male-row', xPct: 0, yPct: 66.80, wPct: 37.10, hPct: 3.20, correct: false, feedback: 'Male тут — прочерк (0 лідів). Весь результат кампанії дала аудиторія Female.' },
+      { id: 'tab-campaigns', kind: 'nav', xPct: 5.89, yPct: 22.93, wPct: 8.38, hPct: 3.73, label: 'Campaigns', leadsTo: 'campaigns-list' },
     ],
   },
   {
