@@ -252,4 +252,18 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'add-button', xPct: 91.27, yPct: 11.10, wPct: 6.94, hPct: 4.03, correct: false, feedback: '"+ Add" — це додавання нового рекламного акаунта до бізнесу, а не перевірка доступу до існуючого.' },
     ],
   },
+  {
+    id: 'bs-pages',
+    section: 'business-settings',
+    title: 'Business Settings · Сторінки',
+    talk: 'Facebook-сторінка — окремий актив зі своїм доступом, підключений до бізнесу, так само як рекламний акаунт. Мітка "Review needed" означає, що з нею щось не так і Facebook хоче, щоб ти це перевірив.',
+    task: 'Яку сторінку варто відкрити першою — щось із нею явно не так?',
+    image: require('../../../assets/bm/adsmanager/bs-pages.png'),
+    imgW: 1512,
+    imgH: 793,
+    hotspots: [
+      { id: 'my-business', xPct: 23.28, yPct: 22.07, wPct: 73.61, hPct: 5.67, correct: false, feedback: 'Ця сторінка без жодних поміток — нема причин перевіряти її в першу чергу.' },
+      { id: 'insiders', xPct: 23.28, yPct: 29.63, wPct: 73.61, hPct: 7.57, correct: true, feedback: 'Так — мітка "Review needed" означає, що Facebook знайшов проблему зі сторінкою і хоче, щоб ти це переглянув.' },
+    ],
+  },
 ];
