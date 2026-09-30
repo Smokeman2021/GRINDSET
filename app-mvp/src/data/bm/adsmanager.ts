@@ -382,4 +382,18 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'add-button', xPct: 92.79, yPct: 12.08, wPct: 3.95, hPct: 3.51, correct: false, feedback: '"+ Add" підключає НОВИЙ Instagram-акаунт до бізнесу — не показує доступ до вже підключеного.' },
     ],
   },
+  {
+    id: 'billing-overview',
+    section: 'billing',
+    title: 'Рахунки й оплата',
+    talk: 'Facebook сам ставить добовий ліміт витрат на акаунт — це не те саме, що поріг, при якому спишеться оплата. Плутати ці дві цифри — типова помилка новачка.',
+    task: 'Де подивитись ліміт, який САМ Facebook поставив на добові витрати акаунта?',
+    image: require('../../../assets/bm/adsmanager/billing-overview.png'),
+    imgW: 1527,
+    imgH: 750,
+    hotspots: [
+      { id: 'pay-when', xPct: 23.97, yPct: 40.40, wPct: 47.02, hPct: 10.93, correct: false, feedback: 'Це поріг для СПИСАННЯ ОПЛАТИ (коли баланс сягне суми — спишуть із картки), а не ліміт витрат на рекламу за день.' },
+      { id: 'daily-limit', xPct: 23.97, yPct: 68.93, wPct: 35.69, hPct: 4.00, correct: true, feedback: 'Так — "Daily spending limit (set by Meta)" це стеля, яку сам Facebook ставить на добові витрати акаунта, незалежно від твоїх бюджетів кампаній.' },
+    ],
+  },
 ];
