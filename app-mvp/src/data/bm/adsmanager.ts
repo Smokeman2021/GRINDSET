@@ -266,4 +266,18 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'insiders', xPct: 23.28, yPct: 29.63, wPct: 73.61, hPct: 7.57, correct: true, feedback: 'Так — мітка "Review needed" означає, що Facebook знайшов проблему зі сторінкою і хоче, щоб ти це переглянув.' },
     ],
   },
+  {
+    id: 'bs-domains',
+    section: 'business-settings',
+    title: 'Business Settings · Домени',
+    talk: 'Facebook-реклама не працює з невідомими сайтами — кожен домен, на який веде реклама, треба верифікувати тут. Без цього трекінг і деякі функції можуть просто не працювати.',
+    task: 'Як побачити, що домен вже верифікований і з ним усе гаразд?',
+    image: require('../../../assets/bm/adsmanager/bs-domains.png'),
+    imgW: 1512,
+    imgH: 793,
+    hotspots: [
+      { id: 'domain-row1', xPct: 25.00, yPct: 24.59, wPct: 21.69, hPct: 7.82, correct: true, feedback: 'Так — зелена мітка "Verified" під доменом і означає, що Facebook підтвердив, що домен твій.' },
+      { id: 'assign-partner', xPct: 48.28, yPct: 31.53, wPct: 9.79, hPct: 4.29, correct: false, feedback: '"Assign partner" — це про доступ для партнерів, а не про статус верифікації самого домену.' },
+    ],
+  },
 ];
