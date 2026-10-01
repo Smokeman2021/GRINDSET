@@ -298,6 +298,9 @@ export const BM_ADSMANAGER: BmScreen[] = [
     hotspots: [
       { id: 'dataset-vse', xPct: 20.50, yPct: 22.95, wPct: 49.80, hPct: 6.05, correct: true, feedback: 'Так — 195.5K подій за 28 днів. Живий графік і ненульова цифра тут — перша перевірка, що трекінг працює.' },
       { id: 'dataset-roditeli', xPct: 20.50, yPct: 48.93, wPct: 49.80, hPct: 5.55, correct: false, feedback: '"No event activity" — цей датасет взагалі нічого не отримує. З нього не побачиш, чи працює трекінг, бо він просто підключений неправильно.' },
+      { id: 'nav-dataset-vse', kind: 'nav', xPct: 20.50, yPct: 22.95, wPct: 49.80, hPct: 6.05, label: 'Все (dataset)', leadsTo: 'pixel-dataset-detail' },
+      { id: 'nav-connect-data', kind: 'nav', xPct: 5.62, yPct: 8.58, wPct: 12.57, hPct: 3.03, label: 'Connect data', leadsTo: 'pixel-setup' },
+      { id: 'nav-custom-conversions', kind: 'nav', xPct: 5.62, yPct: 23.08, wPct: 12.57, hPct: 3.03, label: 'Custom conversions', leadsTo: 'custom-conversions' },
     ],
   },
   {
@@ -312,6 +315,9 @@ export const BM_ADSMANAGER: BmScreen[] = [
     hotspots: [
       { id: 'affected-spend', xPct: 41.93, yPct: 30.90, wPct: 28.44, hPct: 8.20, correct: true, feedback: 'Так — $387 витрат позначені як "affected by low data quality". Це не дрібниця, і Facebook одразу підказує, що саме виправити (ціна/валюта в подіях).' },
       { id: 'dataset-id', xPct: 84.66, yPct: 69.99, wPct: 11.90, hPct: 5.04, correct: false, feedback: 'Це просто технічний ID датасета — потрібен для інтеграцій, але сам по собі нічого не каже про якість даних.' },
+      { id: 'tab-test-events', kind: 'nav', xPct: 46.30, yPct: 13.24, wPct: 6.28, hPct: 4.66, label: 'Test events', leadsTo: 'pixel-test-events' },
+      { id: 'nav-overview', kind: 'nav', xPct: 5.62, yPct: 12.99, wPct: 12.57, hPct: 3.03, label: 'Overview', leadsTo: 'events-overview' },
+      { id: 'nav-custom-conversions', kind: 'nav', xPct: 5.62, yPct: 23.08, wPct: 12.57, hPct: 3.03, label: 'Custom conversions', leadsTo: 'custom-conversions' },
     ],
   },
   {
@@ -326,6 +332,9 @@ export const BM_ADSMANAGER: BmScreen[] = [
     hotspots: [
       { id: 'confirm-server', xPct: 45.50, yPct: 50.19, wPct: 51.72, hPct: 5.30, correct: false, feedback: 'Це про server-side/Conversions API — події, які відправляє сервер, а не браузер користувача. Інший механізм.' },
       { id: 'confirm-website', xPct: 45.50, yPct: 58.26, wPct: 51.72, hPct: 5.80, correct: true, feedback: 'Так — тут перевіряєш саме браузерний піксель на сайті: чи спрацьовує JS-подія, коли людина реально заповнює форму.' },
+      { id: 'tab-overview', kind: 'nav', xPct: 45.30, yPct: 15.13, wPct: 5.62, hPct: 5.04, label: 'Overview', leadsTo: 'pixel-dataset-detail' },
+      { id: 'nav-overview', kind: 'nav', xPct: 5.62, yPct: 12.99, wPct: 12.57, hPct: 3.03, label: 'Overview', leadsTo: 'events-overview' },
+      { id: 'nav-custom-conversions', kind: 'nav', xPct: 5.62, yPct: 23.08, wPct: 12.57, hPct: 3.03, label: 'Custom conversions', leadsTo: 'custom-conversions' },
     ],
   },
   {
@@ -554,6 +563,7 @@ export const BM_ADSMANAGER: BmScreen[] = [
     hotspots: [
       { id: 'copy-code', xPct: 33.04, yPct: 49.74, wPct: 6.38, hPct: 4.16, correct: true, feedback: 'Так — "Copy code" копіює реальний код пікселя, який далі вставляється в <head> сайту чи прелендинга.' },
       { id: 'change-method', xPct: 32.97, yPct: 56.10, wPct: 8.67, hPct: 2.86, correct: false, feedback: 'Це повертає до вибору способу встановлення (самому / розробнику / через партнера) — коду тут не отримаєш.' },
+      { id: 'close-x', kind: 'nav', xPct: 77.17, yPct: 26.36, wPct: 1.91, hPct: 3.51, label: '✕', leadsTo: 'events-overview' },
     ],
   },
   {
@@ -568,6 +578,7 @@ export const BM_ADSMANAGER: BmScreen[] = [
     hotspots: [
       { id: 'measure', xPct: 25.51, yPct: 57.14, wPct: 19.77, hPct: 12.34, correct: false, feedback: 'Це про вимірювання — бачити цифри. Впливу на те, кому показується реклама, тут ще нема.' },
       { id: 'optimize', xPct: 48.66, yPct: 57.14, wPct: 19.77, hPct: 12.34, correct: true, feedback: 'Так — "show ads to people who are most likely to take specific actions" це і є прямий вплив на оптимізацію показу реклами.' },
+      { id: 'nav-overview', kind: 'nav', xPct: 5.42, yPct: 14.16, wPct: 13.08, hPct: 3.12, label: 'Overview', leadsTo: 'events-overview' },
     ],
   },
   {
