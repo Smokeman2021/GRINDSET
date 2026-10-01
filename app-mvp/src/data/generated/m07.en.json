@@ -1,0 +1,550 @@
+{
+ "id": "m7",
+ "number": "07",
+ "title": "Lendy and Prelendy",
+ "restricted": false,
+ "finalRestricted": false,
+ "lessons": [
+  {
+   "id": "m7l1",
+   "code": "7.1",
+   "title": "Land and Preland: The Difference and Why Each Is Needed",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "The Role of a Landing Page in a Link Building Strategy",
+     "body": "In M03, we learned about the concepts of landing pages and pre-landing pages as elements of the funnel [→ Lesson 3.1]. The CTR of the creative determines how many people clicked on it. The CR of the landing page determines how many of those who clicked took the desired action. Poor creative and a good landing page = few clicks but a high conversion rate among those who visited. Good creative and a poor landing page = many clicks but few conversions. You need both.",
+     "restricted": false
+    },
+    {
+     "title": "Landing Page",
+     "body": "**Landing Page (Lend)** — the final landing page where conversion takes place. This is where a visitor submits a request, places an order, or performs another target action.\n\nA landing page is not a catalog website or a corporate page. It’s a single page with one goal: to lead the user to a conversion. No unnecessary links, menus, or distractions.\n\n**What a landing page should include:**\n- A strong headline highlighting the main benefit\n- Confirmation of expectations through creative messaging (Message Match)\n- A description of the product and its advantages (benefits, not specifications)\n- Social proof (reviews, ratings, number of buyers)\n- An order form or button\n- Guarantees and security (cash on delivery, returns)",
+     "restricted": false
+    },
+    {
+     "title": "Preland",
+     "body": "**Pre-landing Page (Intermediate Page)** — an intermediate page between an ad and a landing page. A user lands here after clicking, goes through a “warm-up” process, and only then proceeds to the landing page for conversion.\n\nThe goal of the pre-landing page is not to sell (that’s the landing page’s job) but to prepare the user: build trust, deepen their understanding of the problem, and present a solution in such a way that they want to buy even before they see the order form.\n\n**Types of pre-landing pages:**\n\n**Article (Advertorial)** — the most common for e-commerce and affiliate marketing. It looks like editorial content: “10 Causes of Back Pain and What to Do About Them.” A link to the landing page is included in the body or at the end of the article. The more it resembles a real article, the higher the conversion rate (CR). People trust editorial content more than overt advertising.\n\n**Quiz (Survey)** — a series of questions that “qualify” the buyer. “Describe your problem → age → activity level → get a personalized recommendation.” After the quiz, there’s a link to a landing page with a “personalized” solution. High engagement = higher CR.\n\n**Testimonial** — a page in the form of a personal story. “How I got rid of my back pain in 2 weeks.” High trust if the testimonial looks authentic.\n\n**Comparison** — a comparison of several products where the advertised product comes out on top. “Comparing 5 remedies for joint pain.”",
+     "restricted": false
+    },
+    {
+     "title": "When You Need a Pre-Land",
+     "body": "**Required:**\n- The product requires an explanation or \"warm-up\" before purchase (internal workings, complex mechanisms)\n- Direct advertising for the product does not pass Facebook moderation\n- The conversion rate (CR) on the direct landing page is low, and you want to improve it\n- The audience is “cold” and not ready to buy on the first click\n\n**Not needed:**\n- A simple and straightforward product (phone case, kitchen gadget)\n- Retargeting—people are already familiar with the product\n- The conversion rate (CR) on the direct landing page is already good",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "What is the main function of a pre-loan?",
+     "options": [
+      "Replace the landing page to save on development costs",
+      "Warm up and prepare the audience before the final checkout page",
+      "Bypass a Facebook pixel",
+      "Increase the number of views"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "Mediabuyer is promoting a simple product—a silicone phone stand. Is a pre-launch campaign necessary?",
+     "options": [
+      "That's right—a pre-loan always increases the CR",
+      "Most likely not—the product is straightforward, and direct advertising on the landing page is sufficient",
+      "That's right—Facebook requires a pre-landing page for all products",
+      "It depends on the budget"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Offer A: Pain relief cream. Direct ads are being rejected due to medical claims. Conversion rate (CR) on the direct landing page is 1.2%.\nOffer B: Phone case. CR is 5%. Ads are currently undergoing moderation.\nOffer C: Weight-loss capsules. The audience is unfamiliar with the brand. Facebook strictly moderates this topic.\nOffer D: Retargeting people who have already visited the cream’s landing page.",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "Where is Preland most needed?",
+      "options": [
+       "Offer B",
+       "Offer G",
+       "Offers A and B—both require a warm-up period and have moderation issues",
+       "They're all the same"
+      ],
+      "answer": 2,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "Why doesn't Offer G need a preland?",
+      "options": [
+       "Retargeting does not support pre-landing pages",
+       "People are already familiar with the product—there’s less need for additional promotion; it’s more important to remind them and give them a reason to come back",
+       "The CTR for retargeting is always low",
+       "Facebook automatically selects the page type"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m7l2",
+   "code": "7.2",
+   "title": "The Structure of a Conversion-Oriented Landing Page",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "The Principle of a Single Goal",
+     "body": "A good landing page is one with a single goal. Every element on the page should lead to one action: submitting a request or placing an order.\n\nA common mistake is adding links to other pages, social media, or menus on the landing page. Every unnecessary link is an opportunity for a visitor to “leave” without converting.",
+     "restricted": false
+    },
+    {
+     "title": "Landing Page Structure (Top to Bottom)",
+     "body": "**Block 1: Headline (Above the fold)**\nThe first thing a person sees without scrolling—it must answer the questions “What is this? and Why do I need it?” within 3–5 seconds.\n\nStrong headline: specific result + timeframe + no risk.\n“Get rid of back pain in 7–10 days—no pills or injections”\n\nWeak headline: “SpineRelief Cream—Official Website”\n\n**Block 2: Subheading**\nExpands on and reinforces the headline. “SpineRelief penetrates deep into the muscle layers and eliminates the cause of pain—it doesn’t just mask the symptoms.”\n\n**Block 3: Main Visual**\nAn image of the result or product in context. A woman moving freely after applying the cream—better than just a photo of the tube.\n\n**Block 4: Benefits**\nNot features—benefits. Not “contains collagen” but “restores joints and reduces inflammation in 20 minutes.”\n\n3–5 points. Each one should highlight a specific benefit for the user.\n\n**Section 5: Social Proof**\nTestimonials from real people with their names, photos, and specific results.\n\nWeak testimonial: “Very good cream! I recommend it.”—Irina\nStrong testimonial: “My left lower back has been hurting for 3 years. After 10 days of use, I can bend over and play with my grandchildren without pain.” — Maria, 58 years old\n\n**Block 6: Order Form**\nMinimum required fields. For COD orders: name + phone number. Period. Every extra field lowers the conversion rate (CR).\n\nStudies show: every additional field in the form reduces the conversion rate by 11–50%, depending on the type of field.\n\n**Block 7: Guarantees and Security**\nAlleviates fears and doubts. “Pay on delivery—you pay only when you have the product in your hands.” “Free shipping.” “14-day returns, no questions asked.”\n\n**Block 8: CTA Button**\nLarge, high-contrast, with specific text.\n“Order with a 30% discount” > “Confirm” > “Submit”",
+     "restricted": false
+    },
+    {
+     "title": "Message Match — Alignment Between Creative and Landing Page",
+     "body": "If the creative mentions a 40% discount, that discount must be featured on the landing page. If the creative shows knee pain, the landing page headline should be about knees—not “joints in general.”\n\nA disconnect between the ad’s promise and the reality of the landing page = a drop in conversion rate. The user feels deceived and closes the page.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "The order form asks for: first name, last name, phone number, email, address, city, ZIP code, and comments. Is there a problem?",
+     "options": [
+      "The form is too small",
+      "Too many fields—each extra one lowers the CR. For COD, just the name and phone number are enough",
+      "Email is required for confirmation",
+      "No problem"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "Creo promises a \"40% discount today only,\" but there's no discount on the landing page. What will happen?",
+     "options": [
+      "People won't notice the difference",
+      "The gap between promises and reality will erode trust and CR",
+      "Facebook will automatically remove such ads",
+      "CR will increase because people are already interested after the creative campaign"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Scenario — Media Buyer Landing Page:\n- Headline: \"SpineRelief — Back Cream\"\n- Large block describing the ingredients (500 words)\n- Form: first name, last name, email, phone number, address, city, ZIP code\n- One review without a photo: “Very good cream” — Irina\n- Button: \"Confirm\"\n- Shipping information — small text at the bottom\n\nCTR 3.1%, CR 0.7%",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "multi",
+      "q": "What lowers CR?",
+      "options": [
+       "A weak headline with no benefit",
+       "Too many fields in the form",
+       "Weak social proof",
+       "The \"Confirm\" button isn't very motivating",
+       "Shipping information is located at the bottom"
+      ],
+      "answers": [
+       0,
+       1,
+       2,
+       3,
+       4
+      ],
+      "explain": "Correct: all five",
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "What should be fixed first?",
+      "options": [
+       "Replace the team with a better one",
+       "Simplify the form to just the name and phone number, and rewrite the headline to focus on the result",
+       "Add more reviews",
+       "Change the button color"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m7l3",
+   "code": "7.3",
+   "title": "Structure of a Converting Pre-Land",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Introductory Article",
+     "body": "**Structure:**\n\n**Headline:** addresses the issue without explicit advertising.\n\"Why Even Young People Experience Back Pain—and What Really Helps\"\n\"An Orthopedist Explains Why Pain Pills for Joint Pain Are a Trap\"\n\n**Introduction (2–3 paragraphs):** The reader recognizes themselves in the situation described. Describe specific details of the pain and the limitations it causes—“I can’t pick up my child,” “I can’t sleep properly,” “Pills only help for 2–3 hours.”\n\n**Main Body (3–5 paragraphs):** Useful information that builds trust. Explain the causes of the pain, common mistakes people make (treating symptoms rather than the cause), scientific data, or an expert’s opinion. This isn’t an ad—it’s helpful content.\n\n**A natural transition to the product:** “A new approach has recently emerged…” or “One of the methods showing good results is the topical application of medications that…”\n\n**Product presentation (2–3 paragraphs):** The product as the logical solution to the problem described in the article. Not a list of benefits—an explanation of WHY this particular approach solves the problem better.\n\n**Social proof:** 2–3 testimonials from real people with specific results.\n\n**CTA:** “Learn more and get a discount →” or “Proceed to checkout →.” A gentle transition—not “Buy now,” but an invitation to learn more.\n\n**Key principle:** The article should read like editorial content, not an advertisement. If the first paragraph sounds like an ad, the conversion rate (CR) will be poor. If it looks like a helpful article, the CR will be significantly higher.",
+     "restricted": false
+    },
+    {
+     "title": "Quiz-Prelend",
+     "body": "**Structure:**\n\n**Landing Page:** \"Find out which remedy is right for your type of pain\" + \"Start the Test\" button (high click-through rate—people are curious to find out their \"personalized\" solution).\n\n**3–5 questions:** about the location of the pain, duration, activity level, age, and previous treatment attempts. The questions should be relevant to the product.\n\n**Results Analysis:** “Analyzing your answers…” animation (2–3 seconds—enhances the sense of a personalized approach).\n\n**Results:** “Based on your answers, we recommend...” + a product description explaining why this specific product is right for this person.\n\n**CTA:** Redirect to the landing page.\n\n**Why quizzes increase conversion rate (CR):** the engagement and accountability effect. The user spent 2–3 minutes answering the questions—they are psychologically more engaged. A personalized result builds trust in the recommendation.",
+     "restricted": false
+    },
+    {
+     "title": "Technical Requirements for the Pre-Land",
+     "body": "- Fast loading (up to 3 seconds) — critical for mobile\n- Mobile optimization — most traffic comes from phones\n- No links to external resources other than the target landing page\n- No navigation menu—only a CTA to the landing page\n- The domain is clean and verified via the Facebook Debugger",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "Why should a pre-release article look like an editorial piece?",
+     "options": [
+      "Facebook blocks pages that look like ads",
+      "People trust editorial content more—higher trust = higher CR",
+      "Articles are indexed better by Google",
+      "The ad style increases CPC"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "Quiz-pre-roll ads have a higher conversion rate than direct advertising. The main reason:",
+     "options": [
+      "The quiz takes longer, and Facebook displays the ad for longer",
+      "A person who answers a question is more psychologically engaged, and a personalized result increases trust in the recommendation",
+      "Quizzes generate greater organic reach",
+      "Facebook algorithmically prioritizes quiz pages"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Scenario:\n\nLanding Page A: \"Buy FlexiJoint cream at a 30% discount!\" Product photo. List of ingredients. \"Order\" button. CR 0.9%.\n\nLanding Page B: “A rheumatologist explains why joints hurt even in people without arthritis.” A 400-word article explaining the causes of pain. Natural transition to the product. 2 reviews. CTA: “Learn about the solution →.” CR 3.6%.",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "Why does Preland B have a CR that is 4 times higher?",
+      "options": [
+       "It's longer, so people read more",
+       "It builds trust through useful content and looks like editorial material—people arrive at the landing page already \"warmed up\"",
+       "It has more keywords",
+       "A rheumatologist's authority automatically translates into"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "Why did Preland A fail despite the discount?",
+      "options": [
+       "The discount is too small",
+       "It looks like a direct advertisement—the person doesn't trust it yet and closes the page",
+       "The list of ingredients is off-putting",
+       "The \"Order\" button is too pushy"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m7l4",
+   "code": "7.4",
+   "title": "Where to Find Lendys and Prelendys",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "From the affiliate network",
+     "body": "Most networks provide ready-made landing pages—and sometimes pre-landing pages—for each offer. This is ideal for an initial test.\n\n**Pros:** It’s fast, requires no effort on your part, and the landing page has already been tested by the advertiser.\n\n**Cons:** Hundreds of other arbitrageurs are using the same page. Facebook may “recognize” this page and lower its trust score. You have no control over conversion rate (CR) optimization.\n\n**Strategy:** For the first test, use a landing page from the affiliate network. If the conversion rate is low or you want to improve it, test your own variations.",
+     "restricted": false
+    },
+    {
+     "title": "Website Builders",
+     "body": "**Tilda** — the most popular landing page builder among arbitrageurs. Drag-and-drop, hundreds of blocks, no coding required. The free plan is limited; paid plans start at ~$15/month.\n\n**LPgenerator, Landingi** — alternatives with A/B testing capabilities.\n\n**WordPress + Elementor** — more flexible but takes longer to set up.\n\n**Rule of thumb:** For your first custom landing page — use Tilda. It’s simpler and faster.",
+     "restricted": false
+    },
+    {
+     "title": "Adapting Someone Else's Landing Page",
+     "body": "I found a competitor’s successful landing page using Spy → downloaded the HTML code → adapted it: changed the text, images, and form.\n\nBasic knowledge of HTML is required [→ Lesson 10.7]. You don’t need to understand the entire code—just find the element you need and change it.\n\nImportant: Replace ALL content with your own unique content (text, images, product name). Do not use other people’s photos or reviews.",
+     "restricted": false
+    },
+    {
+     "title": "AI for Landing Page Copy",
+     "body": "Claude or ChatGPT can write copy for a landing page:\n\nPrompt template: \"Write a landing page text for [product], target audience [description], main problem [pain point], benefit [result], proof [type], CTA [action]. Structure: headline, subheadline, 5 benefits, 3 testimonials, CTA. Language: [Polish/Ukrainian].\"\n\nOnce you receive the text, edit and adapt it. The AI provides a good foundation but needs to be refined to fit the specifics of your niche.",
+     "restricted": false
+    },
+    {
+     "title": "Pre-launch Checklist for the Landing Page",
+     "body": "- [ ] Mobile load time: up to 3 seconds\n- [ ] Domain verified via the Facebook Sharing Debugger\n- [ ] Test lead submitted and data received in the affiliate CRM\n- [ ] The mobile version is correct—the button is visible without scrolling\n- [ ] Message Match with creatives—the headline matches the ad’s promise\n- [ ] The pixel is installed and the “Lead” event is triggered",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "A newcomer has set up their first offer. Where can I get a landing page for my first test?",
+     "options": [
+      "Create your own right away on Tilda",
+      "Use a ready-made landing page from the affiliate program",
+      "Download a competitor's landing page using Spy",
+      "Order from a layout artist"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "A media buyer took a landing page from an affiliate network without checking the loading speed. The page takes 8 seconds to load. What will happen?",
+     "options": [
+      "Facebook automatically optimizes loading speed",
+      "Most mobile users will close the page before it finishes loading—the conversion rate will be critically low",
+      "Speed doesn't matter if the créole is strong",
+      "This is only a problem with a slow internet connection"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Scenario A: A newcomer, first offer, $100 budget, no time for development.\nSituation B: Experienced buyer, profitable offer, 1.7% conversion rate on the affiliate landing page, wants to improve it.\nSituation C: Found a successful competitor’s landing page via spy that’s been running for 3 months.",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "What does he do in Situation A?",
+      "options": [
+       "Traffic from an affiliate program",
+       "Analyzes the weaknesses in the affiliate's landing page and creates a better version of it on Tilda",
+       "Analyzes the structure, headings, and approaches—then creates a custom landing page using the same principles but with new text and images"
+      ],
+      "answer": 0,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "What does he do in Situation B?",
+      "options": [
+       "Traffic from an affiliate program",
+       "Analyzes the weaknesses in the affiliate's landing page and creates a better version of it on Tilda",
+       "Analyzes the structure, headings, and approaches—then creates a custom landing page using the same principles but with new text and images"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "What does he do in Situation B?",
+      "options": [
+       "Traffic from an affiliate program",
+       "Analyzes the weaknesses in the affiliate's landing page and creates a better version of it on Tilda",
+       "Analyzes the structure, headings, and approaches—then creates a custom landing page using the same principles but with new text and images"
+      ],
+      "answer": 2,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m7l5",
+   "code": "7.5",
+   "title": "Speed and Technical Optimization of the Landing Page",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Why Speed Equals Money",
+     "body": "Every second of loading time means conversions you didn’t get. According to Google, when load time increases from 1 to 3 seconds, the likelihood of bounce increases by 32%. From 1 to 5 seconds—by 90%.\n\nThis is especially critical for mobile traffic (80%+ in affiliate marketing). Mobile internet is slower, and the audience’s attention span is shorter.\n\n**Speed Goals:**\n- Up to 2 seconds — excellent\n- 2–3 seconds — acceptable\n- 3–5 seconds — noticeable CR losses (~20–40%)\n- 5+ seconds — critical (~50–90% abandonment before loading)",
+     "restricted": false
+    },
+    {
+     "title": "How to Check Your Speed",
+     "body": "**Google PageSpeed Insights** (pagespeed.web.dev) — free. It provides a score (0–100) and specific recommendations on which elements are slowing down the page the most. Be sure to check the mobile version—it’s more critical.\n\n**GTmetrix** (gtmetrix.com) — provides a more detailed analysis with a waterfall chart. It shows how long each element takes to load.\n\n**Simple test:** Open the landing page on your phone using mobile data (not Wi-Fi) and time how long it takes.",
+     "restricted": false
+    },
+    {
+     "title": "The Main Causes of a Slow Landing and How to Fix Them",
+     "body": "**Large images (the most common cause)**\nAn unoptimized 5 MB image takes 3–5 seconds to load on a mobile device. When compressed to 200 KB, it loads in 0.3–0.5 seconds.\n\nCompression tools:\n- TinyPNG.com — free, for PNG and JPEG\n- Squoosh.app (Google) — more flexible, supports WebP\n- Rule: No image on the landing page should be larger than 200 KB. For background images—up to 100 KB.\n\n**Server Far from the Audience**\nIf you’re targeting Poland but your hosting is in the U.S., every request travels across the ocean. The difference: 50 ms (Poland) vs. 200+ ms (U.S.). This is noticeable on mobile.\n\nSolution: Hosting with servers in the EU (Poland, France, Germany). Providers: Hetzner (Finland/Germany), OVH (France/Poland), DigitalOcean (Amsterdam).\n\n**Too Many Scripts**\nEvery additional plugin or script (analytics, chat, marketing tools) adds to the load time. Keep only what’s necessary: the Facebook pixel, basic analytics, and the affiliate pixel.\n\n**Solutions that don’t require technical knowledge:**\nIf your landing page is on Tilda or a website builder, built-in optimization is available. Simply compress your images before uploading them and select the correct data center during setup.",
+     "restricted": false
+    },
+    {
+     "title": "Mobile Optimization",
+     "body": "Over 80% of traffic in affiliate marketing comes from mobile devices. If the landing page isn’t optimized for mobile, the conversion rate (CR) will be poor even with fast loading speeds.\n\nWhat to check on mobile:\n- The CTA button is visible without scrolling (above the fold)\n- The order form displays correctly and is easy to fill out on a phone\n- The text is readable without zooming\n- Images aren’t cropped\n- Buttons are large enough to tap with a finger (at least 44×44 px)",
+     "restricted": false
+    },
+    {
+     "title": "Facebook Sharing Debugger",
+     "body": "Tool: developers.facebook.com/tools/debug\n\nPaste the landing page URL and you’ll see:\n- Whether there are any issues with the domain (e.g., if it’s on a blacklist)\n- What link preview will be shown in the ad (title, description, image)\n- Whether there are errors with the meta tags\n\nIf the link preview isn’t displaying correctly, you can update the meta tags on the landing page and click “Scrape Again” in the Debugger.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "Google PageSpeed scored 25/100 for the mobile version. First step:",
+     "options": [
+      "Keep — these ratings have no effect",
+      "Check which elements are causing the most slowdown and fix them (most often, these are large images)",
+      "Switch to another website builder",
+      "Order a new landing page"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "You're targeting a Polish audience. Your site is hosted in the U.S. Is that a problem?",
+     "options": [
+      "Polish users will not be able to access the website",
+      "The physical distance between the server and the user increases the loading time",
+      "Facebook does not allow U.S. hosting providers for Polish traffic",
+      "There are no problems"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nCTR 3.1% — good. CR 0.5% — bad. $200 in spending over the week, 4 conversions.\n\nChecked:\n- Google PageSpeed for mobile: 19/100, 9-second load time\n- On a phone: the button isn’t visible without scrolling; the form extends beyond the screen\n- Hosting: Singapore (target audience — Poland)",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "What combination defeats CR?",
+      "options": [
+       "Slow loading only",
+       "Slow loading + poor mobile version + distant server—all three combined",
+       "Just a bad mobile version",
+       "Hosting does not affect CR"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "order",
+      "q": "Priority of fixes:",
+      "items": [
+       "Compress the image (fastest and most effective)",
+       "Fix the mobile version (button above the fold, form is correct)",
+       "Transfer hosting to a Polish or EU server"
+      ],
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m7l6",
+   "code": "7.6",
+   "title": "Message Match: Matching the Creative and the Landing Page",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "What is Message Match and why is it critical?",
+     "body": "**Message Match** — the alignment between the ad’s message and what the user sees on the landing page.\n\nA user clicks on an ad with certain expectations. If the landing page meets those expectations, they stay. If not, they leave within seconds. Most people decide whether to stay or leave within the first 3–5 seconds on the page.\n\nA high bounce rate with a good CTR = a problem with Message Match.",
+     "restricted": false
+    },
+    {
+     "title": "Common Issues and How to Fix Them",
+     "body": "**Discrepancy 1: Different Types of Pain**\nCreation: A woman with knee pain\nLanding page headline: \"Remedy for joint and back pain\"\n\nCorrection: “Get rid of knee pain—results after just one week”\n\n**Discrepancy 2: Discount Promise Not Fulfilled**\nCreative: “40% off today only”\nLanding page: full price or a different discount\n\nCorrection: either remove the discount from the creative or add a real discount to the landing page\n\n**Discrepancy 3: Different Target Audience**\nCreative: Women 55+ (“for people of mature age”)\nLanding Page: A young person in the main photo\n\nCorrection: Replace the main image with one appropriate for the target audience\n\n**Discrepancy 4: Different Tone**\nCreative: Emotional, based on personal pain\nLanding page: Cold, medical text with technical terminology\n\nCorrection: Adapt the landing page text to match the tone of the creative\n\n**Discrepancy 5: Different Product or Offer**\nThe creative refers to one product (pills), but the landing page sells another (cream)\n\nCorrection: Always verify that the creative and landing page refer to the same product and offer",
+     "restricted": false
+    },
+    {
+     "title": "How to Check Message Match",
+     "body": "A simple test: Ask someone who isn’t familiar with the campaign to:\n1. Watch the ad (10–15 seconds)\n2. Immediately open the landing page\n3. Ask: “Did you expect to see exactly this? What’s different here from the ad?”\n\nIf the person notices discrepancies—they’re definitely there.\n\nTechnical approach: Compare key elements systematically:\n\n| Element | In the ad | On the landing page | Match |\n|---------|--------|----------|---------------|\n| Specific pain | knees | joints in general | ❌ |\n| Discount | 30% | 30% | ✓ |\n| Character | woman 55+ | woman 55+ | ✓ |\n| Time to results | 10 days | 7–14 days | ~ |",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "Creo: \"Free shipping today.\" Land: 50 UAH shipping fee. What will happen?",
+     "options": [
+      "People won't notice the difference between \"creo\" and \"land\"",
+      "The gap between promises and reality will erode trust, and most people will turn the page",
+      "People will order it anyway because it's a good product",
+      "Facebook will block ads"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "Creo for women ages 45–60 who experience back pain after work. Landing page headline: “An effective pain reliever for everyone.” What’s the problem?",
+     "options": [
+      "The title is too short",
+      "A general headline does not confirm a specific report by Creo",
+      "The word \"effective\" sounds too much like an advertising slogan",
+      "No problem"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nCTR: 2.7% (good). CR: 0.6% (poor). CPA: $30 with a payout of $8.\n\nCreative: 25-second video, a 55-year-old woman who can’t bend over, text: “Do your knees hurt? Get rid of the pain in 7 days with a 40% discount”\n\nLanding Page:\n- Headline: “FlexiJoint — Joint Relief”\n- Subheadline: “Natural ingredients, clinically tested”\n- Image: anatomical diagram of a joint\n- Form: first name, last name, email, phone number, city, ZIP code\n- Button: “Submit Request”\n- No discount",
+    "situationRestricted": false,
+    "isFinal": true,
+    "questions": [
+     {
+      "type": "multi",
+      "q": "All issues with Message Match and conversions:",
+      "options": [
+       "The headline does not mention the knees and does not support KREO",
+       "The 40% discount is not available on the landing page",
+       "The anatomical diagram is impersonal; it doesn't convey any emotional tone.",
+       "Too many fields in the form",
+       "The \"Submit Application\" CTA is weak"
+      ],
+      "answers": [
+       0,
+       1,
+       2,
+       3,
+       4
+      ],
+      "explain": "Correct: all five",
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "After the correction, the CR rose to 3.5%. What about the CPA now?",
+      "options": [
+       "The CPA will remain unchanged",
+       "CPA will decrease by about 5 to 6 times (0.6% → 3.5%)—the same clicks now convert much better",
+       "CPA will increase",
+       "CPA depends solely on the payment"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "The first step after fixing the landing page:",
+      "options": [
+       "Increase the budget immediately",
+       "Run a test using the same creative and the revised landing page to see if the CR has actually improved",
+       "Change both the creative and the landing page at the same time",
+       "Ask the manager for a bump"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  }
+ ],
+ "summary": "After completing this module, the student will:\n\n- Understand the difference between a landing page and a pre-landing page, and when each is needed\n- Know the structure of a high-converting landing page: from the headline to the CTA\n- Understand the types of pre-landing pages (articles, quizzes) and why they should look like editorial content\n- Know where to source landing pages and how to properly prepare them for launch\n- Be able to test page speed and fix the main causes of slow landing pages\n- Understand Message Match and be able to identify gaps between creative and landing pages\n\n**Next module:** Launch, optimization, and basic analytics."
+}

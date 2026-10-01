@@ -2,12 +2,17 @@ import React from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { C } from '../src/theme';
+import { useTheme } from '../src/theme';
+import { initAudio } from '../src/sound';
 
 export default function RootLayout() {
+  const C = useTheme();
+  React.useEffect(() => {
+    initAudio();
+  }, []);
   return (
     <SafeAreaProvider>
-      <StatusBar style="light" />
+      <StatusBar style={C.name === 'night' ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
           headerShown: false,

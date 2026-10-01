@@ -1,6 +1,8 @@
 import React from 'react';
 import { Pressable, Text, StyleSheet, ViewStyle } from 'react-native';
-import { C } from '../theme';
+import { useTheme, Theme, useStyles } from '../theme';
+
+const EDGE = 5;
 
 export function Button({
   title,
@@ -15,12 +17,25 @@ export function Button({
   ghost?: boolean;
   style?: ViewStyle;
 }) {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
+  const glow =
+    !disabled && !ghost
+      ? {
+          shadowColor: C.accent,
+          shadowOpacity: C.name === 'night' ? 0.5 : 0.25,
+          shadowRadius: C.name === 'night' ? 12 : 3,
+          shadowOffset: { width: 0, height: C.name === 'night' ? 4 : 2 },
+          elevation: 6,
+        }
+      : null;
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
       style={({ pressed }) => [
         styles.btn,
+        glow,
         ghost && styles.ghost,
         disabled && styles.disabled,
         pressed && !disabled && styles.pressed,
@@ -34,18 +49,32 @@ export function Button({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (C: Theme) => StyleSheet.create({
   btn: {
     backgroundColor: C.accent,
     borderRadius: 16,
-    paddingVertical: 16,
+    paddingVertical: 15,
     alignItems: 'center',
     width: '100%',
+    borderBottomWidth: EDGE,
+    borderBottomColor: C.accentEdge,
   },
-  pressed: { opacity: 0.85, transform: [{ translateY: 2 }] },
-  ghost: { backgroundColor: 'transparent', borderWidth: 1, borderColor: C.line },
-  disabled: { backgroundColor: '#2a313f' },
-  txt: { color: '#05140a', fontSize: 17, fontWeight: '800' },
-  ghostTxt: { color: C.muted, fontWeight: '600' },
-  disabledTxt: { color: '#5b6577' },
+  pressed: {
+    transform: [{ translateY: EDGE - 2 }],
+    borderBottomWidth: 2,
+  },
+  ghost: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: C.line,
+    borderBottomWidth: EDGE - 1,
+    borderBottomColor: C.line,
+  },
+  disabled: {
+    backgroundColor: C.disabled,
+    borderBottomColor: C.disabledEdge,
+  },
+  txt: { color: C.onAccent, fontSize: 17, fontWeight: '800', letterSpacing: 0.5 },
+  ghostTxt: { color: C.muted, fontWeight: '700' },
+  disabledTxt: { color: C.disabledTxt },
 });

@@ -1,0 +1,675 @@
+{
+ "id": "m8",
+ "number": "08",
+ "title": "Launch, Optimization, and Basic Analytics",
+ "restricted": false,
+ "finalRestricted": false,
+ "lessons": [
+  {
+   "id": "m8l1",
+   "code": "8.1",
+   "title": "Pre-launch checklist",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Why a checklist is critically important",
+     "body": "Mistakes made before launch cost more than those made afterward. If you launch a campaign with a malfunctioning pixel or an incorrect postback, your entire budget will be spent without a single conversion being credited. Spending 15 minutes on a check can save you $100–200 of your test budget.",
+     "restricted": false
+    },
+    {
+     "title": "Technical Section",
+     "body": "**Account and Security:**\n- [ ] Account purchased, set up, and fully configured (see Module 09 for details)\n- [ ] Anti-detection browser configured; profile loaded with the correct settings\n- [ ] The proxy matches the account’s GEO (Polish account = Polish or neutral proxy)\n- [ ] Business Manager and the ad account are active; there are no restrictions\n\n**Payment:**\n- [ ] The card is linked to the ad account\n- [ ] The card has sufficient funds (at least the current billing threshold × 2)\n- [ ] Make sure the card hasn’t been declined recently\n\n**Fan Page:**\n- [ ] The Fan Page is complete: profile picture, cover photo, description, contact information\n- [ ] There are posts (at least 3–5 posts)\n- [ ] The Fan Page’s theme matches the offer",
+     "restricted": true
+    },
+    {
+     "title": "Land and Tracking",
+     "body": "**Pixel:**\n- [ ] The pixel is installed on the landing page (verify via Pixel Helper or Events Manager)\n- [ ] The Lead or Purchase event is triggered on the correct page (the \"thank you\" page)\n- [ ] Submit a test request and verify that the event is recorded in Events Manager\n- [ ] If there is a tracker, make sure clicks and conversions are being tracked correctly\n\n**Landing Page:**\n- [ ] The landing page loads in 3 seconds or less (check Google PageSpeed)\n- [ ] The domain has been verified via the Facebook Sharing Debugger—no errors or bans\n- [ ] The mobile version is correct: the CTA button is visible without scrolling, and the form is user-friendly\n- [ ] Test application: data was received in the affiliate network’s CRM (most important!)\n- [ ] Message Match between the creative and the landing page\n\n**Offer:**\n- [ ] The offer is active in the affiliate network (not paused)\n- [ ] The cap has not been exhausted as of today\n- [ ] Links with UTM tags or postbacks are configured correctly",
+     "restricted": false
+    },
+    {
+     "title": "Campaign Settings",
+     "body": "- [ ] The campaign objective is correct (for this ad—Sales)\n- [ ] The audience has been set up or verified\n- [ ] The budget and bidding strategy have been set (ABO, Lowest Cost for testing)\n- [ ] Creatives have been uploaded in the correct formats (4:5 for Feed, 9:16 for Stories)\n- [ ] Planned start time and end date (if applicable)",
+     "restricted": false
+    },
+    {
+     "title": "First check after startup (1–2 hours later)",
+     "body": "- Ads have the \"Active\" status (not \"In Review\" or \"Rejected\")\n- There are initial impressions and clicks\n- The pixel is tracking PageViews\n- Spend is in line with the budget (not zero and not abnormally high)",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "80 clicks per day but 0 conversions in the affiliate program. The pixel shows 12 lead events. What most likely happened?",
+     "options": [
+      "The audience is irrelevant",
+      "The postback between the landing page and the affiliate program is configured incorrectly—leads are not being tracked",
+      "The affiliate program is delaying the display of conversions",
+      "Creo does not convert"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "What steps should be taken with the landing page before each launch of a new offer?",
+     "options": [
+      "Change the button's color",
+      "Submit a test request and verify that the data has been sent to the affiliate program's CRM",
+      "Add fields for data collection",
+      "Check the form's loading speed"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nA media buyer is preparing to launch an ad campaign in Poland:\n- Account: Polish, pre-populated ✓\n- Anti-detection: uploaded ✓\n- Proxy: mobile, UKRAINE ✗\n- Card: Polish, balance $50 ✓\n- Pixel: installed but no test request was sent ✗\n- Landing page: speed 2.1 sec ✓, no test request was sent ✗",
+    "situationRestricted": true,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "multi",
+      "q": "What needs to be fixed before launch?",
+      "options": [
+       "The proxy must be Polish or neutral",
+       "The card needs to be changed to a Ukrainian one",
+       "Be sure to submit a test request and verify that the data was received",
+       "Check pixel functionality using a test conversion"
+      ],
+      "answers": [
+       0,
+       2,
+       3
+      ],
+      "explain": "Correct answers: A, C, D",
+      "restricted": true
+     },
+     {
+      "type": "choice",
+      "q": "Why is a GEO proxy so important?",
+      "options": [
+       "Facebook shows ads only in GEO proxy",
+       "A Polish account with a Ukrainian IP address — suspicious login, risk of verification or a ban",
+       "Ukrainian proxies are being blocked by Polish advertisers",
+       "This only affects the speed of the office"
+      ],
+      "answer": 1,
+      "restricted": true
+     }
+    ]
+   }
+  },
+  {
+   "id": "m8l2",
+   "code": "8.2",
+   "title": "Day One: What to Look At and What to Leave Alone",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Why Is the First Day Special?",
+     "body": "The first day is the hardest psychologically. There are no conversions, and you feel the urge to change something. But it’s precisely on the first day that those who “do something” cause the most damage.\n\nFacebook’s algorithm enters the learning phase [→ Lesson 5.6]. Spending is uneven. The CPA on the first day is almost always worse than it will be on days 2–3. There may be no conversions at all, and that’s normal.",
+     "restricted": false
+    },
+    {
+     "title": "What to Watch",
+     "body": "**Ad Status:**\n30–60 minutes after launch, all ads should be \"Active.\" If they’re \"Rejected,\" read the reason and fix it. If they’re \"In Review,\" wait—usually up to 24 hours.\n\n**Are costs being incurred?**\nIf there are 0 impressions and 0 costs after 2–3 hours, something is wrong. Possible reasons: the account is restricted, the card was declined, the audience is too narrow, or the campaign hasn’t launched.\n\n**CTR:**\nAfter 500–1,000 impressions, the CTR gives the first indication of how well the creative is performing. Below 0.5% with 1,000+ impressions means the creative isn’t converting well. Above 1.5% is a good sign.\n\n**PageView:**\nThe pixel should track PageView events. If there are clicks but no PageViews, there’s a problem with the redirect or the pixel.",
+     "restricted": false
+    },
+    {
+     "title": "What NOT to Do",
+     "body": "- Pause the ad set after 0 conversions in the first few hours\n- Change the audience, creative, or budget on the first day (except in extreme cases)\n- Increase the budget \"to speed up learning\"\n- Panic over a poor CPA on the first day",
+     "restricted": false
+    },
+    {
+     "title": "The only exception for early intervention",
+     "body": "**CTR below 0.3% with 1,000+ impressions** — the creative clearly isn’t catching anyone’s attention. In this case, you can replace the creative without waiting until the next day.\n\n**Non-targeted leads from day one** — if the first leads are clearly off-target (different age, different problem, invalid phone numbers) — turn it off and give the auto-rule a second chance. The algorithm learns from those who converted—non-targeted leads will teach it to seek out even more non-targeted leads.\n\n**The Half-Budget Rule:**\nBefore turning off an ad set due to a lack of leads, it must have spent at least half of the daily budget. At $10/day, that’s a minimum of $5 in spending before drawing any conclusions.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "Day 1: Spent $8 out of $10, CTR 2.4%, 0 conversions. Correct action:",
+     "options": [
+      "Turn off — clearly doesn't work",
+      "Don't change anything—the CTR is good, and 0 conversions on the first day is normal",
+      "Replace the creosote",
+      "Increase the budget to $20"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "At what CTR and number of impressions can you replace the creative as early as the first day?",
+     "options": [
+      "CTR of 1.5% with 500 impressions",
+      "A CTR of 0.2% with 1,000+ impressions—the ad clearly isn't holding back",
+      "CTR of 0% with 100 impressions",
+      "3% CTR with 200 impressions"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation — statistics as of 6:00 p.m. on the first day, $10/day per ad set:\n\n| Ad Set | Spend | Impressions | CTR | Conversions |\n|-------|---------|--------|-----|-----------|\n| A | $7.2 | 2,100 | 2.8% | 0 |\n| B | $6.8 | 3,400 | 0.18% | 0 |\n| C | $5.1 | 1,800 | 1.9% | 1 |\n| D | $4.3 | 900 | 2.1% | 0 |\n| E | $0.8 | 200 | 1.5% | 0 |",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "What are you doing with Adset B?",
+      "options": [
+       "You're waiting until tomorrow",
+       "If you replace the creative—a CTR of 0.18% on 3,400 impressions means the creative isn't stopping anyone",
+       "You're increasing the budget",
+       "Changing your audience"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "What are you doing with Adset D?",
+      "options": [
+       "Turn it off—low costs",
+       "No problem—$0.8 in expenses is too small a figure to draw any conclusions",
+       "You're increasing the budget",
+       "Changing your audience"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "Adset B — 1 conversion at $5.1 with a payout of $6. What do you do?",
+      "options": [
+       "You can scale it right away",
+       "Leave it and wait until the next day—a single conversion isn't a trend",
+       "If you turn it off, one conversion isn't enough",
+       "You're doing a remake with a bigger budget"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m8l3",
+   "code": "8.3",
+   "title": "The Two-Day Rule and Traffic Rules",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "The Two-Day Rule",
+     "body": "**The Two-Day Rule:** The decision to permanently disable an ad set is made only after two full business days of poor results.\n\nWhy two days:\n- The first day is always unstable due to the learning phase\n- Results can vary significantly depending on the day of the week\n- The algorithm needs at least 2 days to start finding its audience\n\n**Exception:** If the CTR is below 0.3% with 1,000+ impressions, the ad is underperforming and can be paused earlier [→ Lesson 8.2].",
+     "restricted": false
+    },
+    {
+     "title": "AutoRules — Basic Automation",
+     "body": "Facebook’s automated rules allow you to set conditions under which the system automatically performs an action. This eliminates the need for nighttime monitoring.\n\n**A basic automated rule to start with:**\n\"Turn on all ad sets in the campaign at 12:00 a.m. every day\"\n\nLogic: If you turned off an ad set during the day due to poor results, the automation rule will give it a second chance the next day with a fresh budget. You don’t have to log in at night, but the ad set will start fresh.\n\nSettings in Ads Manager: Automations → Create Automation Rule → condition / action / schedule.",
+     "restricted": false
+    },
+    {
+     "title": "Practical Workflow Diagram",
+     "body": "**Day 1, 2:00 PM:** >50% of the budget spent, 0 leads, good CTR.\nAction: Turn off ADS (not ad sets). An automated rule will turn on the ad set at 12:00 AM—it will start tomorrow with a new daily budget.\n\n**Day 2, morning:** Check the results for the second day.\n- There are leads and the CPA is acceptable → leave it running, monitor\n- There are leads but the CPA is poor → run for one more day or pause, depending on the trend\n- 0 leads again → pause permanently or send it for rework",
+     "restricted": false
+    },
+    {
+     "title": "Level-based shutdown logic",
+     "body": "Always pause at the minimum necessary level:\n\n- A specific ad is performing poorly → pause the ad (leave the ad set active)\n- The entire ad set is performing poorly → pause the ad set (leave the campaign active)\n- The entire campaign is underperforming → pause the campaign\n\nAn automated rule can turn on the ad set at 12:00 a.m. However, if the campaign is paused, there will be no spend even if the ad set is active. Manage this at the top level.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "Why is the decision to disable the ad set made after two days?",
+     "options": [
+      "Facebook requires at least two days",
+      "The first day is unreliable due to training; the second day provides more representative data",
+      "Two days is the minimum required for statistical significance",
+      "Rule from affiliate networks"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "MediaBuyer paused the ad at 3:00 p.m. Avtopravilo will resume the ad at 12:00 a.m. But the entire campaign is paused. What will happen?",
+     "options": [
+      "The Traffic Police will also launch a campaign",
+      "AdSet will be enabled, but there will be no charges as long as the campaign is disabled",
+      "The auto-correct feature won't work",
+      "The campaign will start automatically"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Scenario — two days, $10/day, payout upon approval of $5.5:\n\n| Ad Set | Day 1 | Day 2 |\n|-------|--------|--------|\n| A | $9.8, 0 leads | $9.5, 0 leads |\n| B | $9.2, 1 lead ($9.2) | $9.7, 2 leads ($4.85/lead) |\n| C | $8.1, 2 leads ($4.05) | $9.3, 3 leads ($3.1) |\n| D | $9.4, 0 leads | $9.6, 1 lead ($9.6) |",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "Adset A — two days, 0 leads. What do you do?",
+      "options": [
+       "One more day",
+       "Turn it off—two days without leads, even with a full budget, is enough to draw a conclusion",
+       "You're increasing the budget",
+       "Change the audience and two more days"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "Adset B — improvement ($4.05 → $3.1). What are you doing?",
+      "options": [
+       "Turn it off",
+       "Leave it as is and let's see—there's a positive trend, and the CPA is lower than the payout",
+       "You immediately double your budget",
+       "You're repeating yourself"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "Adset G — Day 1: 0 leads; Day 2: 1 lead at $9.6 with a payout of $5.5. What do you do?",
+      "options": [
+       "If you leave it, there's a conversion",
+       "If you turn it off—two days later, the CPA is almost twice as high as the payout, with no sign of improvement",
+       "Two more days",
+       "You're switching leads to another offer"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m8l4",
+   "code": "8.4",
+   "title": "Reading Metrics: What to Look At and in What Order",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Metrics Funnel",
+     "body": "When CPA is poor, the question is, “Where exactly is the problem?” The answer is to read the metrics funnel from left to right:\n\n```\nCPM → CTR → CPC → CR → CPA → ROI\n```\n\nEach metric depends on the one before it. If you know where it went wrong, you know what to fix.",
+     "restricted": false
+    },
+    {
+     "title": "Analysis Algorithm",
+     "body": "**Step 1: CPM**\nCompare it to the expected CPM for this GEO and vertical. A sharp increase in CPM with the same settings is a sign of increased competition or audience burnout (high frequency).\n\n**Step 2: CTR**\nBelow 0.5–0.8% with 1,000+ impressions—possibly weak creative or an irrelevant audience. Above 1.5%—the creative is performing well. Above 3%—excellent.\n\n**Step 3: CPC**\nDepends on CPM and CTR. If CPC is too high with a normal CPM, it means CTR is low.\n\n**Step 4: Landing Page CR**\nIf the CTR is good but there are no conversions or very few—the problem lies with the landing page or Message Match. The actual CR is calculated as conversions / clicks × 100%.\n\n**Step 5: CPA**\nIf the CPA is lower than the actual payout (payout × approval rate), you’re making a profit. If it’s higher, you’re losing money.\n\n**Step 6: ROI**\nThe overall result for the week or month.",
+     "restricted": false
+    },
+    {
+     "title": "Diagnosis Using the Funnel Method",
+     "body": "| Situation | Where the problem lies |\n|----------|-------------|\n| Poor CTR with normal CPM | Creative or audience |\n| Good CTR but poor CR | Landing page or Message Match |\n| Good CR but poor CPA | High CPM or narrow audience |\n| Good CPA but poor ROI | Low approval rate or payout too low |",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "CTR 3.1%, landing page CR 0.4%, CPA $35 with a payout of $8. What's the problem?",
+     "options": [
+      "In Creo, the CTR is poor",
+      "In a landing page or Message Match—the creative stops users, but the landing page doesn't convert",
+      "The audience consists of irrelevant traffic",
+      "CPM involves expensive impressions"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "CPM rose from $4 to $12 per week with the same settings. The most likely reason:",
+     "options": [
+      "Facebook has changed its algorithm",
+      "The audience is overheated (high frequency) or competition in the auction has increased",
+      "Creos has become of lower quality",
+      "Land is loading slowly"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "The situation: three ad sets, the same audience and landing page, different creatives, $8 payout:\n\n| Metric | Ad Set A | Ad Set B | Ad Set C |\n|---------|---------|---------|---------|\n| CPM | $5.2 | $5.1 | $5.3 |\n| CTR | 0.4% | 2.9% | 2.7% |\n| CPC | $1.30 | $0.18 | $0.20 |\n| CR | 3.1% | 0.3% | 3.0% |\n| CPA | $41.9 | $60 | $6.7 |",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "What's the problem with Adseti A?",
+      "options": [
+       "Poor landing CR",
+       "A poor CTR isn't stopping the ad campaign, which is why the CPC is $1.30 and the CPA is $41.9",
+       "Dear CPM",
+       "Low payout"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "What's the problem with Adseti B?",
+      "options": [
+       "Low CTR",
+       "Good CTR but very low CR—the creative catches people's attention, but the landing page or Message Match is driving them away",
+       "Dear CPM",
+       "No problem—a CPC of $0.18 is great"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "Adset is profitable (CPA $6.7 < $8). What's next?",
+      "options": [
+       "Turn off all three and look for a new offer",
+       "Scale up B, turn off A and B, analyze why version B is better, and create similar ones",
+       "You're increasing the budget for all three",
+       "Give Adset A and B another week"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m8l5",
+   "code": "8.5",
+   "title": "Maximum Lead Cost and Decision-Making Logic",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Why the average CPA Doesn't Tell the Whole Story",
+     "body": "\"Average CPA per day\" can mask the real situation. Two leads at $3 and $15 result in an average CPA of $9. But these are two completely different situations: the first lead is excellent, while the second is unprofitable.\n\nA media buyer looks not only at the average CPA but also at the trend—how the cost of each subsequent lead changes.",
+     "restricted": false
+    },
+    {
+     "title": "The Logic of Marginal Cost",
+     "body": "**Principle:** If the first lead came in at $X, the next one should come in at $X × 1.3–1.5 at most (with a 30–50% upward deviation). If there is no next lead at a cost >$X × 2, the ad set is underperforming or the audience is being exhausted.\n\n**Examples:**\n- The first lead came in at $3 → the second should come in at a cost of up to $4–4.5. If there is no second lead at $6+ — pause the campaign; auto-resume tomorrow\n- The first lead at $7 with a payout of $6 is already unprofitable from the start. If there’s no sign of improvement within 2 days—shut it down",
+     "restricted": false
+    },
+    {
+     "title": "Non-targeted leads",
+     "body": "If the leads are clearly off-target, pause the campaign or ad set immediately—don’t wait two days.\n\nSigns of off-target leads:\n- Non-existent or incorrect phone numbers\n- Age or demographics do not match the target audience (confirmed by call center feedback)\n- People ordered a different product or didn’t order anything at all (according to the call center)\n- Very low approval rate with a normal number of leads\n\nWhy it’s important to pause immediately: Facebook learns from those who “converted.” If it learns from non-targeted leads, it will seek out even more of them. Give it a second chance tomorrow using the auto-pause feature—so the algorithm can start learning from scratch.",
+     "restricted": false
+    },
+    {
+     "title": "Three Positive Signs That We Should Keep Going",
+     "body": "1. The CPA for first conversions is lower than or close to the actual payout\n2. The CPA trend is improving or remaining stable from day to day\n3. The leads are qualified—the call center confirms a high approval rate\n\nIf all three conditions are met, proceed and consider scaling up.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "The first lead cost $2. How much should the second one cost?",
+     "options": [
+      "$2 — the second one should cost the same",
+      "$4–5 at most—a 30–50% upward deviation is acceptable",
+      "$10 — daily budget",
+      "It doesn't matter how much—the main thing is to get it"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "The first three leads are people aged 20–25, but the offer is for people 50 and older. What should I do?",
+     "options": [
+      "Wait—maybe the next ones will be on target",
+      "Turn it off right away—Facebook learns from irrelevant content and will look for more of the same",
+      "Cut the budget in half",
+      "Contact the affiliate program manager"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Scenario — $15/day, payout upon approval of $7:\n\nAd Set A — two days:\nDay 1: lead at $2.1, lead at $4.1, end of day $8.7 (no leads on the 3rd)\nDay 2: leads at $3.4, $3.8, $4.9. Total CPA $4.0.\n\nAd Set B — two days:\nDay 1: lead at $4.8, end-of-day total $14.2 (no second lead)\nDay 2: lead at $7.1, end-of-day total $15 (no second lead)",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "Is there a trend in Adseti A?",
+      "options": [
+       "Bad News — CPA Is Rising",
+       "Positive — more leads per day, CPA consistently below $7",
+       "Neutral",
+       "Negative — the third lead on the first day didn't show up"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "Decision on Adset B?",
+      "options": [
+       "Two more days",
+       "Off — two days of a single high-priced lead with no sign of improvement and an increasing number",
+       "Increase the budget to $30",
+       "Replace the CREO without shutting it down"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m8l6",
+   "code": "8.6",
+   "title": "Scaling: When and How",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "When to scale",
+     "body": "Scale only when the following conditions are met:\n- The CPA is consistently lower than the actual payout for at least 3–5 consecutive days\n- The trend is either stable or improving\n- Approval has been confirmed by the affiliate network\n\nDon’t scale based on unstable results—you might just end up increasing your losses.",
+     "restricted": false
+    },
+    {
+     "title": "Vertical scaling",
+     "body": "Increasing the budget for a profitable ad set.\n\n**Standard ad sets:** no more than 15–20% at a time, no more frequently than once every 2 days. A sharp increase can disrupt the algorithm’s learning process.\n\n**Low-cost ads** — ads where leads are very cheap and stable (CPA is significantly lower than the payout, e.g., $2 with an $8 payout). Such ads can sometimes withstand a more aggressive increase — even doubling the budget. But be careful: test a +50% increase first, then see how it goes.\n\n**Example of gradual scaling:**\n- Day 1: $15/day, CPA $4.5 ✓\n- Day 3: $18/day (+20%), CPA $4.8 ✓\n- Day 5: $22/day (+22%), CPA $5.1 ✓\n- Day 7: $26/day, CPA $5.3 — still profitable",
+     "restricted": false
+    },
+    {
+     "title": "Horizontal scaling",
+     "body": "Launching the same ad set on new ad accounts.\n\n**Why this is better than duplicates within the same account:**\nDuplicates within the same account compete against each other in the auction. A new account = a separate auction participant with no internal competition.\n\n**The difference between duplicating and copying:**\n- **Duplicate** — Facebook transfers accumulated training data. The new ad set starts out “smarter.”\n- **Copy** — only the structure, without training data. Starts from scratch.\n\nWhen scaling horizontally to a new account—you launch a new campaign but with the same settings. This is essentially a “copy” but on an isolated account—which is exactly how it should be.",
+     "restricted": false
+    },
+    {
+     "title": "What NOT to Do When Scaling",
+     "body": "- Dramatically increasing the budget (more than 30% at a time for standard ad sets)\n- Changing the audience or creative at the same time as increasing the budget\n- Scaling based on inconsistent results (good today, bad yesterday)\n- Scaling only vertically without horizontal scaling—risk of relying on a single account",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "A profitable ad set, $20/day, CPA of $5 with a payout of $8. He wants to increase it to $60 right away. Is there a problem?",
+     "options": [
+      "$60 is too much",
+      "A sharp increase (300%) can disrupt the learning process and impair or destroy the results",
+      "You need to duplicate it first",
+      "You can only scale up after 50 conversions"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "How is duplication different from copying?",
+     "options": [
+      "Dubbing is more expensive",
+      "Duplication transfers accumulated learning experience, while copying transfers only the structure",
+      "They are the same",
+      "Copying gets results faster"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nProfitable ad set: $20/day, CPA of $4.5 with a payout of $7, consistently for 6 days. The goal is to reach a total daily budget of $100.",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "Is this the right strategy?",
+      "options": [
+       "Raise it to $100 right away",
+       "Gradually increase by +15–20% every 2 days, and at the same time, run the same campaign on 2–3 new accounts",
+       "Duplicate the ad set 5 times in the same account",
+       "First, the new Creos"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "I increased the budget from $20 to $24. The next day, the CPA rose from $4.5 to $6.8. What does this mean?",
+      "options": [
+       "The connection has stopped working",
+       "The algorithm is adapting to the new budget—give it another 1–2 days before drawing any conclusions",
+       "Increasing the budget always worsens the CPA",
+       "We need to lower it back down immediately"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "Why is horizontal scaling on new accounts better than duplicates in the same account?",
+      "options": [
+       "Facebook limits the number of adsets in a campaign",
+       "Duplicate accounts in the same office compete against each other in the auction—new accounts do not compete, and each receives the full budget",
+       "New accounts have a higher trust score",
+       "There is no difference"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m8l7",
+   "code": "8.7",
+   "title": "Basic Analytics: Daily and Weekly Recap",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Why Keep Records?",
+     "body": "A media buyer who doesn't keep records is someone who keeps rediscovering the same things over and over again. In two weeks, you won't remember which creative you tested, which audience you tried, or why you paused that ad set.\n\nNotes aren’t just for memory’s sake. They help you spot patterns: “This ad set always performs worse on Mondays” or “After increasing the budget, the CPA worsens for two days and then stabilizes.”",
+     "restricted": false
+    },
+    {
+     "title": "What to Write Down Every Day",
+     "body": "Minimum Daily Report:\n\n| Date | Ad Set | Spend | Leads | CPA | Action | Comment |\n|------|-------|---------|------|-----|-----|----------|\n| Mon | A-broad | $9.8 | 0 | — | Turned off creative, auto-scheduling at 12:00 AM | CTR 2.1%, suspected issue with landing page |\n| Tue | A-broad | $9.5 | 2 | $4.75 | Left | Targeted leads; approval confirmed by manager |",
+     "restricted": false
+    },
+    {
+     "title": "Weekly Roundup",
+     "body": "At the end of each week (preferably on Friday or Saturday):\n\n- Total expenses for the week\n- Total attributed conversions and estimated payout\n- Weekly ROI (preliminary, excluding hold)\n- Which hypotheses were tested and what the results were\n- Conclusions: what to scale up, what to pause, and what to test next week",
+     "restricted": false
+    },
+    {
+     "title": "Cross-platform data reconciliation",
+     "body": "**Daily:** Compare conversions in Ads Manager and in the affiliate program dashboard. If Facebook shows 20 lead events and the affiliate program shows 5 conversions, there’s a technical issue (postback, pixel, or duplicate events).\n\n**Weekly:** Compare your total Facebook spending (from billing) with the total payouts accrued from the affiliate network.\n\n**Remember:** Ads Manager displays attribution data (with a delay). The affiliate network shows actual conversions. A small difference (10–20%) is normal. A large difference (50%+) indicates a problem.",
+     "restricted": false
+    },
+    {
+     "title": "Google Looker Studio for Easy Monitoring",
+     "body": "A free tool from Google that lets you build dashboards by connecting data from Meta Ads Manager. It’s useful if you manage multiple accounts—you can view them all in one place without having to log in to each account separately.\n\nDetails — [→ Library: Analytics Tools]",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "Why compare leads in Ads Manager and in the affiliate program?",
+     "options": [
+      "To find duplicate conversions",
+      "To identify a discrepancy that indicates a technical issue—if Facebook counts 20 leads and the affiliate program counts 5, that’s critical",
+      "Affiliate programs and Facebook always show different data—that's normal",
+      "For tax reporting"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "MediaBuyer relies solely on memory, without any records. The main problem:",
+     "options": [
+      "Facebook may remove the statistics",
+      "Without records, it's impossible to identify patterns; mistakes are repeated, and there's no understanding of what actually produced results",
+      "The affiliate network requires reports",
+      "Without records, it is impossible to scale"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation — Weekly table, GEO PL back-end offer, payout upon approval: $6:\n\n| Asset | Weekly Spend | Leads | Average CPA | Trend |\n|-------|----------------|------|--------------|-----------|\n| A (broad, video) | $68 | 18 | $3.78 | Stable, improving |\n| B (interests, image) | $65 | 7 | $9.29 | Unstable, two days without leads |\n| C (LAL 1%, video) | $63 | 12 | $5.25 | Stable |\n| D (broad, quiz creative) | $45 | 2 | $22.5 | Poor |\n\nTotal: $241 spent, 39 leads, $234 billed. ROI -2.9%",
+    "situationRestricted": false,
+    "isFinal": true,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "Overall, it was a losing week. What should we do about Adset A?",
+      "options": [
+       "Turn off — the overall result is poor",
+       "Scale — CPA $3.78 < payouts $6, loss due to other ads",
+       "Leave as is",
+       "Replace the creosote"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "What should we do with B and G?",
+      "options": [
+       "One more week",
+       "Turn both off — B is unstable, D is unprofitable throughout the week",
+       "Increase the budget",
+       "Replace only the creo"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "What's the plan for next week?",
+      "options": [
+       "Turn everything off and start from scratch",
+       "Scale up A, test the new creative for B, disable B and D, and test 1–2 new hypotheses",
+       "Leave everything as it is",
+       "Increase the budget for all four by 50%"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  }
+ ],
+ "summary": "After completing this module, students will be able to:\n\n- Go through the pre-launch checklist and identify issues before spending the budget\n- Handle the first day correctly: what to look for, what not to touch, and when to make exceptions\n- Apply the two-day rule and auto-rules\n- Read the metrics funnel and identify where the chain broke\n- Understand the concept of marginal lead cost and conversion dynamics\n- Scale correctly: vertically in stages and horizontally to new accounts\n- Track basic analytics and weekly summaries\n\n**Next module:** Accounts, Dofarm, and security."
+}

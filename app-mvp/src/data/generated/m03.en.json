@@ -1,0 +1,615 @@
+{
+ "id": "m3",
+ "number": "03",
+ "title": "The Media buyer's Ecosystem and Infrastructure",
+ "restricted": false,
+ "finalRestricted": true,
+ "lessons": [
+  {
+   "id": "m3l1",
+   "code": "3.1",
+   "title": "What is a bundle, and what does it consist of?",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "The Bundle — The Heart of Arbitrage",
+     "body": "In M01, we learned that arbitrage is the difference between costs and payouts. But how exactly does the path from ad to payout work? This path is called the **funnel**.\n\n**The conversion funnel** is the complete chain of elements from an ad to a conversion and a payout. Each element plays its own role. If even one element isn’t working—the funnel won’t convert, even with the rest of the settings optimized perfectly.\n\nMedia buyers often say, “I found a working funnel”—this means they’ve found a combination of offer, audience, creative, and landing page that yields a profitable CPA.",
+     "restricted": false
+    },
+    {
+     "title": "The Five Elements of a Bundle",
+     "body": "**1. Offer**\nWhat you’re promoting. A specific product or service from an advertiser with defined terms: payout, approval, GEO, and allowed traffic sources. Details on offers are in Module 04.\n\n**2. Creative**\nThe ad that a user sees in their Facebook feed. An image or video with text. The creative is responsible for the first impression: whether or not it catches the user’s attention. For more details, see Module 06.\n\n**3. Pre-land (optional) and Land**\nLanding pages where the user is directed after clicking. The pre-landing page is an intermediate “warm-up” page. The landing page is the final page where the conversion (lead, order) takes place. For details, see Module 07.\n\n**4. Tracker**\nA tracking system that records where each click came from and what action took place. It connects the ad dashboard to the affiliate network. For details in this module, see Lesson 3.4.\n\n**5. Facebook Ads Manager**\nWhere traffic is launched. Linked to the landing page via a pixel. Manages ad impressions, audience, and budget. For details, see Module 05.",
+     "restricted": false
+    },
+    {
+     "title": "User Path Through the Bundle",
+     "body": "```\nFacebook displays the creative\n    ↓\nThe user stops and clicks\n    ↓\nIs directed to the pre-landing page (if available) — \"warm-up\"\n    ↓\nProceeds to the landing page\n    ↓\nSubmits an application / places an order\n    ↓\nThe tracker records the conversion\n    ↓\nThe affiliate network confirms and credits the commission\n    ↓\nPayment is made after the hold period\n```",
+     "restricted": false
+    },
+    {
+     "title": "The Principle of Correspondence of Elements",
+     "body": "The flow only works if all elements are consistent with one another. If the creative promises one thing but the landing page shows something else, most people will close the page immediately. If the landing page promises quick results but the offer is actually a long-term one, there will be complaints and a low approval rate.\n\nThis principle is called **Message Match**—the consistency of the message from the creative to the landing page. We’ll cover this in detail in Module 07.",
+     "restricted": false
+    },
+    {
+     "title": "Where the bundle breaks and how to find it",
+     "body": "When a campaign isn’t converting, figure out exactly where the problem lies:\n\n- Low CTR → the problem is with the creative (it’s not driving clicks) or the audience (wrong people)\n- Good CTR but low CR → the problem is with the landing page or Message Match (it’s driving traffic but not converting)\n- Good CR but low approval rate from the affiliate network → the problem is with traffic quality (non-targeted leads)\n\nYou should analyze the chain of metrics from left to right. Don’t immediately look for the problem in the landing page if you haven’t checked the CTR first.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "order",
+     "q": "Arrange the elements of the transaction in the correct order, from presentation to payment:",
+     "items": [
+      "The user sees the ad on Facebook",
+      "The user clicks and is taken to the pre-landing page",
+      "The user goes to the landing page and submits an application",
+      "The tracker records conversions",
+      "The affiliate program pays the media buyer"
+     ],
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "Creo promises a 50% discount, but the landing page shows the full price. What will happen?",
+     "options": [
+      "The conversion will happen anyway—the person is interested",
+      "Most people will close the page—their expectations didn't match reality; Message Match has been violated",
+      "Facebook will automatically correct the discrepancy",
+      "Land needs to be changed to a paid option"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nA media buyer launched an ad campaign for a cream. The CTR is good—3.2%. But the conversion rate on the landing page is 0.4%. The CPA comes out to $35, with a payout of $10.",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "Where is the problem in the connection?",
+      "options": [
+       "In Creo, the CTR is poor",
+       "On the landing page or in Message Match, people click but don't convert",
+       "The tracker isn't counting correctly",
+       "The offer includes a payment that is too low"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "What should be tested first?",
+      "options": [
+       "Replace the ad—maybe a different one will yield a better CTR",
+       "Review the landing page: Does it live up to the creative’s promise? Is the layout user-friendly? Does it load quickly?",
+       "Increase your budget—more clicks will lead to more conversions",
+       "Change the offer"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m3l2",
+   "code": "3.2",
+   "title": "Why Do You Need an Anti-Detection Browser?",
+   "restricted": true,
+   "teach": [
+    {
+     "title": "The problem that Anti-Detect solves",
+     "body": "Facebook is an extremely effective system for tracking devices and browsers. Even if you log in from different accounts, the platform can identify that they all belong to the same person and the same device.\n\nThis is a problem for media buyers for several reasons:\n- If one account is banned, Facebook may automatically block other “associated” accounts\n- If “non-human” activity is detected across multiple accounts, all of them may be blocked\n- Facebook prohibits managing multiple advertising accounts simultaneously from a single device\n\n**Anti-detection browser**—a specialized browser that creates a separate and unique digital fingerprint for each account. Facebook “sees” each profile as a separate physical device.",
+     "restricted": true
+    },
+    {
+     "title": "What Is a Browser Fingerprint?",
+     "body": "A fingerprint is a set of technical parameters that identify a device and browser even without cookies:\n\n- User-agent (browser and OS version)\n- Canvas fingerprint (a unique identifier based on graphics rendering)\n- WebGL fingerprint (an identifier based on 3D performance)\n- Screen and viewport dimensions\n- Time zone\n- Installed fonts\n- Language settings\n- Audio settings\n\nA standard browser in incognito mode does NOT solve the problem—it hides cookies but does not change the fingerprint. Facebook can still identify the device.\n\nThe anti-detection browser creates a completely unique and internally consistent set of these parameters for each profile. Facebook sees each profile as a separate physical device in a separate location.",
+     "restricted": true
+    },
+    {
+     "title": "What Are the Benefits of an Anti-Detection Browser for MediaBuyer?",
+     "body": "- Multiple Facebook accounts on a single computer without the risk of them being linked\n- If one account is banned, the others remain unaffected\n- Convenient profile management: each account has its own cookies, cache, settings, and saved passwords\n- Teamwork: multiple people can safely work with different accounts\n- Profile synchronization across devices (in most modern anti-detection browsers)",
+     "restricted": true
+    },
+    {
+     "title": "Current Tools for 2025–2026",
+     "body": "**Dolphin{anty}** — the de facto standard for the CIS arbitrage community. It was developed specifically for Facebook arbitrage. It has the largest community and the most training materials on the CIS market.\n- Free: 5 profiles (reduced from 10 in September 2025)\n- Starter: $10/month, up to 60 profiles\n- Base: $89/month, 100 profiles\n\n**Octo Browser** — a premium choice, highly effective at bypassing detection systems. Starting at €29/month, with no proper free trial.\n\n**AdsPower** — popular worldwide. In January 2025, there was a serious security issue—crypto wallets were stolen due to compromised plugins. If you use it, do not store your crypto wallets in the browser.\n\n**GoLogin** — a budget option, starting at $24/month. Simpler interface.\n\nA detailed comparison with prices and features — [→ Library: Anti-detection browsers]",
+     "restricted": true
+    },
+    {
+     "title": "Basic Rules for Using an Anti-Detector",
+     "body": "- One profile = one account. Never create multiple accounts within a single profile\n- One profile = one proxy. Never change the proxy for an already active profile—Facebook detects IP changes, and this raises a red flag\n- Do not log in to your account via a regular browser or phone without anti-detection software—Facebook will detect a new device\n- The profile’s GEO and the account’s GEO must match (or be neutral)",
+     "restricted": true
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "What is a browser fingerprint?",
+     "options": [
+      "Password for the advertising account",
+      "A unique set of device and browser technical parameters that Facebook uses to identify a user",
+      "A physical fingerprint to verify identity",
+      "Security Settings in Business Manager"
+     ],
+     "answer": 1,
+     "restricted": true
+    },
+    {
+     "type": "choice",
+     "q": "MediaBuyer opens two incognito tabs in the same browser. Does this solve the problem?",
+     "options": [
+      "Yes—Incognito mode completely hides your device from Facebook",
+      "No—incognito mode does not change the device's fingerprint; Facebook can still link the accounts",
+      "That's right—different incognito tabs have different fingerprints",
+      "It depends on the browser"
+     ],
+     "answer": 1,
+     "restricted": true
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nDmitry, a newcomer, has 5 purchased accounts. He logs into them one by one using regular Chrome, not incognito mode. One account was banned for violating the advertising rules.",
+    "situationRestricted": true,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "What is the biggest risk for Dmytro following this ban?",
+      "options": [
+       "Facebook will block Dmitry's card",
+       "Facebook can link all 5 accounts using a fingerprint and block them all at once",
+       "The other 4 accounts will continue to operate without any issues",
+       "Dmytro will lose access to Business Manager"
+      ],
+      "answer": 1,
+      "restricted": true
+     },
+     {
+      "type": "choice",
+      "q": "How does anti-detection protect against this risk?",
+      "options": [
+       "Hides your IP address from Facebook",
+       "Each account exists in a separate profile with a unique fingerprint—Facebook treats them as different devices, and one account doesn't affect the others",
+       "Encrypts traffic between Dmitry and Facebook",
+       "Automatically restores blocked accounts"
+      ],
+      "answer": 1,
+      "restricted": true
+     }
+    ]
+   }
+  },
+  {
+   "id": "m3l3",
+   "code": "3.3",
+   "title": "Proxies: Why Use Them and What Types Are There?",
+   "restricted": true,
+   "teach": [
+    {
+     "title": "Why Do You Need a Proxy?",
+     "body": "A proxy is an intermediary server through which an internet connection passes. Facebook sees the proxy’s IP address instead of the media buyer’s actual IP address.\n\nAn arbitrageur needs a proxy for two reasons:\n\n**GEO compliance:** If you bought a Polish account, Facebook expects logins to come from Poland. If you log in from a Ukrainian IP address, it’s considered a suspicious login from an unusual location. This carries the risk of verification or a ban.\n\n**Account isolation:** Even if the fingerprint is different for each account due to anti-detection measures—if all accounts share the same IP address, Facebook may link them together. Each account on a separate IP address ensures isolation.",
+     "restricted": true
+    },
+    {
+     "title": "Three Types of Proxies and Which One Is Best for Facebook",
+     "body": "**Data Center**\nHosting companies' servers. Cheap and fast. But Facebook has become very good at identifying data center IPs as non-human. For Facebook in 2025–2026, they’re practically unsuitable; accounts using data center proxies have a very short lifespan.\n\n**Residential**\nReal IP addresses from home internet service providers. They appear to be regular users. Significantly higher trust score than data center IPs. Suitable for lower-risk tasks: verification, registration, basic activity.\n\nPrice: starting at $1.75/GB from providers such as IPRoyal, Decodo (Smartproxy), and DataImpulse.\n\n**Mobile (LTE/4G/5G)**\nIP addresses from mobile carriers. The gold standard for Facebook in 2025–2026.\n\nWhy they’re the best: Real mobile networks use CGNAT—a technology where hundreds of real users share a single IP address. Facebook can’t simply block a mobile IP without risking blocking hundreds of real people. That’s why mobile IPs have the highest trust level.\n\nTwo approaches:\n- **iProxy** — turn your own Android phone with a SIM card into a mobile proxy. It’s the cheapest (~$9/device/month) and most reliable because the IP is exclusively yours.\n- **LTESocks** — pre-configured mobile proxies from a provider. $99–220/month depending on the country and carrier.",
+     "restricted": true
+    },
+    {
+     "title": "Rules for Using a Proxy",
+     "body": "**One proxy — one account.** Never share a single proxy among multiple accounts. If one account gets banned, Facebook may flag the others with the same IP address.\n\n**Proxy GEO = Account GEO.** A Polish account requires a Polish or neutral proxy. Do not connect a Ukrainian proxy to a Polish account—this will be flagged as a suspicious login.\n\n**Do not change the proxy for an active account.** Changing the IP for an account is like logging in from a new device and a new location at the same time. If you need to change it, do so carefully and only when necessary.\n\n**Stability is more important than price.** A cheap, unstable proxy that constantly “drops out” is worse than a more expensive but stable one.",
+     "restricted": true
+    }
+   ],
+   "l1": [
+    {
+     "type": "match",
+     "q": "Match the proxy type with the characteristic:",
+     "pairs": [
+      [
+       "Data Center",
+       "It's cheap, but Facebook easily spots it—it won't work"
+      ],
+      [
+       "Residential",
+       "Real home IP addresses, medium trust level, price per GB"
+      ],
+      [
+       "Mobile",
+       "The Gold Standard for Facebook, Mobile Carrier"
+      ]
+     ],
+     "restricted": true
+    },
+    {
+     "type": "choice",
+     "q": "A media buyer purchased an American account but connected a Polish proxy to it. What's the problem?",
+     "options": [
+      "None — the proxy type is more important than GEO",
+      "Facebook will detect a login from an incorrect GEO — risk of account verification or suspension",
+      "The ad will be displayed only in Poland",
+      "Your account will automatically switch to Polish"
+     ],
+     "answer": 1,
+     "restricted": true
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nOlena has three Polish accounts and three proxy options: data center (Warsaw), residential (Krakow), and mobile LTE (Warsaw, Orange Poland).",
+    "situationRestricted": true,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "Which proxy should I choose for running ads?",
+      "options": [
+       "Data Center — The Most Affordable",
+       "Residential — the optimal balance",
+       "Mobile LTE — Facebook's Top Priority for 2025–2026",
+       "Any"
+      ],
+      "answer": 2,
+      "restricted": true
+     },
+     {
+      "type": "choice",
+      "q": "Can Elena use one mobile proxy for all three accounts, one at a time?",
+      "options": [
+       "Yes—mobile proxies have IP rotation",
+       "No—a shared IP address links the accounts, and one account's activity can affect the others",
+       "Yes—one high-quality item is better than three cheap ones",
+       "It depends on the type of campaign"
+      ],
+      "answer": 1,
+      "restricted": true
+     }
+    ]
+   }
+  },
+  {
+   "id": "m3l4",
+   "code": "3.4",
+   "title": "Tracker: Why You Need One and When",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "What is a tracker and what does it do?",
+     "body": "**Tracker** — a traffic tracking system that sits between the ad platform and the landing page.\n\nWhen a user clicks on an ad, the request first goes through the tracker. The tracker records:\n- Where the click came from (which ad set, which creative, which audience)\n- User characteristics (device, browser, GEO, time)\n- What action took place on the landing page\n\nThis information is sent back to the ad account and the affiliate network. As a result, you know exactly which ad creative and which audience generated a specific conversion.\n\nWithout a tracker: You know the general numbers but can’t figure out which specific ad generated each conversion.",
+     "restricted": false
+    },
+    {
+     "title": "Cloaking is a key feature for gray-market niches",
+     "body": "**Cloaking** — displaying different content to different visitors based on their characteristics.\n\nHow it works: the tracker analyzes each request and decides what to display:\n- Facebook moderator or bot (identified by IP, user-agent, and behavioral patterns) → \"blank page\" (harmless content)\n- Real user → real offer\n\nThanks to cloaking, the ad passes moderation (the moderator sees harmless content) while still showing the real offer to actual users.\n\nImportant: Cloaking violates Facebook’s rules. If detected, the account and Business Manager will be banned. For product listings, cloaking is not necessary in most cases—simple product offers usually pass moderation without it.",
+     "restricted": true
+    },
+    {
+     "title": "When You Need a Tracker and When You Don't",
+     "body": "**A tracker is NOT needed when:**\n- Initial tests with a single offer and a direct link to the affiliate program’s landing page\n- White-hat offers that do not require cloaking\n- Data from Ads Manager and the affiliate program dashboard is sufficient\n\n**A tracker is REQUIRED when:**\n- Cloaking is required to pass moderation (gray niches)\n- Multiple offers or multiple landing pages are being tested simultaneously\n- Detailed analytics are needed at the click level\n- You’re scaling and need precise conversion attribution\n\n**For beginners:** Start without a tracker. Run your first product tests using direct links. Add Keitaro when you need cloaking or to run multiple offers simultaneously.",
+     "restricted": true
+    },
+    {
+     "title": "Trending Trackers for 2025–2026",
+     "body": "**Keitaro** — the standard for the CIS market. Self-hosted (you install it on your own VPS), with built-in cloaking and TDS (traffic distribution system). The go-to choice when cloaking is required. Starting at ~$25–70/month for a license + VPS ~$30–80/month.\n\n**Binom** — a cloud-based and self-hosted option, faster and simpler than Keitaro. Starting at ~$49/month. A good option if you need speed and don’t require cloaking.\n\n**RedTrack, Voluum** — cloud-based trackers geared more toward white-hat marketing. Starting at $119–149/month. More expensive and with less support for gray-market verticals.\n\n**Google Looker Studio** — a free option for basic monitoring without needing to log in to a dashboard. You connect data from Ads Manager and your affiliate network and view the dashboard. Up to 5–6 accounts—enough to get started.\n\nDetailed comparison — [→ Library: Trackers]",
+     "restricted": true
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "What is cloaking?",
+     "options": [
+      "Hiding Ads from Competitors",
+      "Showing Different Content to a Facebook Moderator and an Actual User",
+      "Automatic ad pausing when the budget is exceeded",
+      "Data encryption between the tracker and Facebook"
+     ],
+     "answer": 1,
+     "restricted": true
+    },
+    {
+     "type": "choice",
+     "q": "A newcomer launches their first test—a single product offer with a direct link to the affiliate program’s landing page. Is a tracker needed?",
+     "options": [
+      "That's right—you can't run an ad without a tracker",
+      "No—for a first simple test, the statistics from Ads Manager and the affiliate program are sufficient",
+      "Yes—the tracker protects against bans",
+      "It depends on the budget"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation A — Katya:\nInitial tests, one offer for a cream, $100 budget per test.\n\nSituation B — Alexey:\nExperienced, nutra-offer (weight-loss capsules). Facebook rejects the ad due to direct claims about weight loss.",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "Who needs a tracker right now?",
+      "options": [
+       "Only for Katya",
+       "Only for Oleksiy—he needs cloaking to get through moderation",
+       "It's the same for both of them",
+       "No one"
+      ],
+      "answer": 1,
+      "restricted": true
+     },
+     {
+      "type": "choice",
+      "q": "What will happen if Alex tries to run an in-offer ad without cloaking?",
+      "options": [
+       "The ad will run, but with a smaller reach",
+       "Posts will be rejected during moderation or blocked after a few hours",
+       "The ad will run normally",
+       "Facebook will automatically replace prohibited content"
+      ],
+      "answer": 1,
+      "restricted": true
+     }
+    ]
+   }
+  },
+  {
+   "id": "m3l5",
+   "code": "3.5",
+   "title": "Spy Tools: How to Analyze Competitors",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Why Look at the Competition?",
+     "body": "You’re not the first person to promote pain relief cream or Nutra-Off. Before you, hundreds of media buyers have already tested various approaches, creatives, copy, and landing pages. Some of them have found profitable combinations.\n\nInstead of starting from scratch, you can look at what’s already working for your competitors and build on the best of it. That’s what **spy tools** are for.\n\nAn important distinction: analyzing competitors’ approaches and using them as a source of ideas is fine. Copying their content word for word is a copyright violation and ineffective (Facebook’s algorithm already recognizes that video or image).",
+     "restricted": false
+    },
+    {
+     "title": "What to Look for in Spy Tools",
+     "body": "**Long-running ads** — ads that run for 30+ days. An advertiser doesn’t keep running unprofitable ads for months on end. A long-running ad = almost certainly a profitable ad group. This is the most valuable information.\n\n**Patterns in Successful Creatives:**\nReview 10–20 long-runners in your niche. What patterns do you see:\n- What type of hook (a question? highlighting a pain point? a result?)\n- What format (video? image? duration?)\n- What kind of character (a woman over 40? a doctor? an everyday person?)\n- What words and phrases are used in the copy\n- What’s the approach to proving the claim (testimonials? statistics? before-and-after?)\n\n**Analysis rule:** If 8 out of 10 successful creatives in the niche start with a question to the audience—it’s not a coincidence; it’s a proven approach. Test it.",
+     "restricted": false
+    },
+    {
+     "title": "Tools 2025–2026",
+     "body": "**Meta Ad Library** — free. All active ads on Facebook and Instagram. Search by keyword, country, and media type. It’s enough to get started and perform a basic analysis of your niche.\n\nHow to use it: facebook.com/ads/library → select a country → select \"All ads\" → enter a keyword (“back cream,” “knee pain,” “slim,” etc.) → browse active ads → pay attention to the start date (the older, the better).\n\n**AdHeart** — the CIS community’s main spy tool for Meta. It saves and indexes ads from Facebook, Instagram, Messenger, and the Audience Network. It features a convenient keyword search and the ability to filter by country and duration.\n- Free: 5 searches/day (registration required)\n- Paid: starting at ~$53–90/month\n\n**AdSpy** — the largest database of Facebook ads. Detailed filters, including comments and engagement. $149/month, Meta only.\n\n**Minea** — More focused on e-commerce and dropshipping; covers Facebook, TikTok, and Pinterest. Starting at $49/month.\n\nDetailed comparison — [→ Library: Spy Tools]",
+     "restricted": false
+    },
+    {
+     "title": "Algorithm for Working with Spy Tools",
+     "body": "1. Find 10–15 long-standing players in your niche\n2. Identify recurring patterns (hook type, format, character, approach to proving a point)\n3. Formulate a hypothesis: “In this niche, a 20–30-second video format with a pain-based hook followed by testimonials at the end works well”\n4. Create your own creative content based on this principle with a fresh take (new person, new script, new editing)\n5. Test it",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "The ad in the spy tool has been running nonstop for 8 weeks now. What does that mean?",
+     "options": [
+      "The advertiser forgot to turn it off",
+      "The ad is most likely profitable—loss-making ones are taken down much faster",
+      "The audience is saturated with this product",
+      "We need to create an exact copy of this ad"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "After analyzing 12 ads in this niche, 9 of them begin with a question directed at the audience. Conclusion:",
+     "options": [
+      "The question is a bad idea; competitors are just copying each other",
+      "The hook resonates well with this audience—it's worth testing",
+      "You need to do the opposite—no question about it",
+      "These questions are required under Facebook's rules"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nA media buyer found three ads via the Meta Ad Library:\n- A: Active for 1 week, image, text: \"30% off today only\"\n- B: Active for 3 months, 25-second video; a woman aged 55+ who cannot bend over → applies cream → moves freely\n- C: Active for 2 weeks, carousel with product photos; no longer active",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "Which ad is most valuable for analysis?",
+      "options": [
+       "A — the freshest",
+       "B — 3 months is a long-term investment; it's almost certainly a profitable combination",
+       "B — The carousel provides more information",
+       "They are all equally useful"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "What should a media buyer do after analyzing Ad B?",
+      "options": [
+       "Upload a video and play it from your account",
+       "Understand the concept (the hook is physical pain, before/after, a woman over 55) and create your own video using the same concept but with a different person and new script",
+       "Contact the advertiser",
+       "Check if this offer is available on affiliate networks"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m3l6",
+   "code": "3.6",
+   "title": "Domains, Hosting, and Landing Pages: The Technical Foundation",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Why Do You Need Your Own Domain and Hosting?",
+     "body": "For your first tests, you can use the landing page provided by the affiliate network—a direct link to their website. This is the easiest way to get started.\n\nBut as soon as you want to:\n- Test your own pre-landing page or landing page\n- Have full control over the conversion page\n- Track traffic\n- Install a pixel on your landing page\n\n— you’ll need your own domain and hosting.",
+     "restricted": false
+    },
+    {
+     "title": "Domain for arbitrage",
+     "body": "**Domain** — a website’s address. For arbitrage, it’s important to note:\n\n**Clean domain:** The domain must not be on Facebook’s ban list. If suspicious ads were previously run from this domain, Facebook may automatically reject new ads with that link.\n\nHow to check: Facebook Sharing Debugger (developers.facebook.com/tools/debug)—paste the URL to see if there are any issues. If the domain is clean and the link preview displays normally, you can run the ad.\n\n**Natural Name:** Avoid names like “super-mega-cheap-cream-buy-now.com.” The landing page should look like a real website, not a spam page.\n\n**Appropriate top-level domain:** For a Polish audience, .pl or a neutral .com is best; for a Romanian audience, .ro or .com. The .ru domain may raise suspicion among the audience and on Facebook.\n\n**Where to buy:** GoDaddy, Namecheap, ukraine.com.ua. Prices range from $1–15/year depending on the domain extension.",
+     "restricted": false
+    },
+    {
+     "title": "Hosting for a landing page",
+     "body": "**Hosting** — a server where your website is stored and from which it is loaded.\n\n**Load speed** is critically important for a landing page. Every extra second reduces conversion rates. Data: a page that loads in 1 second vs. 3 seconds—the difference in conversion rates can be 20–30%.\n\nSpeed goals:\n- Up to 2 seconds — excellent\n- 2–3 seconds — acceptable\n- 3–5 seconds — noticeable drop in conversion rate\n- 5+ seconds — critical; most mobile users will leave\n\nHow to ensure speed: Choose a hosting provider with servers in the same geographic region as your audience. A landing page for a Polish audience on a Polish or Central European server will load significantly faster than on an American or Asian server.\n\n**How to check speed:** Google PageSpeed Insights (pagespeed.web.dev)—free, provides a score and specific recommendations. GTmetrix—more detailed analysis.",
+     "restricted": false
+    },
+    {
+     "title": "Where to Get Lendys",
+     "body": "- **From an affiliate network** — the easiest way to get started. The affiliate network provides ready-made landing pages for each offer. It’s ideal for your first test.\n- **Landing page builders** — Tilda, LPgenerator, and similar tools. Drag-and-drop; no coding knowledge required. Starting at ~$12–20/month.\n- **Customizing someone else’s landing page** — I used a spy tool to find a successful landing page, downloaded the HTML, and adapted the text and images. Basic knowledge of HTML is required.\n- **Web developer** — commission a custom landing page. More expensive but offers maximum control.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "Why should you check your domain using the Facebook Sharing Debugger before launching?",
+     "options": [
+      "To find out how many people visited the website",
+      "To make sure the domain isn't on Facebook's blocklist and the ad isn't rejected because of the link",
+      "To speed up page loading",
+      "Facebook automatically optimizes landing pages"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "A newcomer is testing their first offer, and the affiliate program has provided a landing page. What’s the easiest thing to do?",
+     "options": [
+      "Create your own landing page on Tilda right away",
+      "Order a landing page from a web designer",
+      "Direct traffic to the affiliate program's landing page—that's enough for the first test",
+      "Be sure to install Keitaro before running the program"
+     ],
+     "answer": 2,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nA media buyer created a pre-launch site, registered the domain \"buy-super-cream-cheap-now.ru,\" and uploaded it to a U.S. hosting provider. He plans to drive traffic to a Polish audience.",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "What's the problem with the domain?",
+      "options": [
+       "The domain name is too long",
+       "The name looks like spam, and the .ru domain may raise suspicion among Polish audiences and on Facebook",
+       "The domain is not registered in Poland",
+       "There are no problems"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "What's the problem with the hosting?",
+      "options": [
+       "U.S. web hosting providers are blocking traffic from Poland",
+       "The server is far from the Polish audience—the landing page will load slowly, and the conversion rate will drop",
+       "The American hosting service does not support the Polish language",
+       "No problem—hosting doesn't affect the CR"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m3l7",
+   "code": "3.7",
+   "title": "Payment Instruments",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Why a payment method is important",
+     "body": "A card linked to an advertising account isn’t just a payment method. It’s another factor in the account’s trust score and a potential risk if you choose it irresponsibly.\n\nFailed payment (declined card) → ads stop running → trust score drops → spending limits are reduced. A shared card used for multiple accounts → if one account is banned, Facebook may block the others due to the linked payment method.",
+     "restricted": false
+    },
+    {
+     "title": "Types of Payment Instruments",
+     "body": "**Physical bank card**\nPros: simplicity. Cons: tied to a specific person; if the account is banned, the card may end up on a ban list and complicate operations with other accounts.\n\n**Virtual Card**\nGenerated online without a physical card. You can quickly issue a new one if there are issues. Popular options: Revolut, Stripe, and various fintech services.\n\nNote: Facebook may accept certain types of virtual cards inconsistently or not at all. You’ll need to test specific providers.\n\n**Specialized services for arbitrageurs**\nPlatforms where you can quickly issue cards for specific advertising accounts. Convenient when working with a large number of accounts. For details — [→ Library: Payment Tools]",
+     "restricted": false
+    },
+    {
+     "title": "Rules for Using Payment Instruments",
+     "body": "**One card — one advertising account.** Never use one card for multiple accounts. If one account gets banned, the others are at risk because they share the same payment method.\n\n**Always keep funds on your card.** Check your balance in the morning and in the evening. Pay special attention during the evening peak (4:00 PM–8:00 PM)—spending increases, and you may unexpectedly approach the deduction threshold without sufficient funds on your card.\n\n**Card GEO.** For some GEO accounts, it’s better to use a card from the same region. However, international Visa/Mastercard cards are usually accepted without any issues.\n\n**Card balance.** Keep at least twice the current billing threshold on your card. If the threshold is $25, keep at least $50 to avoid a situation where your card is charged but has no funds.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "Why can't you use the same card for multiple advertising accounts?",
+     "options": [
+      "Facebook technically allows only one account per card",
+      "If one Facebook account is banned, Facebook may link and block other accounts due to a shared payment method",
+      "The card won't be able to handle a heavy load",
+      "This increases the cost of advertising"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "The media buyer didn't check the card balance, and Facebook tried to charge $25 (the billing threshold) overnight, but the card has no funds. What will happen?",
+     "options": [
+      "Facebook will try again tomorrow without any consequences",
+      "Ads will be paused and the account's trust score will drop due to a failed payment",
+      "Ads will continue to run — Facebook is offering a 48-hour grace period",
+      "The account will be permanently blocked immediately"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nMedia buyer Andriy purchased three Polish accounts. He decided:\n- To use one personal Ukrainian credit card for all three\n- To use one rotating mobile proxy for all three\n- To use landing pages from an affiliate network for the initial tests\n- He installed an anti-detection browser — Dolphin{anty}",
+    "situationRestricted": true,
+    "isFinal": true,
+    "questions": [
+     {
+      "type": "multi",
+      "q": "What's wrong with his approach?",
+      "options": [
+       "One card for three accounts—links them together and puts you at risk of being banned",
+       "One proxy for three accounts—links them together",
+       "Affiliate links for initial testing are fine",
+       "Dolphin{anty} — Not suitable for Facebook"
+      ],
+      "answers": [
+       0,
+       1
+      ],
+      "restricted": true
+     },
+     {
+      "type": "choice",
+      "q": "What's the quickest way to fix the proxy issue?",
+      "options": [
+       "Buy three different residential proxies",
+       "Buy three different mobile proxies or connect three phones via iProxy—one for each account",
+       "Use data center proxies—they're cheaper",
+       "You don't need a proxy if you have anti-detection"
+      ],
+      "answer": 1,
+      "restricted": true
+     }
+    ]
+   }
+  }
+ ],
+ "summary": "After completing this module, students will understand:\n\n- What a connection is and how to identify where it breaks\n- Why an anti-detection browser is needed and what a fingerprint is\n- The three types of proxies and why mobile proxies are the gold standard for Facebook\n- When a tracker is needed and what cloaking is\n- How to properly analyze competitors using spy tools\n- Basic technical knowledge: domains, hosting, speed and domain checks\n- Rules for working with payment tools\n\nThe student isn’t running ads yet—but understands the entire infrastructure required to do so.\n\n**Next module:** Offers and affiliate networks—how to find them, read the terms, and choose your first offer."
+}

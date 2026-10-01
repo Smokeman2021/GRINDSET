@@ -1,0 +1,686 @@
+{
+ "id": "m5",
+ "number": "05",
+ "title": "Facebook Ads Manager: An In-Depth Look",
+ "restricted": false,
+ "finalRestricted": false,
+ "lessons": [
+  {
+   "id": "m5l1",
+   "code": "5.1",
+   "title": "Campaign Goals: Which One to Choose and Why",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Why the Goal Determines Everything",
+     "body": "Choosing a campaign objective is the first and one of the most important steps. The objective determines exactly what Facebook’s algorithm is trying to optimize and which people it targets within your audience.\n\nIf you choose the wrong objective, the algorithm will target the wrong people. You can have perfect creative and a good landing page but still get poor results simply because of the wrong objective.\n\nAs of 2025–2026, Facebook uses the ODAX (Outcomes-Driven Ad Experiences) objective structure. Instead of the old 11 objectives, there are now 6 main ones:",
+     "restricted": false
+    },
+    {
+     "title": "Six Facebook Ads Goals for 2025–2026",
+     "body": "**1. Awareness**\nShow ads to as many people as possible. Facebook optimizes for reach and impressions. It does not optimize for clicks or conversions. Not used for arbitrage.\n\n**2. Traffic**\nDrive people to a website or app. Facebook optimizes for clicks. Pros: easier to set up (doesn’t require a configured conversion pixel). Cons: the algorithm targets people who click—not necessarily those who buy.\n\nWhen used in arbitrage: warming up a new pixel when there are still very few conversions (fewer than 10–20 per week) and the algorithm cannot learn from conversions.\n\n**3. Engagement**\nMaximize likes, comments, shares, and follows. Not used directly for arbitrage but useful for warming up a Fan Page before launching the main ad campaign.\n\n**4. Leads**\nTwo options: collecting contacts via Facebook’s built-in form (without redirecting to an external site) or via a pixel on the landing page. Suitable for CPL offers that require contact information.\n\n**5. App Promotion**\nInstallations or actions within a mobile app. For arbitrage of mobile games and apps.\n\n**6. Sales — the primary objective for arbitrage**\nFacebook targets people who are most likely to convert on the website. It optimizes for the event you specify in the settings (Lead, Purchase, etc.). A properly configured pixel is required.\n\nThis objective is used for most product and in-app offers.",
+     "restricted": false
+    },
+    {
+     "title": "A Practical Rule for Choosing a Goal",
+     "body": "Choose the objective closest to your desired action:\n- Want leads via a landing page → Sales (Lead event)\n- Want sales with payment → Sales (Purchase event)\n- Want contacts without visiting the website → Leads\n- The pixel is new and there are no conversions → Traffic to warm up the campaign\n\nNever run a conversion campaign using the “Traffic” objective—the algorithm will optimize for clicks rather than purchases. The results will be worse even with the same budget and creative.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "match",
+     "q": "Match the goal with the correct application:",
+     "pairs": [
+      [
+       "Sales",
+       "The main goal of arbitrage is to optimize the website's performance"
+      ],
+      [
+       "Traffic",
+       "Redirect to the website, click-based optimization (pixel warm-up)"
+      ],
+      [
+       "Leads",
+       "Collecting contacts directly via a form on Facebook"
+      ],
+      [
+       "Engagement",
+       "Likes and comments to warm up the FP"
+      ]
+     ],
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "A media buyer launched an ad campaign for a product with the goal of driving traffic rather than sales. What will happen?",
+     "options": [
+      "The result is the same—the key is reaching the right audience",
+      "Facebook will optimize for clicks rather than conversions—there will be traffic, but the CPA will be higher than it could be",
+      "An ad won't run without the right target audience",
+      "CPA will be lower because traffic is cheaper"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nTask A: Generate leads for pain relief cream through a landing page with a form.\nTask B: A new pixel that hasn’t generated any conversions yet. It needs to be warmed up.\nTask C: Collect contact information without redirecting to an external website.",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "What is the goal for Task A?",
+      "options": [
+       "Traffic",
+       "Sales",
+       "Leads",
+       "Awareness"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "The goal for Task B?",
+      "options": [
+       "Sales",
+       "Engagement",
+       "Traffic — Track PageView events while there are no conversions yet",
+       "Awareness"
+      ],
+      "answer": 2,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "The goal for Task B?",
+      "options": [
+       "Sales",
+       "Traffic",
+       "Leads",
+       "Awareness"
+      ],
+      "answer": 2,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m5l2",
+   "code": "5.2",
+   "title": "Audiences: interests, broad, and look-alike",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Why the Audience Decides",
+     "body": "Even the best creative won’t work if it’s targeted at the wrong audience—it’s a waste of money. The right audience with weak creative will yield better results than the wrong audience with perfect creative.\n\nThese three types of audiences require the media buyer to take different approaches to finding the right people.",
+     "restricted": false
+    },
+    {
+     "title": "Audience by Interest",
+     "body": "You manually select the parameters:\n- Demographics: age, gender, location\n- Interests: what a person has liked, what they’re subscribed to, what they’re interested in\n- Behavior: actions on Facebook and beyond\n\nExample for a back pain cream: women aged 40–65 in Poland, with interests in “orthopedics,” “rehabilitation,” “physical therapy,” and “back health.”\n\n**Pros:** You control who sees the ad, and it’s clear which hypothesis is being tested.\n\n**Cons:** The algorithm is limited by your knowledge of the audience. You might choose the wrong interests. The audience size is limited.\n\n**Audience size:** Ideally, 500,000–3 million for most GEOs. Less than 50,000–100,000—Facebook cannot optimize properly (Learning Limited). More than 10 million without data—risk of irrelevant traffic at the start.",
+     "restricted": false
+    },
+    {
+     "title": "Broad Audience (Broad / Open Targeting)",
+     "body": "The only restrictions are location and age. Facebook decides on its own who to show ads to based on all available data and user behavior.\n\nThis is a counterintuitive approach: it seems that fewer restrictions = a less relevant audience. But in 2024–2025, Meta’s algorithm (especially after the Andromeda system updates in 2024) often finds the right people better than manual targeting.\n\nWhy this has become possible: Facebook has accumulated billions of data points on which people buy which products. With a sufficient number of conversions, the algorithm finds similar people more accurately than any manual selection based on interests.\n\n**When “broad” is particularly effective:**\n- A broad product with a mass audience (pain relief cream works for many people)\n- Pixel data is available (at least 20–50 conversions to start training)\n- A geographic region (GEO) with a large audience (Poland—38 million, the U.S.—330 million)\n\n**When “Broad” may not work:**\n- A very niche product (e.g., for a narrow professional audience)\n- A new pixel with no data",
+     "restricted": false
+    },
+    {
+     "title": "Lookalike Audience",
+     "body": "Facebook finds people whose behavior and characteristics are similar to those in your \"seed\" audience.\n\n**Minimum seed audience size:** 100 people from a single country. But for a high-quality lookalike audience, you need 1,000–5,000+ people. With only 50 people, the algorithm cannot identify reliable patterns.\n\n**Lookalike percentage:**\n- 1% — the most similar. Small audience but high relevance\n- 3–5% — larger audience, slightly lower similarity\n- 10% — largest audience, lowest similarity\n\n**What to use as a seed audience:**\n- List of buyers (best)\n- List of people who submitted inquiries\n- Landing page visitors (via pixel)\n- People who interacted with the Fan Page\n\n**Nuance 2025:** Meta’s Advantage+ system is increasingly integrating look-alike functionality automatically. When selecting the “Sales” objective with conversion optimization, Facebook essentially builds something similar to a look-alike audience on its own, but isn’t limited to a specific percentage.",
+     "restricted": false
+    },
+    {
+     "title": "Rule for Testing Audiences",
+     "body": "**One ad set = one audience hypothesis.** Never mix several different approaches in a single ad set—you won’t be able to tell what worked.\n\nTypical structure of an audience test:\n- Ad set A: interests (women aged 40–60, orthopedics + rehabilitation)\n- Ad set B: broad (women and men, ages 35–65)\n- Ad set C: look-alike (1% of the customer base)\n\nEach with the same budget and the same creative. After 3–5 days, compare the CPAs.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "There are 50 buyers in the lookalike audience. Is that enough?",
+     "options": [
+      "Yes—50 customers are enough",
+      "The minimum is acceptable, but the quality will be low—you need 1,000+ for a high-quality look-alike.",
+      "No — Facebook requires a minimum of 10,000",
+      "The size of the database does not affect quality"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "Why are specific audiences tested in separate ad sets?",
+     "options": [
+      "Facebook does not technically allow multiple audiences in a single ad set",
+      "To clearly understand which specific audience produced results and what to optimize next",
+      "Two audiences double the CPM",
+      "The algorithm cannot be optimized for two audiences at the same time"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "The situation: three ad sets, identical creative, and a $7 payout, one week of running:\n\n| Ad Set | Audience | Spend | Conversions | CPA |\n|-------|-----------|---------|-----------|-----|\n| A | Interests (orthopedics, health) | $70 | 5 | $14 |\n| B | Broad (women and men 35–65, PL) | $70 | 11 | $6.4 |\n| C | LAL 1% of 300 buyers | $70 | 7 | $10 |",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "Which ad set is more profitable?",
+      "options": [
+       "Only A",
+       "Only B",
+       "B and C",
+       "All three"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "What should we do about Adset A?",
+      "options": [
+       "Increase the budget—more data will improve",
+       "Turn off — CPA of $14 is twice as high as the $7 payout",
+       "Replace the audience while keeping the creative",
+       "Wait another week"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "Which one should I scale first?",
+      "options": [
+       "B — A look-alike is always of higher quality",
+       "B — the lowest CPA and the most conversions for the same budget",
+       "A — after the audience changed",
+       "All three at the same time"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m5l3",
+   "code": "5.3",
+   "title": "Ad Placements: Where to Show Ads",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "What Are Placements and Why Are They Important?",
+     "body": "**Placement** — a specific location where an ad is displayed. Facebook offers dozens of placements organized into groups. Different placements have different audiences, different CPMs, and different conversion rates.\n\nThe same ad in the Facebook Feed and on the Audience Network can yield CPAs that differ by a factor of 3 to 5—in favor of the Feed. Therefore, managing placements is crucial for optimizing costs.",
+     "restricted": false
+    },
+    {
+     "title": "Key Placements for 2025",
+     "body": "**Facebook Feed** — the Facebook news feed. Largest reach, high conversion rates for most offers. Standard aspect ratio: 1:1 or 4:5. The primary placement for product ads.\n\n**Instagram Feed** — the Instagram feed. Younger audience (18–35), more visual content. Works well for beauty and lifestyle products. Sometimes yields a good CPA for nutrition products.\n\n**Facebook Stories / Instagram Stories** — a vertical, full-screen 9:16 format. Requires separate creative designed specifically for this format. With the right vertical creative, it can deliver a low CPA.\n\n**Reels (Facebook and Instagram)** — short videos. Organic reach, young audience. Requires 9:16 vertical video. A growing platform for advertising.\n\n**Audience Network** — Facebook’s ad network outside its main platforms: partner websites and apps. Very low CPM, but in affiliate marketing, it often generates untargeted traffic and minimal conversions. It’s almost always worth turning off.\n\n**Messenger** — ads in the Messenger app. A niche format, rarely used in arbitrage.",
+     "restricted": false
+    },
+    {
+     "title": "Automatic vs. Manual Placements",
+     "body": "**Advantage+ Placements (automatic)** — By default, Facebook distributes impressions across all available placements on its own. It optimizes for the best results.\n\n**Manual Placements** — You choose which placements to include.\n\nBest practice: Start with Advantage+ Placements. After 3–5 days, check Breakdown → By Placement and see the CPA for each placement. If Audience Network or Stories have a CPA that’s 2+ times higher than Feed, manually disable them in the ad set settings.",
+     "restricted": false
+    },
+    {
+     "title": "An important detail about creative formats and placements",
+     "body": "If your creative is vertical (9:16 for Stories), it may not display correctly or may be cropped in the horizontal Feed. Facebook automatically adjusts the format, but the result is often worse.\n\nThe best approach for scaling is to have different versions of your creative for various formats: 4:5 for the Feed, 9:16 for Stories and Reels. Alternatively, after analyzing the breakdown, keep only those placements where your creative displays correctly.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "Mediabuyer wants to launch a 9:16 vertical video. Which placement is best suited for this?",
+     "options": [
+      "Facebook Feed",
+      "Audience Network",
+      "Stories or Reels",
+      "Messenger"
+     ],
+     "answer": 2,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "The breakdown shows: Audience Network CPA of $45 with a payout of $12. Correct action:",
+     "options": [
+      "Increase the budget—more data will improve",
+      "Disable the Audience Network in the ad set settings",
+      "Move the entire budget to the Audience Network—CPM is lower there",
+      "It's okay—Facebook optimizes itself"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation — Breakdown by placement over 5 days, payout with $8 approval:\n\n| Placement | Spend | Conversions | CPA |\n|-----------|---------|-----------|-----|\n| Facebook Feed | $85 | 13 | $6.5 |\n| Instagram Feed | $40 | 4 | $10 |\n| Stories | $25 | 1 | $25 |\n| Audience Network | $20 | 0 | — |",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "Which placements do you turn off?",
+      "options": [
+       "Only the Audience Network",
+       "Stories and Audience Network",
+       "Instagram Feed, Stories, and Audience Network",
+       "I'm not turning anything off"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "The Instagram Feed generates a CPA of $10 with a payout of $8—a loss. But there are conversions. What should I do?",
+      "options": [
+       "If there are conversions, that means there's an audience",
+       "Turn it off—it's a loss, but you can first test the Instagram Feed with vertical creative separately",
+       "Create a separate ad set using only the Instagram Feed",
+       "Replace \"kreo\" specifically for Instagram"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "numeric",
+      "q": "If the entire $170 budget were spent solely on the Facebook Feed (linear result)—how many conversions would there be, and what would the ROI be?",
+      "fields": [
+       {
+        "label": "Conversions",
+        "answer": 26,
+        "tolerance": 0
+       },
+       {
+        "label": "ROI",
+        "answer": 22.4,
+        "unit": "%",
+        "tolerance": 0.5
+       }
+      ],
+      "explain": "$170/$6.5 ≈ 26 conversions. Payout: 26 × $8 = $208. ROI = ($208 − $170) / $170 × 100% = 22.4%",
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m5l4",
+   "code": "5.4",
+   "title": "Pixels and Events: Configuration and Verification",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Facebook Standard Events 2025",
+     "body": "We’re already familiar with the pixel—the code on a website that tracks actions after a click [→ Lesson 2.1]. Now let’s take a closer look at events.\n\n**Standard Meta Pixel Events (current as of 2025):**\n\n- **PageView** — loading any page. Triggers automatically when the base pixel is installed.\n- **ViewContent** — viewing a specific product or content page.\n- **AddToCart** — adding an item to the cart.\n- **InitiateCheckout** — starting the checkout process.\n- **AddPaymentInfo** — entering payment information.\n- **Purchase** — a completed purchase. The most important event for e-commerce.\n- **Lead** — a completed form, subscription, or request. Key for COD products and CPL offers.\n- **CompleteRegistration** — registration completed. For dating and gambling.\n- **Search** — search on the site.\n- **Contact** — contact (call, chat).\n\n**Key events for COD product arbitrage:**\n1. PageView (landing page visit)\n2. Lead (submitted request)",
+     "restricted": false
+    },
+    {
+     "title": "How to Install a Pixel Correctly",
+     "body": "There are two ways to transmit data: via a browser pixel and via the Conversions API (CAPI).\n\n**Browser pixel:**\nJavaScript code in the `<head>` tag of each landing page. Runs in the user’s browser. Pros: easy to set up. Cons: depends on cookies, ad blockers, and browser privacy settings.\n\nHow to set it up:\n1. Events Manager → Data Sources → Connect New Data Source → Web\n2. Copy the base pixel code\n3. Paste it into the `<head>` of the landing page\n4. Add the Lead event code to the “thank you” page (after the form is submitted)\n\n**Conversions API (CAPI):**\nData is transmitted from the server (not the browser). It is not affected by ad blockers or cookies. It is more reliable and accurate. It is recommended to use it in conjunction with the browser pixel for maximum coverage.\n\nCAPI is more complex to set up (requires server-side integration or services like ConversionAPI Gateway). To get started, the browser pixel is sufficient.",
+     "restricted": false
+    },
+    {
+     "title": "Where to Set the Lead Event Code",
+     "body": "A common mistake: setting the Lead event code when the \"Submit\" button is clicked, rather than after the form has been successfully submitted.\n\nCorrect: The Lead event code should trigger ONLY on the “Thank You for Your Order” page—the page the user sees after the form has been successfully submitted.\n\nIf you set it to trigger on a button click, all clicks will be counted—even if the form wasn’t submitted (due to unfilled fields or a connection error). Facebook will receive incorrect data and optimize incorrectly.",
+     "restricted": false
+    },
+    {
+     "title": "Verifying Correct Operation",
+     "body": "**A simple way:** Go to the landing page, fill out the test form, and check in Events Manager to see if a \"Lead\" event has appeared in real time (under the \"Test Events\" tab).\n\n**Pixel Helper:** a Chrome extension that shows which events are triggering on the page in real time without having to go into Events Manager.\n\n**Verify the data:** If Facebook shows 20 Lead events but the affiliate partner shows only 5 conversions, that’s a sign of a problem. Possible causes: the Lead code is triggered on click rather than after submission; the form sends the event even when fields are left blank; or data isn’t being transferred to the affiliate’s CRM via postback.",
+     "restricted": false
+    },
+    {
+     "title": "Match Rate and Pixel Data Quality",
+     "body": "**Match Rate** — how accurately Facebook can identify the person who performed an action. A higher match rate = a better algorithm.\n\nFactors that increase the match rate:\n- Sending the customer’s email and phone number along with the event (hashed)\n- Using CAPI together with the browser pixel\n- Enabling Advanced Matching in the pixel settings\n\nFor a basic start in arbitrage, this detail is less critical—but it’s useful to know.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "order",
+     "q": "The correct sequence of events for a typical customer journey:",
+     "items": [
+      "PageView",
+      "InitiateCheckout (if available)",
+      "Lead"
+     ],
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "50 clicks in Ads Manager but 0 conversions. The most likely reason:",
+     "options": [
+      "The audience is irrelevant",
+      "The pixel is not sending a Lead event or is configured incorrectly",
+      "The campaign's goal is incorrect",
+      "Creole isn't appealing"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nEvents Manager shows: 200 PageViews per day ✓, 47 Leads. But there are only 12 conversions in the affiliate program.",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "What could explain the difference between 47 leads and 12 conversions?",
+      "options": [
+       "The affiliate program does not track all conversions",
+       "The \"Lead\" event is triggered when the button is clicked, not after the form is successfully submitted—all clicks are counted, including those from unfilled forms",
+       "Facebook counts bots as leads",
+       "It's normal to have differences—there are always differences"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "What's the problem if Facebook thinks there are 47 conversions but there are actually 12?",
+      "options": [
+       "None—more conversions in the dashboard is a good thing",
+       "Facebook is optimized for false data—it looks for people similar to those who \"converted\" but who actually didn't convert. The actual CPA is much worse than what the dashboard shows.",
+       "The affiliate program will reduce the payout",
+       "The problem is only with the reporting"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m5l5",
+   "code": "5.5",
+   "title": "Budgets and Betting Strategies",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Daily vs. Lifetime Budget",
+     "body": "**Daily Budget** — the maximum amount spent in a single day. Facebook may spend up to 125% of the daily budget on certain days (to take advantage of a good opportunity), but on average over a 7-day period, it will not exceed the set amount.\n\nPros: predictability and control. Cons: Facebook can’t “save” spending for the best days of the week.\n\n**Lifetime Budget** — the total amount for the entire campaign duration. Facebook distributes this amount across days on its own, based on projected performance. It may spend more on weekends and less on weekdays if the algorithm determines that’s more effective.\n\nFor arbitrage and testing: a daily budget is more convenient and predictable.",
+     "restricted": false
+    },
+    {
+     "title": "ABO vs. CBO",
+     "body": "**ABO (Ad Set Budget Optimization)** — the budget is set separately for each ad set. You know exactly how much is being spent on each hypothesis.\n\nPros: full control, balanced testing across ad sets.\nUsed for: testing audiences and creatives.\n\n**CBO (Campaign Budget Optimization / Advantage Campaign Budget)** — the budget is set at the campaign level. Facebook automatically allocates it among ad sets based on performance.\n\nPros: The algorithm can identify the best ad set and allocate more of the budget to it.\nCons: During testing, it might spend $90 on one ad set and $3–5 on the rest—making the test results unreadable.\nUsed: When scaling up, once it’s clear that all ad sets are high-performing.\n\n**Rule:** Test with ABO, scale with CBO.",
+     "restricted": false
+    },
+    {
+     "title": "Betting Strategies",
+     "body": "**Lowest Cost** — Facebook spends your budget trying to get the maximum number of results at the lowest possible price. There is no guarantee of a specific CPA.\n\nBest for: launch, testing, most cases. Gives the algorithm maximum freedom.\n\n**Cost Cap** — you set the maximum CPA you’re willing to pay. Facebook tries not to exceed it.\n\nRisk: If the cost cap is too low relative to the market, the ad won’t spend the budget (Facebook can’t find conversions at that price).\n\nUsed: When scaling up and you have a specific target CPA.\n\n**Bid Cap** — a limit on the bid in the auction. A more technical option, for experienced users.\n\n**Rule for beginners:** Lowest Cost + ABO + daily budget. Maximum simplicity and freedom for the algorithm.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "When testing 4 different audiences, you need to know exactly how much is being spent on each one. What type of budget is this?",
+     "options": [
+      "CBO — Facebook will distribute it effectively",
+      "ABO — a separate budget for each ad set provides precise control",
+      "Lifetime — More Cost-Effective for Testing",
+      "There is no difference"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "The cost cap is $4, but the ad hasn't used up the budget for two days now. Why?",
+     "options": [
+      "Technical error",
+      "Facebook isn't finding conversions at $4 or less—the cost cap is too low for the current auction",
+      "The audience has left",
+      "We need to increase the daily budget"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Scenario:\nNewcomer Oleg: one CBO campaign at $100/day, 4 ad sets targeting different audiences, Cost Cap of $3 (he wants to pay no more than $3 per conversion). Payout upon approval is $7.",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "Is there a problem with the $3 cost cap?",
+      "options": [
+       "$3 is too much",
+       "With a market CPA of $6–15, a cost cap of $3 means that Facebook simply won't run the ads—it won't generate conversions at that price.",
+       "Cost Cap cannot be used with CBO",
+       "No problem"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "Is there a problem with CBO when testing audiences?",
+      "options": [
+       "CBO is more expensive than ABO",
+       "Facebook might spend $90 on one audience and $3 on the rest—the test is unreadable",
+       "The CBO does not support more than 3 adsets",
+       "CBO cannot be used for sales purposes"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "How do I set up this test correctly?",
+      "options": [
+       "ABO $25/day per ad set + Lowest Cost",
+       "CBO $100 + Cost Cap $7",
+       "ABO $10/day + Cost Cap $3",
+       "CBO $25 + Lowest Cost"
+      ],
+      "answer": 0,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m5l6",
+   "code": "5.6",
+   "title": "Algorithm Training Phase",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "What Is the Learning Phase?",
+     "body": "When you launch a new campaign or make significant changes, Facebook enters the **Learning Phase**. This is a mandatory initial period during which the algorithm collects data to determine who is most likely to perform the target action.\n\nDuring the learning phase: results are unstable, CPA may fluctuate, and spending is uneven. This is normal and no cause for alarm.\n\n**Meta’s official threshold (2025):** To exit the learning phase, you need approximately 50 conversions over 7 days at the ad set level. Once this threshold is reached, the algorithm stabilizes and results become more predictable.\n\n**The Reality of Arbitrage:** With budgets of $10–20 per day per ad set, achieving 50 conversions per week is nearly impossible. This is normal—the algorithm is still learning, just more slowly. Most media buyers never exit the training phase with small budgets.",
+     "restricted": false
+    },
+    {
+     "title": "Learning Limited",
+     "body": "If Facebook sees that an ad set is unlikely to reach 50 conversions per week, it labels it as “Learning Limited.” This isn’t a disaster—it’s just a signal that:\n- The budget is too small for rapid learning\n- The audience is too narrow (fewer than 50,000–100,000)\n- There are too few conversions\n\nWhen an ad is “Learning Limited,” it continues to run and deliver results—it just takes longer to optimize.",
+     "restricted": false
+    },
+    {
+     "title": "What Kills Learning",
+     "body": "Facebook resets the learning phase (or significantly disrupts it) when:\n- There are significant changes to ad set settings (new audience, new placements)\n- A sudden change in the budget (more than 20–30% at a time)\n- Pausing and restarting a campaign\n- Replacing all ads in an ad set\n\n**What does NOT reset the learning phase:**\n- Adding new ads (not replacing all of them)\n- Minor changes to ad copy\n- Changing the daily budget by up to 20%",
+     "restricted": false
+    },
+    {
+     "title": "Rule of thumb",
+     "body": "Once you've launched an ad set → DON'T touch it for at least 2–3 days (preferably 5 days). Let the algorithm collect initial data.\n\nThe only exception for early intervention:\n- CTR below 0.3% with 1,000+ impressions → the creative clearly isn’t engaging anyone. Replace the creative.\n- Off-target leads from day one → turn it off and give the auto-optimization a second chance tomorrow.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "MediaBuyer changed the audience in an ad set that had been collecting data for 5 days. What will happen?",
+     "options": [
+      "Facebook will retain the data it has collected",
+      "The training will reset and start over—5 days of data will be lost",
+      "The algorithm adapts automatically",
+      "A change in the audience does not affect learning"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "First day: CPA of $22 with a payout of $10. Correct action:",
+     "options": [
+      "Turn it off immediately—the damage is obvious",
+      "Wait 2–3 days—the first day is unstable due to the learning phase",
+      "Increase the budget to speed up learning",
+      "Change the audience"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation: Launched an ad set this morning with a $15/day budget. By evening, $7 had been spent with 0 conversions.\n\nOptions:\n- A: Pause the campaign and rework the creatives\n- B: Increase the budget to $30\n- C: Change the audience\n- D: Pause the ads, set an auto-resume at 12:00 a.m., and check in the morning",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "Which course of action is best?",
+      "options": [
+       "A — React quickly",
+       "B — A larger budget speeds things up",
+       "B — The audience is more important",
+       "G — saves training data and gives you a second chance today without any extra cost"
+      ],
+      "answer": 3,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "Why is B (doubling the budget) incorrect?",
+      "options": [
+       "Facebook does not allow you to change your budget during the campaign",
+       "A sudden change in the budget could disrupt or halt training and result in unreadable data",
+       "A larger budget always leads to worse results at the beginning",
+       "An increase is allowed only after 50 conversions"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m5l7",
+   "code": "5.7",
+   "title": "Test Campaign Structure",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Why Is a Proper Test Structure Important?",
+     "body": "A test without the right structure is a waste of budget that yields no useful data. If you change several things at once and the result improves, you won’t know what made the difference. You won’t be able to replicate that success.\n\n**The golden rule of testing:** one variable at a time. If you want to test the audience, change only the audience. If you want to test the creative, change only the creative.",
+     "restricted": false
+    },
+    {
+     "title": "Audience Test",
+     "body": "**Structure:**\n- 1 campaign (goal: Sales)\n- 3–5 ad sets with different audiences (ABO)\n- 1–2 ads in each ad set (identical)\n- Budget: $10–15/day per ad set\n- Duration: at least 3–5 days, preferably 5–7\n\nWhat we’re testing: which audience yields the lowest CPA with the same creative.",
+     "restricted": false
+    },
+    {
+     "title": "CreO Test",
+     "body": "**Structure:**\n- 1 campaign (goal: Sales)\n- 1 ad set (best audience from the previous test)\n- 3–5 different ads\n- Budget: $15–20/day per ad set\n- Duration: at least 3 days\n\nWhat we’re testing: which creative yields the lowest CPA for the same audience.",
+     "restricted": false
+    },
+    {
+     "title": "Multiple ads in a single ad set",
+     "body": "If there are multiple ads in an ad set, Facebook allocates the budget unevenly. It directs more budget to the ad that received the first clicks or for which performance data is already available.\n\nConsequences:\n- If the creatives are new and unknown to the algorithm, the test may be skewed (one might receive $30 while the other gets $5)\n- If Facebook already knows the performance of one creative (it has been used before), that creative will be prioritized regardless of the quality of the new one\n\nFor a pure A/B test of creatives: place each creative in a separate ad set with an equal budget. If the goal is simply to find the best option with the smallest budget, you can put them all in one ad set and let Facebook make the choice.",
+     "restricted": false
+    },
+    {
+     "title": "Minimum budget for conclusions",
+     "body": "Before pausing an ad set due to poor results, it should have spent at least half of the daily budget.\n\nAt $10/day → at least $5 before drawing any conclusions.\nAt $15/day → at least $7–8.\n\nIdeally, wait a full day or two. With only $2–3 in spending, there simply isn’t enough data to draw any conclusions.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "The media buyer changed the audience, the creative, and the landing page all at once. The result is better. What could he possibly not know?",
+     "options": [
+      "Which audience produced results?",
+      "Which of the three changes contributed to the improvement?",
+      "What is the optimal budget?",
+      "When to stop the test"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "With a budget of $12 per day, when can you start drawing initial conclusions about the ad set?",
+     "options": [
+      "After the first $2 in expenses",
+      "After spending at least $6, and preferably a full day or two",
+      "Only after 50 conversions",
+      "30 minutes after launch"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nOffer: joint cream, GEO Poland, $5 payout upon approval. Budget for the first week: $200.",
+    "situationRestricted": false,
+    "isFinal": true,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "How should I divide up $200?",
+      "options": [
+       "$200 right away for the CreO test",
+       "$100–120 per audience test (3 ad sets at $10/day × 3–4 days) → $80–100 per creative test with the best audience",
+       "$200 per ad set—a larger budget yields better data",
+       "Exactly $50 for each type at a time"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "After testing the audiences: \"broad\" yields a CPA of $6.5 with a payout of $5—a small loss. What's next?",
+      "options": [
+       "Turn off — the offer is not working",
+       "Testing different creatives with the same audience—the best creative can lower the CPA",
+       "Increase the budget—more data will lower the CPA",
+       "Change the offer"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "We found a CPA of $4.2 with a payout of $5—a small profit. What's the next step?",
+      "options": [
+       "Scale up to $200/day right away",
+       "Make sure the results remain stable for 3–5 days, and gradually increase the budget by 15–20% every 2 days",
+       "Test new creatives before scaling them up",
+       "Connect the second offer in parallel"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  }
+ ],
+ "summary": "After completing this module, students will be able to:\n\n- Select the correct campaign objective from the ODAX 2025 framework\n- Set up three types of audiences: interests, broad, and look-alike\n- Review the placement breakdown and disable unprofitable placements\n- Understand how to set up a pixel and where to place the Lead event code\n- Verify that the pixel is working correctly\n- Choose between ABO and CBO, and between Lowest Cost and Cost Cap, depending on the situation\n- Understand the learning phase and refrain from intervening without sufficient data\n- Build the correct test structure: one variable at a time\n\n**Next module:** Creatives and copywriting—how to create creatives that catch people’s attention and drive clicks."
+}
