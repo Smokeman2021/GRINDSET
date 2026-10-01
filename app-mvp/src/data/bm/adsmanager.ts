@@ -391,6 +391,11 @@ export const BM_ADSMANAGER: BmScreen[] = [
     hotspots: [
       { id: 'comments', xPct: 25.53, yPct: 41.99, wPct: 59.79, hPct: 4.03, correct: true, feedback: 'Так — 5 непрочитаних коментарів. Це реальні люди, які написали під постом і чекають на відповідь.' },
       { id: 'see-full-plan', xPct: 77.71, yPct: 51.20, wPct: 6.61, hPct: 3.53, correct: false, feedback: 'Це список рекомендованих Facebook завдань для розкрутки сторінки — не повідомлення від живих людей.' },
+      { id: 'side-ads-manager', kind: 'nav', xPct: 1.19, yPct: 26.48, wPct: 8.73, hPct: 2.90, label: 'Ads Manager', leadsTo: 'ads-list' },
+      { id: 'side-leads-center', kind: 'nav', xPct: 1.19, yPct: 36.70, wPct: 9.26, hPct: 2.77, label: 'Leads Center', leadsTo: 'leads-center-welcome' },
+      { id: 'side-content', kind: 'nav', xPct: 1.19, yPct: 41.61, wPct: 7.28, hPct: 2.77, label: 'Content', leadsTo: 'mbs-content-ad-posts' },
+      { id: 'side-all-tools', kind: 'nav', xPct: 1.19, yPct: 71.62, wPct: 5.95, hPct: 2.77, label: 'All tools', leadsTo: 'mbs-all-tools' },
+      { id: 'side-settings', kind: 'nav', xPct: 1.19, yPct: 90.67, wPct: 5.95, hPct: 2.77, label: 'Settings', leadsTo: 'bs-ad-accounts' },
     ],
   },
   {
@@ -423,6 +428,10 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'billing', kind: 'nav', xPct: 24.14, yPct: 56.00, wPct: 11.90, hPct: 3.53, label: 'Billing & payments', leadsTo: 'billing-overview' },
       { id: 'commerce-manager', kind: 'nav', xPct: 42.59, yPct: 60.28, wPct: 13.23, hPct: 3.53, label: 'Commerce Manager', leadsTo: 'commerce-manager-overview' },
       { id: 'whatsapp-manager', kind: 'nav', xPct: 24.14, yPct: 94.58, wPct: 13.23, hPct: 3.53, label: 'WhatsApp Manager', leadsTo: 'whatsapp-manager-overview' },
+      { id: 'side-home', kind: 'nav', xPct: 1.19, yPct: 18.92, wPct: 6.42, hPct: 2.52, label: 'Home', leadsTo: 'mbs-home' },
+      { id: 'side-leads-center', kind: 'nav', xPct: 1.19, yPct: 40.98, wPct: 9.72, hPct: 2.14, label: 'Leads Center', leadsTo: 'leads-center-welcome' },
+      { id: 'side-content', kind: 'nav', xPct: 1.19, yPct: 46.66, wPct: 7.41, hPct: 2.27, label: 'Content', leadsTo: 'mbs-content-ad-posts' },
+      { id: 'side-settings', kind: 'nav', xPct: 1.19, yPct: 89.79, wPct: 7.41, hPct: 2.27, label: 'Settings', leadsTo: 'bs-ad-accounts' },
     ],
   },
   {
