@@ -303,6 +303,23 @@ export const BM_ADSMANAGER: BmScreen[] = [
     hotspots: [
       { id: 'rule-off-no-leads', xPct: 5.10, yPct: 39.61, wPct: 93.43, hPct: 7.14, correct: true, feedback: 'Так — "выкл без лидов" вимикає адсет, якщо сьогоднішні витрати перевищили поріг, а лідів так і не було. Це і є автопілот проти зливу бюджету.' },
       { id: 'rule-on-all', xPct: 5.10, yPct: 49.35, wPct: 93.43, hPct: 6.49, correct: false, feedback: 'Це протилежне правило — щоранку вмикає назад усе, що стоїть на паузі. Воно не зупиняє злив бюджету, а навпаки.' },
+      { id: 'nav-create-rule', kind: 'nav', xPct: 5.68, yPct: 26.36, wPct: 7.40, hPct: 3.77, label: 'Create rule', leadsTo: 'automated-rules-create' },
+    ],
+  },
+  {
+    id: 'automated-rules-create',
+    section: 'ads-manager',
+    title: 'Автоматизовані правила · Створення',
+    talk: 'Ось як реально збирається правило "выкл без лидов": умова "Spent is greater than $X", і дія вимкнути адсет. Той самий конструктор для будь-якого свого правила — не тільки готового прикладу.',
+    task: 'Яку метрику перевіряє умова цього правила?',
+    image: require('../../../assets/bm/adsmanager/automated-rules-create.png'),
+    imgW: 1527,
+    imgH: 750,
+    hotspots: [
+      { id: 'condition-metric', xPct: 30.71, yPct: 48.53, wPct: 12.70, hPct: 4.27, correct: true, feedback: 'Так — тут обирається метрика умови (зараз "Spent"). Разом з "is greater than $X" це і є перевірка "скільки витрачено".' },
+      { id: 'action-select', xPct: 50.95, yPct: 28.53, wPct: 9.17, hPct: 4.00, correct: false, feedback: 'Це дія ("Select an option") — ЩО зробити, коли умова виконається (напр. вимкнути адсет). Сама метрика перевіряється нижче, в умовах.' },
+      { id: 'close-x', kind: 'nav', xPct: 67.45, yPct: 4.67, wPct: 1.96, hPct: 3.60, label: '✕', leadsTo: 'automated-rules' },
+      { id: 'cancel', kind: 'nav', xPct: 58.94, yPct: 87.33, wPct: 5.24, hPct: 5.73, label: 'Cancel', leadsTo: 'automated-rules' },
     ],
   },
   {
