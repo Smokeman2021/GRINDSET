@@ -349,6 +349,9 @@ export const BM_ADSMANAGER: BmScreen[] = [
     hotspots: [
       { id: 'full-access', xPct: 50.26, yPct: 22.44, wPct: 8.60, hPct: 4.41, correct: true, feedback: 'Так — колонка "Full access" показує, скільки людей можуть повністю керувати саме цим рекламним акаунтом.' },
       { id: 'add-button', xPct: 91.27, yPct: 11.10, wPct: 6.94, hPct: 4.03, correct: false, feedback: '"+ Add" — це додавання нового рекламного акаунта до бізнесу, а не перевірка доступу до існуючого.' },
+      { id: 'nav-billing', kind: 'nav', xPct: 5.62, yPct: 20.43, wPct: 15.21, hPct: 2.77, label: 'Billing & payments', leadsTo: 'billing-overview' },
+      { id: 'nav-pages', kind: 'nav', xPct: 5.62, yPct: 61.03, wPct: 15.21, hPct: 2.77, label: 'Pages', leadsTo: 'bs-pages' },
+      { id: 'nav-instagram', kind: 'nav', xPct: 5.62, yPct: 76.55, wPct: 15.21, hPct: 2.77, label: 'Instagram accounts', leadsTo: 'bs-instagram' },
     ],
   },
   {
@@ -363,6 +366,9 @@ export const BM_ADSMANAGER: BmScreen[] = [
     hotspots: [
       { id: 'my-business', xPct: 23.28, yPct: 22.07, wPct: 73.61, hPct: 5.67, correct: false, feedback: 'Ця сторінка без жодних поміток — нема причин перевіряти її в першу чергу.' },
       { id: 'insiders', xPct: 23.28, yPct: 29.63, wPct: 73.61, hPct: 7.57, correct: true, feedback: 'Так — мітка "Review needed" означає, що Facebook знайшов проблему зі сторінкою і хоче, щоб ти це переглянув.' },
+      { id: 'nav-ad-accounts', kind: 'nav', xPct: 5.62, yPct: 53.09, wPct: 15.21, hPct: 2.65, label: 'Ad accounts', leadsTo: 'bs-ad-accounts' },
+      { id: 'nav-instagram', kind: 'nav', xPct: 5.62, yPct: 64.69, wPct: 15.21, hPct: 2.65, label: 'Instagram accounts', leadsTo: 'bs-instagram' },
+      { id: 'nav-data-sources', kind: 'nav', xPct: 5.62, yPct: 78.82, wPct: 15.21, hPct: 2.65, label: 'Data Sources', leadsTo: 'bs-domains' },
     ],
   },
   {
@@ -377,6 +383,8 @@ export const BM_ADSMANAGER: BmScreen[] = [
     hotspots: [
       { id: 'domain-row1', xPct: 25.00, yPct: 24.59, wPct: 21.69, hPct: 7.82, correct: true, feedback: 'Так — зелена мітка "Verified" під доменом і означає, що Facebook підтвердив, що домен твій.' },
       { id: 'assign-partner', xPct: 48.28, yPct: 31.53, wPct: 9.79, hPct: 4.29, correct: false, feedback: '"Assign partner" — це про доступ для партнерів, а не про статус верифікації самого домену.' },
+      { id: 'nav-instagram', kind: 'nav', xPct: 5.62, yPct: 14.63, wPct: 15.21, hPct: 2.52, label: 'Instagram accounts', leadsTo: 'bs-instagram' },
+      { id: 'nav-billing', kind: 'nav', xPct: 5.62, yPct: 70.87, wPct: 15.21, hPct: 2.52, label: 'Billing & payments', leadsTo: 'billing-overview' },
     ],
   },
   {
@@ -427,7 +435,9 @@ export const BM_ADSMANAGER: BmScreen[] = [
       { id: 'events-manager', kind: 'nav', xPct: 25.46, yPct: 37.58, wPct: 11.90, hPct: 3.53, label: 'Events Manager', leadsTo: 'events-overview' },
       { id: 'billing', kind: 'nav', xPct: 24.14, yPct: 56.00, wPct: 11.90, hPct: 3.53, label: 'Billing & payments', leadsTo: 'billing-overview' },
       { id: 'commerce-manager', kind: 'nav', xPct: 42.59, yPct: 60.28, wPct: 13.23, hPct: 3.53, label: 'Commerce Manager', leadsTo: 'commerce-manager-overview' },
-      { id: 'whatsapp-manager', kind: 'nav', xPct: 24.14, yPct: 94.58, wPct: 13.23, hPct: 3.53, label: 'WhatsApp Manager', leadsTo: 'whatsapp-manager-overview' },
+      // WhatsApp Manager: на цьому акаунті WhatsApp Business Account не підключено (нема що знімати),
+      // тому хотспот без leadsTo — чесно неактивний, а не мертве посилання в нікуди.
+      { id: 'whatsapp-manager', xPct: 24.14, yPct: 94.58, wPct: 13.23, hPct: 3.53 },
       { id: 'side-home', kind: 'nav', xPct: 1.19, yPct: 18.92, wPct: 6.42, hPct: 2.52, label: 'Home', leadsTo: 'mbs-home' },
       { id: 'side-leads-center', kind: 'nav', xPct: 1.19, yPct: 40.98, wPct: 9.72, hPct: 2.14, label: 'Leads Center', leadsTo: 'leads-center-welcome' },
       { id: 'side-content', kind: 'nav', xPct: 1.19, yPct: 46.66, wPct: 7.41, hPct: 2.27, label: 'Content', leadsTo: 'mbs-content-ad-posts' },
@@ -488,6 +498,9 @@ export const BM_ADSMANAGER: BmScreen[] = [
     hotspots: [
       { id: 'full-access', xPct: 50.38, yPct: 24.68, wPct: 8.29, hPct: 4.55, correct: true, feedback: 'Так — "Full access" тут так само, як з рекламними акаунтами і сторінками: кількість людей з повним контролем над цим Instagram-акаунтом.' },
       { id: 'add-button', xPct: 92.79, yPct: 12.08, wPct: 3.95, hPct: 3.51, correct: false, feedback: '"+ Add" підключає НОВИЙ Instagram-акаунт до бізнесу — не показує доступ до вже підключеного.' },
+      { id: 'nav-domains', kind: 'nav', xPct: 5.42, yPct: 17.92, wPct: 13.08, hPct: 2.34, label: 'Domains', leadsTo: 'bs-domains' },
+      { id: 'nav-pages', kind: 'nav', xPct: 5.42, yPct: 21.95, wPct: 13.08, hPct: 2.34, label: 'Pages', leadsTo: 'bs-pages' },
+      { id: 'nav-ad-accounts', kind: 'nav', xPct: 5.42, yPct: 26.10, wPct: 13.08, hPct: 2.34, label: 'Ad accounts', leadsTo: 'bs-ad-accounts' },
     ],
   },
   {
