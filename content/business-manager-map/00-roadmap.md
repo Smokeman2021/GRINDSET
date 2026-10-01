@@ -153,41 +153,58 @@ net|ua|site)$/i`) проходить по всіх текстових вузла
 обмеження по ширині саме для цього виклику.
 
 ## Ads Manager (рекламний кабінет одного акаунта)
+Усе нижче в Explorer (`src/data/bm/adsmanager.ts`) і з'єднано реальними nav-хотспотами,
+якщо не сказано інше — нема більше "знято, але не підключено".
+
 | Розділ | Статус | Примітка |
 |---|---|---|
-| Кампанії (список, порожній) | ✅ | campaigns-empty, демо в застосунку (Бібліотека) |
-| Кампанії (список, заповнений) | 🟡 | campaigns-list знято й узагальнено (Sergey G4), nav-хотспоти приблизні координати, ще не в застосунку |
-| Групи оголошень (список) | 🟡 | adsets-list знято й узагальнено, назви узгоджені з кампаніями, ще не в застосунку |
-| Оголошення (список) | 🟡 | ads-list, координати нав-хотспотів точні (пікселями), фото-креативи закриті плейсхолдером, ще не в застосунку |
-| Створення кампанії · Мета | ✅ | campaign-objective, перезнято 1527×750, nav Cancel/✕/Continue, в Explorer |
-| Створення кампанії · рівень Campaign | ✅ | campaign-settings, перезнято (нове дерево-UI), nav дерево+Close/Next, в Explorer |
-| Група оголошень · рівень Ad set | ✅ | adset-settings, перезнято, nav дерево+Close/Back/Next, в Explorer |
-| Оголошення · рівень Ad | ✅ | ad-settings (новий), nav дерево+Back, Instagram-хендл замінено вигаданим, в Explorer |
-| Група оголошень · Бюджет (старий UI) | 🟡 | adset-budget, task-хотспот точний, ще не підключено до нового ланцюжка, ще не в застосунку |
-| Оголошення · Креатив (Destination/Tracking) | 🟡 | ad-destination + ad-tracking, реальне поле URL parameters для sub_id/click_id, Media/Primary text ще не зняті, ще не в застосунку |
-| Звіти (Ads Reporting) | 🟡 | ads-reporting, task-хотспот на шаблоні Overall Performance, ще не в застосунку |
-| Аудиторії (Custom/Lookalike) | 🟡 | audiences-empty (порожній стан, 3 task-хотспоти: Custom/Lookalike/Saved), ще не в застосунку |
-| Автоматизовані правила | 🟡 | automated-rules, 2 реальні правила з акаунта (вимкнути без лідів / увімкнути все зранку), ще не в застосунку |
-| A/B-тести (Experiments) | 🟡 | ab-test-intro (пояснювальний екран, без реальних тестів на акаунті), ще не в застосунку |
+| Кампанії (список, порожній) | ✅ | campaigns-empty, task-демо в Бібліотеці |
+| Кампанії (список, заповнений) | ✅ | campaigns-list, nav Create/Ad sets/Ads/Breakdown + рейл-іконка ☰/Billing |
+| Групи оголошень (список) | ✅ | adsets-list, nav Create/Campaigns/Ads |
+| Оголошення (список) | ✅ | ads-list, перезнято 1527×750, nav Create/Campaigns/Ad sets/Breakdown + рейл ☰/Billing |
+| Створення кампанії · Мета | ✅ | campaign-objective, nav Cancel/✕/Continue |
+| Створення кампанії · рівень Campaign | ✅ | campaign-settings (нове дерево-UI), nav дерево+Close/Next |
+| Група оголошень · рівень Ad set (Conversion) | ✅ | adset-settings, nav дерево+Close/Back/Next |
+| Оголошення · рівень Ad | ✅ | ad-settings, nav дерево+Back, Instagram-хендл вигаданий |
+| Група оголошень · Аудиторія (Locations/Age) | ✅ | adset-audience, реальний Advantage+ targeting |
+| Група оголошень · Плейсменти | ✅ | adset-placements, реальний Advantage+ placements |
+| Група оголошень · Бюджет (CBO, інша кампанія) | 🟡 | adset-budget, не підключено до нового ланцюжка (дедуп з adset-audience/placements) |
+| Оголошення · Креатив (Destination/Tracking) | 🟡 | ad-destination + ad-tracking, окремі острівці, не підключені |
+| Звіти — хаб шаблонів | 🟡 | ads-reporting, task-хотспот на Overall Performance, не підключено |
+| Звіти · Розбивка по гендеру | ✅ | ads-reporting-gender, реальний Breakdown→Gender (85 лідів, усі Female), з campaigns-list і ads-list |
+| Аудиторії — порожній стан | ✅ | audiences-empty, nav Create a custom audience |
+| Аудиторії · Джерело Custom Audience | ✅ | audiences-custom-source, реальний вибір джерела (Website/Customer list/...) |
+| Аудиторії · Website Custom Audience налаштування | ✅ | audiences-website-custom, реальний retention/events |
+| Автоматизовані правила — список | ✅ | automated-rules, nav Create rule |
+| Автоматизовані правила · Створення | ✅ | automated-rules-create, реальний конструктор умов/дій |
+| A/B-тести (Experiments) | 🟡 | ab-test-intro, острівець |
+| Головне меню кабінету (хаб) | ✅ | main-nav-menu — справжнє меню ☰ Ads Manager (не MBS), веде в Reporting/Audiences/Billing/Events Manager/All tools |
 | Каталог у межах кабінету | ⬜ | |
 
 ## Events Manager / Дані
-| Розділ | Статус | Примітка |
-|---|---|---|
-| Огляд Events Manager | 🟡 | events-overview, реальні датасети/лічильники подій, task-хотспоти (живий vs порожній датасет), ще не в застосунку |
-| Датасет зблизька (якість даних) | 🟡 | pixel-dataset-detail, реальний $ ефект поганого трекінгу, домен сайту затерто, ще не в застосунку |
-| Піксель: підключення сайту | 🟡 | pixel-setup, реальний майстер Connect data → Set up Meta Pixel → Copy base code, назва бізнесу вигадана, ще не в застосунку |
-| Тестування подій (Test events) | 🟡 | pixel-test-events, task-хотспот server vs website перевірка, ще не в застосунку |
-| Набори даних, події, тестування подій | ⬜ | залишок: Connect data (підключення джерела), Actions/History вкладки датасета |
-| Конверсії, налаштовані користувачем | 🟡 | custom-conversions (порожній стан), task-хотспот Measure vs Optimize, ще не в застосунку |
+Весь кластер з'єднаний реальними табами й лівим меню (Overview ↔ Datasets ↔ Test events ↔
+Custom conversions ↔ Connect data).
 
-## Оплата
 | Розділ | Статус | Примітка |
 |---|---|---|
-| Рахунки й оплата (огляд) | 🟡 | billing-overview, реальні суми, назва акаунта й картка замінені вигаданими даними (не блюр), ще не в застосунку |
-| Додавання способу оплати | 🟡 | payment-methods, 8 реальних карток (усі цифри вигадані, mетод "заміни всього рядка" замість точкової заміни цифр), ще не в застосунку |
-| Історія транзакцій | ⬜ | |
-| Кредитні лінії | ⬜ | |
+| Огляд Events Manager | ✅ | events-overview, nav на датасет/Connect data/Custom conversions |
+| Датасет зблизька (якість даних) | ✅ | pixel-dataset-detail, nav Test events tab + ліве меню |
+| Піксель: підключення сайту (Connect data) | ✅ | pixel-setup, nav ✕ назад на Overview |
+| Тестування подій (Test events) | ✅ | pixel-test-events, nav Overview tab + ліве меню |
+| Конверсії, налаштовані користувачем | ✅ | custom-conversions, nav Overview |
+| Набори даних (повний список), Integrations | ⬜ | |
+
+## Оплата (Billing & payments hub)
+Повний хаб: Accounts ↔ Payment methods ↔ Payment activity ↔ Credit lines ↔ Invoices,
+плюс пряма іконка-картка в лівій панелі Ads Manager.
+
+| Розділ | Статус | Примітка |
+|---|---|---|
+| Рахунки й оплата (Accounts, огляд) | ✅ | billing-overview, nav на всі інші таби хабу + рейл-іконка Ads Manager |
+| Способи оплати | ✅ | payment-methods, nav Accounts назад (сам екран — старий UI, 8 карток, вигадані цифри) |
+| Активність оплат (Payment activity) | ✅ | billing-payment-activity, реальна історія транзакцій (порожня в нового акаунта) |
+| Кредитні лінії | ✅ | billing-credit-lines, реальний порожній стан "No credit line allocated" |
+| Інвойси | ✅ | billing-invoices, реальний бізнес-рівень інвойсів |
 
 ## Business Settings (Налаштування бізнесу)
 **Свідоме рішення (2026-09-30):** розділи "Люди", "Ролі й права", "Партнери", і навіть
@@ -203,11 +220,11 @@ email справжніх людей (не власника акаунта, а н
 | Огляд бізнесу | ⬜ | |
 | Люди (User access) | ⛔ | пропущено — реальні імена/email співробітників, див. рішення вище |
 | Ролі й права | ⛔ | пропущено — та сама причина |
-| Рекламні акаунти (список, призначення) | 🟡 | сам список акаунтів (назви затерті) знято, але БЕЗ People-панелі (та сама причина) |
-| Сторінки | 🟡 | bs-pages, список без People-панелі, task-хотспот на "Review needed", ще не в застосунку |
-| Instagram-акаунти | 🟡 | bs-instagram, список без People-панелі (той самий патерн), ще не в застосунку |
+| Рекламні акаунти (список, призначення) | ✅ | bs-ad-accounts, nav Billing/Pages/Instagram accounts (без People-панелі) |
+| Сторінки | ✅ | bs-pages, nav Ad accounts/Instagram accounts/Data Sources |
+| Instagram-акаунти | ✅ | bs-instagram, nav Domains/Pages/Ad accounts |
 | Партнери (Partner access) | ⬜ | |
-| Домени | 🟡 | bs-domains, усі реальні домени затерті (regex-детект по .store/.shop/.online/...), ще не в застосунку |
+| Домени | ✅ | bs-domains, nav Instagram accounts/Billing, домени затерті regex-детектом |
 | Центр безпеки бренду | ⬜ | |
 | Інтеграції | ⬜ | |
 
@@ -215,23 +232,30 @@ email справжніх людей (не власника акаунта, а н
 | Розділ | Статус | Примітка |
 |---|---|---|
 | Commerce Manager (огляд) | ⬜ | |
-| Каталоги товарів | 🟡 | commerce-manager-overview, реальний каталог (ID видно, назва/власник затерті), ще не в застосунку |
+| Каталоги товарів | 🟡 | commerce-manager-overview, реальний каталог (ID видно, назва/власник затерті), острівець (reachable з mbs-all-tools) |
 | Джерела даних каталогу | ⬜ | |
 
 ## Інше
 | Розділ | Статус | Примітка |
 |---|---|---|
-| WhatsApp Manager | ⬜ | на Sergey G4 WhatsApp Business Account не підключено (404 waba_access) — нема чого знімати на цьому акаунті |
-| Meta Business Suite (пости, вхідні) | 🟡 | mbs-home + mbs-content-ad-posts (реальні reels, що крутяться як реклама, мініатюри заблюрені), ще не в застосунку |
-| Leads Center | 🟡 | leads-center-welcome (лише онбординг-екран). Далі НЕ заходили — реальний список лідів містив би справжні імена/телефони покупців, це вже PII сторонніх людей (клієнтів), а не тільки працівників. Та сама причина, що й для "Люди" в Business Settings, але ще суворіше — це не співробітники, а клієнти, які не давали згоди на публікацію. |
+| WhatsApp Manager | ⛔ | на Sergey G4 WhatsApp Business Account не підключено (404 waba_access) — хотспот на mbs-all-tools лишається без leadsTo (чесно неактивний, не мертве посилання) |
+| Meta Business Suite · Головна | ✅ | mbs-home, nav Ads Manager/Leads Center/Content/All tools/Settings через справжній сайдбар |
+| Meta Business Suite (Content/Ad Posts) | 🟡 | mbs-content-ad-posts, reachable з mbs-home/mbs-all-tools, сам ще острівець |
+| Leads Center | 🟡 | leads-center-welcome (лише онбординг-екран, reachable з mbs-home/mbs-all-tools). Далі НЕ заходили — реальний список лідів містив би справжні імена/телефони покупців (PII клієнтів, суворіше за співробітників — вони не давали згоди). |
 
-## Хаб-екран (новий, 2026-09-30)
-"All tools" у Meta Business Suite — це готова мапа буквально всіх інструментів кабінету
-одним списком (Advertise / Manage / Sell products and services). Додано як `mbs-all-tools`
-із 6 nav-хотспотами на вже зняті екрани (Ads Reporting, Automated rules, Events Manager,
-forward-referenced Billing) + 2 форвард-посилання на ще не зняті (Commerce Manager,
-WhatsApp Manager). Це природний "хаб" для майбутньої навігації по застосунку — з нього
-логічно починати тур по кабінету.
+## Хаб-екрани навігації (2026-10-01)
+Два реальні хаби тепер зв'язують усі розділи між собою — раніше `mbs-all-tools` був єдиним
+входом і сам не мав жодного вхідного посилання (технічно недосяжний з головного екрана).
+1. **`main-nav-menu`** — справжнє меню ☰ самого Ads Manager (Campaigns/Ads Reporting/
+   Audiences/Advertising settings/Billing/Events Manager/All tools). Відкривається іконкою
+   ☰ в лівій панелі `ads-list`. Це основний хаб — з нього прямий шлях у 5 розділів.
+2. **`mbs-all-tools`** — мапа інструментів Meta Business Suite (Advertise/Manage/Sell).
+   Reachable через `main-nav-menu` → All tools, і через сайдбар `mbs-home` → All tools.
+   6 nav-хотспотів на вже зняті екрани + сайдбар-хотспоти (Home/Leads Center/Content/
+   Settings → bs-ad-accounts).
+
+Також пряма іконка-картка (Billing) і іконка ☰ в лівій панелі `ads-list`/`campaigns-list` —
+рейл-хотспоти, що відповідають реальним іконкам Facebook, не вигаданим кнопкам.
 
 ## Порядок роботи
 1. Обираємо один розділ зі статусом ⬜/🟡.
