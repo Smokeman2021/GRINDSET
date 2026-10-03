@@ -83,7 +83,7 @@ export function BmExplorer() {
 
 const makeStyles = (C: Theme) =>
   StyleSheet.create({
-    screen: { flex: 1, backgroundColor: '#e9edf3' },
+    screen: { flex: 1, backgroundColor: C.bg },
     topBar: {
       flexDirection: 'row',
       alignItems: 'center',
