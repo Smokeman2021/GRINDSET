@@ -7,6 +7,7 @@ import { useT, LANG_LABEL, Lang } from '../src/i18n';
 import { GOAL_LABEL, GOAL_XP, DailyGoal, useStore } from '../src/store';
 import { cardShadow, Theme, useStyles, useTheme } from '../src/theme';
 import { Glow } from '../src/components/Glow';
+import { CHANGELOG, UI_BUILD, loadedAtLabel } from '../src/version';
 
 const GOALS: DailyGoal[] = ['casual', 'regular', 'intense'];
 
@@ -126,6 +127,20 @@ export default function Settings() {
           <Pressable onPress={() => router.push('/diagnostic')} style={styles.link}>
             <Text style={styles.linkTxt}>🧪 Діагностичний тест{s.diagnosticDone ? ' (пройдено)' : ''}</Text>
           </Pressable>
+        </View>
+
+        <Text style={styles.h}>ЩО НОВОГО</Text>
+        <View style={styles.card}>
+          <Text style={styles.label}>Збірка {UI_BUILD} · завантажено о {loadedAtLabel()}</Text>
+          <Text style={[styles.sub, { marginBottom: 8 }]}>Якщо номер не змінився після оновлення — перезапусти сервер "GRINDSET на телефон.bat" і натисни Reload у Expo Go.</Text>
+          {CHANGELOG.map((c) => (
+            <View key={c.build} style={{ marginTop: 6 }}>
+              <Text style={styles.rowTitle}>Збірка {c.build} · {c.date}</Text>
+              {c.items.map((it) => (
+                <Text key={it} style={styles.sub}>• {it}</Text>
+              ))}
+            </View>
+          ))}
         </View>
 
         <Text style={styles.h}>ПРО ЗАСТОСУНОК</Text>

@@ -21,6 +21,7 @@ import { masteredCount } from '../../src/data/srs';
 import { statsOf, useStore } from '../../src/store';
 import { cardShadow, Theme, useStyles, useTheme } from '../../src/theme';
 import { Glow } from '../../src/components/Glow';
+import { UI_BUILD, loadedAtLabel } from '../../src/version';
 
 function lessonTitle(id: string): string {
   if (id === 'mistakes') return 'Надолуження помилок';
@@ -73,6 +74,9 @@ export default function Profile() {
       <TopBar title={t('titleProfile')} />
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 40 }}>
         <View style={styles.hero}>
+          <View style={styles.build}>
+            <Text style={styles.buildTxt}>збірка {UI_BUILD} · {loadedAtLabel()}</Text>
+          </View>
           <Pressable onPress={() => router.push('/settings')} style={styles.gear} hitSlop={10}>
             <Text style={styles.gearTxt}>⚙️</Text>
           </Pressable>
@@ -264,6 +268,8 @@ const makeStyles = (C: Theme) => StyleSheet.create({
   hero: { alignItems: 'center', marginBottom: 6 },
   gear: { position: 'absolute', right: 0, top: 0, zIndex: 2, width: 42, height: 42, borderRadius: 21, backgroundColor: C.panel, borderWidth: 2, borderColor: C.line, alignItems: 'center', justifyContent: 'center', ...cardShadow(C, 'sm') },
   gearTxt: { fontSize: 20 },
+  build: { position: 'absolute', left: 0, top: 4, zIndex: 2, backgroundColor: C.panel, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: C.line },
+  buildTxt: { color: C.muted, fontSize: 10, fontWeight: '700' },
   badge: {
     position: 'absolute',
     right: -2,
