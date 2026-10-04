@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../store';
 import { cardShadow, Theme, useStyles, useTheme } from '../theme';
 import { Icon, IconName } from './Icon';
+import { UI_BUILD } from '../version';
 
 // Верхня панель показників: стрік, XP, коїни, енергія. Тап по коїнах/енергії веде в магазин.
 export function TopBar({ title = 'FB АРБІТРАЖ' }: { title?: string }) {
@@ -15,6 +16,7 @@ export function TopBar({ title = 'FB АРБІТРАЖ' }: { title?: string }) {
   const { streak, xp, coins, energy } = useStore();
   return (
     <View style={[styles.bar, { paddingTop: insets.top + 10 }]}>
+      <Text style={styles.ver}>b{UI_BUILD}</Text>
       <Text style={styles.course}>{title}</Text>
       <Stat color={C.fireTxt} icon="streak" value={streak} />
       <Stat color={C.blueTxt} icon="xp" value={xp} />
@@ -45,6 +47,7 @@ const makeStyles = (C: Theme) => StyleSheet.create({
     borderBottomWidth: 1,
     backgroundColor: C.bg,
   },
+  ver: { position: 'absolute', left: 6, top: 2, color: C.muted, opacity: 0.7, fontSize: 8, fontWeight: '800' },
   course: { color: C.muted, fontWeight: '700', fontSize: 12, marginRight: 'auto' },
   stat: {
     flexDirection: 'row',

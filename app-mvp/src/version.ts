@@ -1,10 +1,15 @@
 // Номер збірки інтерфейсу. Збільшуємо при КОЖНІЙ видимій зміні й дописуємо рядок у CHANGELOG.
 // Гравець бачить цей номер у Профілі й Налаштуваннях — так одразу зрозуміло, чи телефон отримав нову версію.
-export const UI_BUILD = 8;
+export const UI_BUILD = 9;
 
 export const LOADED_AT = new Date();
 
 export const CHANGELOG: { build: number; date: string; items: string[] }[] = [
+  {
+    build: 9,
+    date: '2026-10-04',
+    items: ['Номер збірки (b9) тепер у верхньому лівому куті кожного екрана'],
+  },
   {
     build: 8,
     date: '2026-10-04',
