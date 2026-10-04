@@ -1,3 +1,4 @@
+import type { BoxShadowValue } from 'react-native';
 import { useMemo } from 'react';
 import { useStore } from './store';
 
@@ -95,15 +96,31 @@ export const DAY: Theme = {
 export const THEMES: Record<ThemeName, Theme> = { night: NIGHT as Theme, day: DAY };
 
 // М'яка глибина під картками: у Ночі — розмите світіння, у Дні — короткий чіткий відступ (як у Duolingo)
-export function cardShadow(C: Theme, size: 'sm' | 'md' | 'lg' = 'md') {
+// Тіні через boxShadow: на Android старі shadowColor/shadowRadius ігноруються (лишається тільки
+// різка сіра elevation, яку на темному фоні не видно), а boxShadow працює на всіх платформах.
+export function rgba(hex: string, a: number): string {
+  const h = hex.replace('#', '');
+  const n = parseInt(h.length === 3 ? h.split('').map((c) => c + c).join('') : h, 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+}
+
+export function cardShadow(C: Theme, size: 'sm' | 'md' | 'lg' = 'md'): { boxShadow: BoxShadowValue[] } {
   const r = size === 'sm' ? 4 : size === 'lg' ? 14 : 8;
-  return {
-    shadowColor: C.shadow,
-    shadowOpacity: C.shadowOpacity,
-    shadowRadius: C.name === 'night' ? r : r / 3,
-    shadowOffset: { width: 0, height: C.name === 'night' ? r / 2 : 2 },
-    elevation: size === 'sm' ? 2 : size === 'lg' ? 8 : 4,
-  } as const;
+  if (C.name === 'night') {
+    return {
+      boxShadow: [
+        { offsetX: 0, offsetY: r / 2, blurRadius: r * 2, color: 'rgba(0,0,0,0.6)' },
+        { offsetX: 0, offsetY: 0, blurRadius: r * 3, color: rgba(C.accent, 0.1) },
+      ],
+    };
+  }
+  return { boxShadow: [{ offsetX: 0, offsetY: 2, blurRadius: Math.max(2, r / 2), color: rgba(C.shadow, 0.14) }] };
+}
+
+export function accentGlow(C: Theme): { boxShadow: BoxShadowValue[] } {
+  return C.name === 'night'
+    ? { boxShadow: [{ offsetX: 0, offsetY: 4, blurRadius: 16, color: rgba(C.accent, 0.5) }] }
+    : { boxShadow: [{ offsetX: 0, offsetY: 2, blurRadius: 4, color: rgba(C.accent, 0.3) }] };
 }
 
 export function useTheme(): Theme {

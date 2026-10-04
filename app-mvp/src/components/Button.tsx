@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, Text, StyleSheet, ViewStyle } from 'react-native';
-import { useTheme, Theme, useStyles } from '../theme';
+import { useTheme, Theme, useStyles, accentGlow } from '../theme';
 
 const EDGE = 5;
 
@@ -19,16 +19,7 @@ export function Button({
 }) {
   const C = useTheme();
   const styles = useStyles(makeStyles);
-  const glow =
-    !disabled && !ghost
-      ? {
-          shadowColor: C.accent,
-          shadowOpacity: C.name === 'night' ? 0.5 : 0.25,
-          shadowRadius: C.name === 'night' ? 12 : 3,
-          shadowOffset: { width: 0, height: C.name === 'night' ? 4 : 2 },
-          elevation: 6,
-        }
-      : null;
+  const glow = !disabled && !ghost ? accentGlow(C) : null;
   return (
     <Pressable
       onPress={onPress}

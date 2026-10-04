@@ -7,7 +7,7 @@ import { useTheme } from '../theme';
 export function Glow({ height = 280 }: { height?: number }) {
   const C = useTheme();
   const { width } = useWindowDimensions();
-  const peak = C.name === 'night' ? 0.18 : 0.12;
+  const peak = C.name === 'night' ? 0.28 : 0.14;
   return (
     <Svg width={width} height={height} style={{ position: 'absolute', top: 0, left: 0 }} pointerEvents="none">
       <Defs>
