@@ -10,6 +10,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { PathNode, NodeKind } from '../../src/components/PathNode';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Lesson } from '../../src/data/lessons';
@@ -212,7 +213,11 @@ export default function Home() {
             <Path d={pathD(LAST)} stroke={C.pathBed} strokeWidth={28} strokeLinecap="round" strokeLinejoin="round" fill="none" />
             <Path d={pathD(LAST)} stroke={C.pathDots} strokeWidth={4} strokeDasharray="2 12" strokeLinecap="round" fill="none" />
             {currentIdx > 0 && (
-              <Path d={pathD(currentIdx)} stroke={C.accent} strokeOpacity={0.9} strokeWidth={10} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              <>
+                <Path d={pathD(currentIdx)} stroke={C.accent} strokeOpacity={C.name === 'night' ? 0.22 : 0.16} strokeWidth={24} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                <Path d={pathD(currentIdx)} stroke={C.accent} strokeWidth={11} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                <Path d={pathD(currentIdx)} stroke="#ffffff" strokeOpacity={0.35} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              </>
             )}
           </Svg>
 
@@ -248,23 +253,15 @@ export default function Home() {
                   style={{ position: 'absolute', left: gx, top: yc + 62 - POSE_H, width: gw, height: POSE_H }}
                   resizeMode="contain"
                 />
-                <Pressable
-                  disabled={!unlocked}
-                  onPress={() => open(quiz.id)}
-                  style={({ pressed }) => [
-                    styles.quiz,
-                    { left: qx, top: qTop },
-                    done && styles.nodeDone,
-                    unlocked && !done && styles.quizOpen,
-                    !unlocked && styles.nodeLock,
-                    pressed && unlocked && styles.nodePressed,
-                  ]}
-                >
-                  <Text style={[styles.quizTxt, unlocked && styles.nodeTxtOn]}>
-                    {done ? '✓' : unlocked ? '?' : '🔒'}
-                  </Text>
-                </Pressable>
-                <Text style={[styles.quizLabel, { left: qx + QUIZ_NODE / 2 - 55, top: qTop + QUIZ_NODE + 4 }]} numberOfLines={2}>
+                <View style={{ position: 'absolute', left: qx, top: qTop }}>
+                  <PathNode
+                    kind={(done ? 'quizDone' : unlocked ? 'quizOpen' : 'quizLocked') as NodeKind}
+                    size={QUIZ_NODE}
+                    disabled={!unlocked}
+                    onPress={() => open(quiz.id)}
+                  />
+                </View>
+                <Text style={[styles.quizLabel, { left: qx + QUIZ_NODE / 2 - 55, top: qTop + QUIZ_NODE + 14 }]} numberOfLines={2}>
                   {quiz.title}
                   {'\n'}⏱ на час · бонус
                 </Text>
@@ -281,39 +278,38 @@ export default function Home() {
             const y = yAt(i);
             return (
               <React.Fragment key={l.id}>
-                <Pressable
-                  disabled={locked}
-                  onPress={() => open(l.id)}
-                  style={({ pressed }) => [
-                    styles.node,
-                    { left: x - NODE / 2, top: y - NODE / 2 },
-                    isCrown ? styles.nodeCrown : done && styles.nodeDone,
-                    !isCrown && current && styles.nodeCur,
-                    locked && styles.nodeLock,
-                    pressed && !locked && styles.nodePressed,
-                  ]}
-                >
-                  <Text style={[styles.nodeTxt, !isCrown && (done || current) && styles.nodeTxtOn]}>
-                    {isCrown ? (locked ? '🔒' : '👑') : done ? '✓' : current ? '▶' : '🔒'}
-                  </Text>
-                </Pressable>
-                <View style={[styles.codeWrap, { left: x - 40, top: y + NODE / 2 + 3 }]}>
+                <View style={{ position: 'absolute', left: x - NODE / 2, top: y - NODE / 2 }}>
+                  <PathNode
+                    kind={(isCrown ? 'crown' : done ? 'done' : current ? 'current' : 'locked') as NodeKind}
+                    size={NODE}
+                    disabled={locked}
+                    onPress={() => open(l.id)}
+                  />
+                </View>
+                <View style={[styles.codeWrap, { left: x - 40, top: y + NODE / 2 + 11 }]}>
                   <Text style={styles.code}>{isCrown ? 'КОРОНА' : l.code}</Text>
                 </View>
-                {current && (
-                  <Text
-                    style={[
-                      styles.chip,
-                      { width: Math.min(W - 16, 300), left: Math.max(0, Math.min(W - Math.min(W - 16, 300), x - Math.min(W - 16, 300) / 2)), top: y + NODE / 2 + 21 },
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {l.title}
-                  </Text>
-                )}
               </React.Fragment>
             );
           })}
+
+          {/* підпис поточного уроку окремим верхнім шаром, щоб не ховався під наступним вузлом */}
+          {!allDone && PATH[firstOpen] && (
+            <View
+              pointerEvents="none"
+              style={{
+                position: 'absolute',
+                alignItems: 'center',
+                width: Math.min(W - 16, 300),
+                left: Math.max(0, Math.min(W - Math.min(W - 16, 300), xAt(firstOpen) - Math.min(W - 16, 300) / 2)),
+                top: yAt(firstOpen) + NODE / 2 + 29,
+              }}
+            >
+              <Text style={[styles.chip, { position: 'relative', maxWidth: '100%' }]} numberOfLines={1}>
+                {PATH[firstOpen].lesson.title}
+              </Text>
+            </View>
+          )}
         </View>
 
         {allDone && (
@@ -435,13 +431,15 @@ const makeStyles = (C: Theme) => StyleSheet.create({
     color: C.accentTxt,
     fontSize: 11,
     fontWeight: '800',
-    letterSpacing: 0.6,
+    letterSpacing: 0.8,
     textAlign: 'center',
     backgroundColor: C.chip,
-    paddingVertical: 7,
-    paddingHorizontal: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     borderRadius: 20,
     overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: C.accentTint,
   },
   node: {
     position: 'absolute',
