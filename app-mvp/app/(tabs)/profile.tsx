@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Switch, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -15,15 +15,12 @@ import { ALL_LESSONS, crownsCompleted } from '../../src/data/modules';
 import { ARCHETYPES, ArchetypeId, avatarStage, avatarFrame } from '../../src/data/avatars';
 import { CharacterAvatar } from '../../src/components/CharacterAvatar';
 import { STAT_DEFS, STAT_MAX } from '../../src/data/stats';
-import { useT, LANG_LABEL, Lang } from '../../src/i18n';
+import { useT } from '../../src/i18n';
 import { say } from '../../src/data/phrases';
 import { masteredCount } from '../../src/data/srs';
-import { askPermission } from '../../src/notifications';
-import { GOAL_LABEL, GOAL_XP, DailyGoal, statsOf, useStore } from '../../src/store';
+import { statsOf, useStore } from '../../src/store';
 import { cardShadow, Theme, useStyles, useTheme } from '../../src/theme';
 import { Glow } from '../../src/components/Glow';
-
-const GOALS: DailyGoal[] = ['casual', 'regular', 'intense'];
 
 function lessonTitle(id: string): string {
   if (id === 'mistakes') return 'Надолуження помилок';
@@ -43,7 +40,6 @@ export default function Profile() {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const [talk, setTalk] = useState(() => say('profile'));
-  const [confirmReset, setConfirmReset] = useState(false);
   const [genderFilter, setGenderFilter] = useState<'m' | 'f'>(s.archetype ? (s.archetype[0] as 'm' | 'f') : 'm');
 
   const prog = levelProgress(s.xp);
@@ -77,6 +73,9 @@ export default function Profile() {
       <TopBar title={t('titleProfile')} />
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 40 }}>
         <View style={styles.hero}>
+          <Pressable onPress={() => router.push('/settings')} style={styles.gear} hitSlop={10}>
+            <Text style={styles.gearTxt}>⚙️</Text>
+          </Pressable>
           <Pressable onPress={pickPhoto}>
             <Avatar photo={s.playerPhoto} name={s.playerName} frame={s.frame} size={104} />
             <View style={styles.badge}>
@@ -246,115 +245,6 @@ export default function Profile() {
             <Text style={styles.hXp}>+{h.xp} XP</Text>
           </View>
         ))}
-
-        <Text style={styles.h}>НАЛАШТУВАННЯ</Text>
-        <View style={styles.box}>
-          <Text style={styles.setLabel}>{t('theme')}</Text>
-          <View style={styles.goalRow}>
-            {(['night', 'day'] as const).map((n) => (
-              <Pressable key={n} onPress={() => s.setTheme(n)} style={[styles.goalBtn, s.theme === n && styles.goalOn]}>
-                <Text style={[styles.goalTxt, s.theme === n && { color: C.onAccent }]}>{t(n === 'night' ? 'themeNight' : 'themeDay')}</Text>
-              </Pressable>
-            ))}
-          </View>
-
-          <Text style={styles.setLabel}>{t('language')}</Text>
-          <View style={styles.goalRow}>
-            {(['uk', 'en', 'ru'] as Lang[]).map((l) => (
-              <Pressable key={l} onPress={() => s.setLang(l)} style={[styles.goalBtn, s.lang === l && styles.goalOn]}>
-                <Text style={[styles.goalTxt, s.lang === l && { color: C.onAccent }]}>{LANG_LABEL[l]}</Text>
-              </Pressable>
-            ))}
-          </View>
-          <Text style={[styles.setSub, { marginBottom: 16 }]}>{t('languageNote')}</Text>
-
-          <Text style={styles.setLabel}>Ціль дня</Text>
-          <View style={styles.goalRow}>
-            {GOALS.map((g) => (
-              <Pressable key={g} onPress={() => s.setDailyGoal(g)} style={[styles.goalBtn, s.dailyGoal === g && styles.goalOn]}>
-                <Text style={[styles.goalTxt, s.dailyGoal === g && { color: C.onAccent }]}>{GOAL_LABEL[g]}</Text>
-                <Text style={[styles.goalSub, s.dailyGoal === g && { color: C.onAccent }]}>{GOAL_XP[g]} XP</Text>
-              </Pressable>
-            ))}
-          </View>
-          <View style={styles.switchRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.setLabel}>Нагадування</Text>
-              <Text style={styles.setSub}>Зранку, ввечері та одне X2-вікно на 10 хвилин посеред дня.</Text>
-            </View>
-            <Switch
-              value={s.notifEnabled}
-              onValueChange={async (v) => {
-                if (v) await askPermission();
-                s.setNotif({ notifEnabled: v });
-              }}
-              trackColor={{ true: C.accent, false: C.line }}
-              thumbColor="#fff"
-            />
-          </View>
-          {s.notifEnabled && (
-            <View style={{ marginBottom: 16 }}>
-              <Text style={styles.setSub}>Ранок</Text>
-              <View style={styles.goalRow}>
-                {['07:00', '08:00', '09:00'].map((t) => (
-                  <Pressable key={t} onPress={() => s.setNotif({ notifMorning: t })} style={[styles.goalBtn, s.notifMorning === t && styles.goalOn]}>
-                    <Text style={[styles.goalTxt, s.notifMorning === t && { color: C.onAccent }]}>{t}</Text>
-                  </Pressable>
-                ))}
-              </View>
-              <Text style={styles.setSub}>Вечір</Text>
-              <View style={styles.goalRow}>
-                {['19:00', '20:30', '22:00'].map((t) => (
-                  <Pressable key={t} onPress={() => s.setNotif({ notifEvening: t })} style={[styles.goalBtn, s.notifEvening === t && styles.goalOn]}>
-                    <Text style={[styles.goalTxt, s.notifEvening === t && { color: C.onAccent }]}>{t}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-          )}
-          <View style={styles.switchRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.setLabel}>Жорстка енергія</Text>
-              <Text style={styles.setSub}>Без 10 енергії нові уроки закриті. Повтори доступні завжди.</Text>
-            </View>
-            <Switch
-              value={s.strictEnergy}
-              onValueChange={s.setStrictEnergy}
-              trackColor={{ true: C.accent, false: C.line }}
-              thumbColor="#fff"
-            />
-          </View>
-          <View style={[styles.switchRow, { marginTop: 16 }]}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.setLabel}>Звуки</Text>
-              <Text style={styles.setSub}>Коротка мелодія на правильну відповідь, помилку, корону й рівень.</Text>
-            </View>
-            <Switch
-              value={s.soundEnabled}
-              onValueChange={s.setSoundEnabled}
-              trackColor={{ true: C.accent, false: C.line }}
-              thumbColor="#fff"
-            />
-          </View>
-        </View>
-
-        <Text style={styles.h}>ІНШЕ</Text>
-        <View style={styles.box}>
-          <Pressable onPress={() => router.push('/plan')} style={styles.link}>
-            <Text style={styles.linkTxt}>🗺️ Мій маршрут</Text>
-          </Pressable>
-          <Pressable onPress={() => router.push('/diagnostic')} style={styles.link}>
-            <Text style={styles.linkTxt}>🧪 Діагностичний тест{s.diagnosticDone ? ' (пройдено)' : ''}</Text>
-          </Pressable>
-          <Text style={styles.disclaimer}>
-            Навчальний контент про performance-маркетинг. Не фінансова порада і не гарантія доходу. Результати залежать від бюджету, ніші та виконання. Політики Meta змінюються: звіряйся з офіційною документацією.
-          </Text>
-          <Pressable onPress={() => (confirmReset ? (s.reset(), router.replace('/')) : setConfirmReset(true))} style={styles.link}>
-            <Text style={[styles.linkTxt, { color: C.redTxt }]}>
-              {confirmReset ? '⚠️ Натисни ще раз: видалити весь прогрес' : '🗑 Скинути прогрес'}
-            </Text>
-          </Pressable>
-        </View>
       </ScrollView>
     </View>
   );
@@ -372,6 +262,8 @@ function StatBox({ label, value }: { label: string; value: string }) {
 
 const makeStyles = (C: Theme) => StyleSheet.create({
   hero: { alignItems: 'center', marginBottom: 6 },
+  gear: { position: 'absolute', right: 0, top: 0, zIndex: 2, width: 42, height: 42, borderRadius: 21, backgroundColor: C.panel, borderWidth: 2, borderColor: C.line, alignItems: 'center', justifyContent: 'center', ...cardShadow(C, 'sm') },
+  gearTxt: { fontSize: 20 },
   badge: {
     position: 'absolute',
     right: -2,

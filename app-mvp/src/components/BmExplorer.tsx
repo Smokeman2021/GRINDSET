@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { View, Image, Pressable, ScrollView, useWindowDimensions, StyleSheet, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import { findBmScreen, BM_SCREENS } from '../data/bm';
 import { Theme, useStyles } from '../theme';
 
@@ -9,6 +10,7 @@ import { Theme, useStyles } from '../theme';
 // натискання активного елемента просто підмінює картинку на іншу (leadsTo) — без переходу на новий
 // роут і без шапки-квізу. Це і є "вбудований Ads Manager", який досліджують руками, а не читають.
 const START_ID = 'campaigns-list';
+const MENU_ID = 'main-nav-menu';
 
 export function BmExplorer() {
   const router = useRouter();
@@ -16,12 +18,22 @@ export function BmExplorer() {
   const styles = useStyles(makeStyles);
   const { width: winW } = useWindowDimensions();
   const [stack, setStack] = useState<string[]>([START_ID]);
-  const [boxW, setBoxW] = useState(Math.min(winW, 640));
+  const [boxW, setBoxW] = useState(Math.min(winW, 1100));
   const scrollRef = useRef<ScrollView>(null);
 
   const currentId = stack[stack.length - 1];
   const screen = useMemo(() => findBmScreen(currentId) ?? BM_SCREENS[0], [currentId]);
-  const boxH = (boxW * screen.imgH) / screen.imgW;
+  // Вузькі довгі знімки (меню, склеєні панелі) не розтягуємо на весь широкий екран — лишаємо читабельну ширину.
+  const drawW = screen.imgW < 700 ? Math.min(boxW, 520) : Math.min(boxW, 1100);
+  const boxH = (drawW * screen.imgH) / screen.imgW;
+
+  // Карту можна крутити в широкий формат; при виході з неї повертаємо портрет, як у решті застосунку.
+  useEffect(() => {
+    ScreenOrientation.unlockAsync().catch(() => {});
+    return () => {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch(() => {});
+    };
+  }, []);
 
   // Довгі "сторінки" (налаштування таргету, креативу) при зміні екрана скролимо назад нагору,
   // щоб не лишати користувача посеред попереднього довгого скріна на новому екрані.
@@ -35,15 +47,24 @@ export function BmExplorer() {
   }, []);
   const back = useCallback(() => setStack((s) => (s.length > 1 ? s.slice(0, -1) : s)), []);
   const home = useCallback(() => setStack([START_ID]), []);
+  const menu = useCallback(() => go(MENU_ID), [go]);
 
   return (
     <View style={styles.screen}>
       <View style={[styles.topBar, { paddingTop: insets.top + 8 }]}>
-        <Pressable onPress={() => (stack.length > 1 ? back() : router.back())} style={styles.topBtn} hitSlop={10}>
-          <Text style={styles.topBtnTxt}>{stack.length > 1 ? '←' : '✕'}</Text>
+        <Pressable onPress={() => router.back()} style={styles.topBtn} hitSlop={10} accessibilityLabel="Вийти з карти">
+          <Text style={styles.topBtnTxt}>✕</Text>
         </Pressable>
+        {stack.length > 1 && (
+          <Pressable onPress={back} style={styles.topBtn} hitSlop={10} accessibilityLabel="Назад">
+            <Text style={styles.topBtnTxt}>←</Text>
+          </Pressable>
+        )}
         <Text style={styles.topTitle} numberOfLines={1}>{screen.title}</Text>
-        <Pressable onPress={home} style={styles.topBtn} hitSlop={10}>
+        <Pressable onPress={menu} style={styles.topBtn} hitSlop={10} accessibilityLabel="Меню кабінету">
+          <Text style={styles.topBtnTxt}>☰</Text>
+        </Pressable>
+        <Pressable onPress={home} style={styles.topBtn} hitSlop={10} accessibilityLabel="На початок">
           <Text style={styles.topBtnTxt}>⟲</Text>
         </Pressable>
       </View>
@@ -54,15 +75,15 @@ export function BmExplorer() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={boxH > 0}
         >
-          <View style={{ width: boxW, height: boxH }}>
-            <Image source={screen.image} style={{ width: boxW, height: boxH }} resizeMode="contain" />
+          <View style={{ width: drawW, height: boxH }}>
+            <Image source={screen.image} style={{ width: drawW, height: boxH }} resizeMode="contain" />
             {screen.hotspots.map((h) => {
               const navigable = !!h.leadsTo;
               const rect = {
                 position: 'absolute' as const,
-                left: (h.xPct / 100) * boxW,
+                left: (h.xPct / 100) * drawW,
                 top: (h.yPct / 100) * boxH,
-                width: (h.wPct / 100) * boxW,
+                width: (h.wPct / 100) * drawW,
                 height: (h.hPct / 100) * boxH,
               };
               return (
