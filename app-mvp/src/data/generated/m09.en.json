@@ -1,0 +1,540 @@
+{
+ "id": "m9",
+ "number": "09",
+ "title": "Accounts, Dopharm, and Security",
+ "restricted": true,
+ "finalRestricted": false,
+ "lessons": [
+  {
+   "id": "m9l1",
+   "code": "9.1",
+   "title": "Account Types and What to Do With Them",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Why Do People Buy Accounts?",
+     "body": "In M02, we already discussed that it’s best to protect your own personal account [→ Lesson 2.1]. In M03, we mentioned that people buy pre-made accounts [→ Lesson 3.2]. Now let’s break down the complete classification and when to use each type.\n\nPeople buy accounts because:\n- A new, self-registered account has minimal trust and very low limits\n- Facebook is suspicious of accounts that start running ads immediately after registration\n- Purchased, pre-set up accounts already have some activity and a higher starting trust score",
+     "restricted": false
+    },
+    {
+     "title": "Autoreg (Autoregistration)",
+     "body": "An account created automatically or manually with no real activity. Minimal trust. Doesn’t last long with aggressive advertising.\n\nTypical auto-registered account: a newly registered profile with no friends, no posts, and a new email address. Facebook detects an “empty” account and treats it with suspicion.\n\nWhere to use: testing new hypotheses where it’s okay to lose an account quickly. As a “warm reserve”—purchased in dozens for rapid rotation.\n\nPrice: $0.35–1.5 depending on the GEO. UA is the cheapest ($0.35–0.87). USA is the most expensive.",
+     "restricted": false
+    },
+    {
+     "title": "A farm account",
+     "body": "An account that has undergone manual or semi-automatic setup: friends have been added (either fake or real accounts), there is organic activity, a Fan Page is present, and several weeks of \"live\" behavior.\n\nThe standard for most arbitrageurs. A balance between price and trust.\n\nPrice: $2–10 depending on GEO, farm quality, and duration.",
+     "restricted": true
+    },
+    {
+     "title": "King (Aged/Old Account)",
+     "body": "The account was registered 1–5+ years ago. It may have real or organically simulated activity during this time. Higher initial trust score, higher initial limits.\n\nUsed for scaling when a stable foundation is needed or for high-cost GEOs where reliability is important.\n\nPrice: $12–26+ depending on the GEO and quality.",
+     "restricted": false
+    },
+    {
+     "title": "PZRD (Passed the advertising defense test)",
+     "body": "An account that has previously been restricted from advertising and has successfully passed Facebook’s review (“rehabilitated”). Facebook has already reviewed this account and confirmed that it is genuine. This increases the initial trust score.\n\nAbbreviation: PZRD — \"Passed advertising review.\" The abbreviation ZRD is also used in the community.\n\nPrice: $4–25+ depending on the GEO. U.S.: $28–50+.",
+     "restricted": false
+    },
+    {
+     "title": "Agency Accounts and BM Rentals",
+     "body": "Instead of buying regular accounts, rent access to whitelisted advertising accounts from Meta Business Partners. Highest trust, minimal bans, and high-quality support.\n\nPrice: 1.5–10% of ad spend + setup fee ($20–100) + often a minimum top-up ($200–500).\n\nNot recommended for beginners due to the cost. Best used when scaling up to $500–1,000 per day.\n\nDetails — [→ Library: Agency Accounts]",
+     "restricted": false
+    },
+    {
+     "title": "What to Choose at the Start",
+     "body": "**First Test:** A farm account targeting the desired GEO ($2–10). Optimal balance between price and trust.\n\n**Scaling:** Add King or PZRD accounts for more stable results.\n\n**Aggressive verticals (nutra, gambling):** Consider King or agency accounts from the start.",
+     "restricted": true
+    }
+   ],
+   "l1": [
+    {
+     "type": "match",
+     "q": "",
+     "pairs": [
+      [
+       "Vehicle Registration",
+       "Minimal trust, consumables"
+      ],
+      [
+       "Pharm-len",
+       "Created with friends and enthusiasm, the Media Buyer Standard"
+      ],
+      [
+       "King",
+       "An old account (1–5+ years old), with a higher starting trust"
+      ],
+      [
+       "PZRD",
+       "Passed Facebook's review following the restrictions"
+      ]
+     ],
+     "restricted": true
+    },
+    {
+     "type": "choice",
+     "q": "First test of a product in Poland, with a budget of $100. Which account should I use?",
+     "options": [
+      "Avtoreg — the cheapest",
+      "Polish Pharmaceuticals — A Balance Between Price and Trust",
+      "King — the highest trust level will yield the best results",
+      "Agent-based — minimal risk"
+     ],
+     "answer": 1,
+     "restricted": true
+    }
+   ],
+   "l2": {
+    "situation": "Media Buyer A: First test, $80 budget, bought an auto-reg for $0.5.\nMedia Buyer B: Scaling a profitable campaign at $200/day. Bought a King account for $20.\nMedia Buyer C: Nutra offer; needs stability; rented an agency account.",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "Who made a suboptimal choice?",
+      "options": [
+       "Media Buyer A — using auto-reg for the first test is risky; it's better to use a farm",
+       "Media Buyer B — King is too expensive",
+       "Mediabuyer B — an agency surplus for Nutri",
+       "Everyone made the right choice"
+      ],
+      "answer": 0,
+      "restricted": true
+     },
+     {
+      "type": "choice",
+      "q": "What risks does Mediabyer A face with the auto-registration feature?",
+      "options": [
+       "Avtoreg does not support the Polish interface",
+       "A low trust level increases the risk of being banned on the first launch—it may not have time to retrieve the data",
+       "The Autoreg cannot be connected to the BM",
+       "Facebook automatically blocks ads from auto-registration sites"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m9l2",
+   "code": "9.2",
+   "title": "Dopharm: Purchased Account",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "What is Dopharm and what is it used for?",
+     "body": "**Dofarm** isn’t about building an account from scratch. It’s about preparing an account you’ve already purchased to run ads. The goal: to minimize suspicious activity and let Facebook see a “real” person before the first ad campaign launches.\n\nWhen you buy an account and log in, Facebook detects a change in device, IP address, and possibly location. If you launch ads immediately afterward, it’s a suspicious signal. The risk of verification or a ban increases dramatically.\n\n“Dofarm” refers to a few days of organic activity, after which the account will be “warmed up” for advertising.",
+     "restricted": true
+    },
+    {
+     "title": "Step-by-Step Guide to Dofarm",
+     "body": "**Day 1 — First Login:**\n- Load your profile in an anti-detection browser with the correct GEO proxy\n- 15–20 minutes of organic activity: scroll through your feed, like posts, leave a few neutral comments\n- Visit 1–2 external sites (Google, a news portal) — this mimics real user behavior\n- Check your account settings: language, time zone, contacts\n- DO NOT log into Business Manager and DO NOT touch any advertising tools\n- Log out. Do not log in again today\n\n**Day 2 — Preparing the Fan Page:**\n- Use the same profile and proxy (always the same one)\n- 15–20 minutes of activity in the News Feed\n- Create a Fan Page based on the offer’s theme (or a broad topic: health, lifestyle)\n- Fill out the Fan Page as completely as possible: profile picture, cover photo, description, address (can be fictional), phone number, hours of operation, category\n- Make 2–3 posts on the Fan Page (can be reposts from other pages or neutral content)\n- DO NOT access Business Manager or advertising tools\n\n**Days 3–4 — Warming Up the Fan Page:**\n- Continue posting to the feed\n- Add another 3–5 posts to the Fan Page\n- If possible, boost the page’s follower count by 100–200 [→ Resource Library: Follower Boost]\n- Run a small ad campaign for the post targeting “Engagement” ($2–3)—this sends the first positive signal to Facebook\n- The last post before launching the main ad campaign—preferably the exact creative you’ll be promoting. Facebook will already have reviewed the text and images before the main launch\n\n**Day 5+ — Launch the ad campaign:**\n- Connect your Business Manager and ad account\n- Link a credit card\n- Start with a small budget ($5–15/day)\n- Don’t jump straight to the maximum",
+     "restricted": true
+    },
+    {
+     "title": "Critical Rules for Dofarm",
+     "body": "**Always use the same profile and proxy.** Never change the proxy for your account during or after the farm. Changing your IP = a red flag.\n\n**Never log in from a real device.** If you created an account on a phone without anti-detection software, Facebook has detected a new device. Risk of verification or a ban.\n\n**Your behavior should look human.** Don’t log in and log out immediately. Scroll through your feed, linger on content, like various posts, and occasionally write comments.\n\n**Account GEO = proxy GEO.** If it’s a Polish account, log in via a Polish proxy. Always.",
+     "restricted": true
+    }
+   ],
+   "l1": [
+    {
+     "type": "order",
+     "q": "The correct order for Dofarm:",
+     "items": [
+      "First entry: organic engagement without ads",
+      "Creating and Filling Out a Fan Page",
+      "Fake Followers and New Posts",
+      "Promoting a post for engagement ($2–3)",
+      "Launch of the main advertising campaign"
+     ],
+     "restricted": true
+    },
+    {
+     "type": "choice",
+     "q": "A media buyer purchased an account and logged into BM on the first day to set up the advertising account. Problem?",
+     "options": [
+      "BM requires phone verification",
+      "A sudden change in behavior—logging in from a new device and immediately using advertising tools—is a red flag for Facebook",
+      "You can only connect the BM after 30 days",
+      "It's no problem if the account was purchased with BM enabled"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nDay 1: Logged in via anti-detect using a Polish proxy, 20 minutes of activity ✓\nDay 2: Same profile, logged into Business Manager, linked an ad account and a credit card ✗\nDay 3: Fan Page, 1 post, launched an ad with a budget of $50/day ✗\nDay 4: Logged in on a phone without anti-detection ✗",
+    "situationRestricted": true,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "multi",
+      "q": "What mistakes?",
+      "options": [
+       "Day 2: BM is too early; I need more physical activity",
+       "Day 3: Little FP preparation, a large budget right away",
+       "Day 4: Logging in from a phone without anti-detection—new device and IP",
+       "Day 1: 20 minutes isn't enough"
+      ],
+      "answers": [
+       0,
+       1,
+       2
+      ],
+      "explain": "Correct: A, B, C",
+      "restricted": true
+     },
+     {
+      "type": "choice",
+      "q": "What will happen after I log in from my phone on Day 4?",
+      "options": [
+       "That's okay—Facebook allows multiple devices",
+       "Facebook may request identity verification or temporarily restrict your account",
+       "The account will be blocked immediately",
+       "Ads will stop, but the account will remain active"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m9l3",
+   "code": "9.3",
+   "title": "Why Users Get Banned and How to Avoid It",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Main Reasons for Bans",
+     "body": "**1. Violations of Advertising Policies**\nProhibited content in creatives or text: medical guarantees (“will cure,” “guaranteed”), negative references to personal characteristics, shocking or manipulative content. Facebook scans automatically and performs manual reviews.\n\n**2. Suspicious Logins**\nChanges in IP address or device, or unusual geographic location. This is why anti-detection measures and a stable proxy are critically important.\n\n**3. Low account trust**\nA new account with no activity, rejected credit cards, and many rejected ads—all of these lower trust and increase the risk of a ban.\n\n**4. Mass complaints from the audience**\nIf people are clicking “Hide Ad” or “Report” en masse, Facebook gets a signal that the ad is irrelevant or annoying. High frequency combined with weak creative → complaints → account issues.\n\n**5. Payment Issues**\nRejected cards, suspicious payment patterns. Failed chargebacks are a serious blow to trust.\n\n**6. Linked Blocked Accounts**\nIf Facebook links an account to one that’s already been banned (due to a shared IP, card, Business Manager, or Fan Page)—the ban can be imposed automatically. That’s exactly why isolating accounts using anti-detection measures and separate proxies is so important.",
+     "restricted": true
+    },
+    {
+     "title": "How to Minimize Risks",
+     "body": "- A stable anti-detection and proxy profile for each account\n- High-quality pre-launch setup\n- Creatives without obvious violations (or cloaking for gray-market offers)\n- A separate account for each account\n- Frequency monitoring—if the frequency rises above 3–4, update the creatives or audience\n- Backup accounts are always ready",
+     "restricted": true
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "Facebook blocked the ad. Text: \"Are you suffering from pain? Our cream will completely cure you in 10 days!\" What violates the rules?",
+     "options": [
+      "\"You're Suffering\" — A Reflection on Pain",
+      "\"Will completely cure\" — a guaranteed medical claim is prohibited",
+      "\"10 days\" — a specific timeframe is a manipulation",
+      "\"Our Cream\" — You Can't Advertise Someone Else's Product"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "Frequency 6.2. What does this mean, and what does it do?",
+     "options": [
+      "Great—the audience will remember it",
+      "The audience is oversaturated—there's a risk of complaints and a drop in CTR; it's time to update your creatives or expand your audience",
+      "Frequency does not affect bans",
+      "Increase the budget to reach new people"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nAndriy:\n- 3 Polish accounts on a single mobile proxy (IP rotation)\n- One credit card for all three\n- Creative: \"Lose 10 kg in a month — clinically proven!\"\n- Identical Fan Pages for all three (copies)\n- Frequency of the main ad set: 6.2",
+    "situationRestricted": true,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "multi",
+      "q": "What factors increase the risk of being banned?",
+      "options": [
+       "One proxy for three accounts—links them together",
+       "One card for three—if one is banned, the others are at risk",
+       "The medical claim \"clinically tested\" + weight loss — a violation of the rules",
+       "Identical Fan Pages — Facebook will detect duplicates",
+       "Frequency 6.2 — Risk of Complaints"
+      ],
+      "answers": [
+       0,
+       1,
+       2,
+       3,
+       4
+      ],
+      "explain": "Correct: all five",
+      "restricted": true
+     },
+     {
+      "type": "choice",
+      "q": "What should be fixed first?",
+      "options": [
+       "Update Creo",
+       "Separate your accounts: a separate proxy and card for each one—if one gets banned, it won't affect the others",
+       "Reduce the budget",
+       "Pause ads for a week"
+      ],
+      "answer": 1,
+      "restricted": true
+     }
+    ]
+   }
+  },
+  {
+   "id": "m9l4",
+   "code": "9.4",
+   "title": "Types of Bans and What to Do Afterward",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Hierarchy of Restrictions",
+     "body": "**Ad rejection** — the least severe situation. A specific ad did not pass moderation. The campaign and account are active.\nAction: Edit the creative or text and resubmit for review. Or file an appeal if you believe it was a mistake.\n\n**Ad Account Restriction** — The ad account has been restricted. The Business Manager and personal account are still active.\nAction: File an appeal via the support form. While you wait, run campaigns from a backup account. The restriction is often lifted after a successful appeal.\n\n**Business Manager Ban** — The BM is blocked, as are all accounts within it.\nAction: The appeal process is more complicated. If unsuccessful—create a new BM using a different personal account.\n\n**Personal account ban**—the most serious situation. It can affect the BM and all accounts.\nAction: File an appeal, but success is not guaranteed.",
+     "restricted": false
+    },
+    {
+     "title": "A Proper Appeal",
+     "body": "- Fill out the form as thoroughly and politely as possible\n- Explain what happened and why you believe the restriction is incorrect\n- Provide specific details: which ads, the reason for the rejection\n- DO NOT write in an aggressive or demanding tone—it reduces your chances\n- Wait 24–72 hours\n- If unsuccessful, try again with different wording\n- If the appeal is unsuccessful, switch to a new account",
+     "restricted": false
+    },
+    {
+     "title": "Rules After a Ban",
+     "body": "**Never try to bypass a ban from the same device and IP address without anti-detection measures and a new proxy.** Facebook will identify you, and your next account will also get banned.\n\n**Working in parallel:** If your advertising account gets banned, launch a backup account immediately. Don’t wait for the appeal result.",
+     "restricted": true
+    }
+   ],
+   "l1": [
+    {
+     "type": "match",
+     "q": "Match the type of constraint with the correct response:",
+     "pairs": [
+      [
+       "Rejection of the Announcement",
+       "Edit and submit for re-moderation"
+      ],
+      [
+       "Ad Account Restrictions",
+       "Appeal + backup account while you wait"
+      ],
+      [
+       "BM Bank",
+       "An appeal or a new BM using a different account"
+      ]
+     ],
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "A media buyer had their ad account banned. They decide to log in from the same laptop without using anti-detection software and create a new account. Is there a problem?",
+     "options": [
+      "A new account requires phone verification",
+      "Facebook recognizes the same device and may automatically block the new account",
+      "You cannot use a new account without an anti-detect tool",
+      "It's no problem if you have a new email address"
+     ],
+     "answer": 1,
+     "restricted": true
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nAt 3:00 a.m., the advertising account was restricted. There is a backup account and two profitable campaigns.",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "order",
+      "q": "The correct procedure:",
+      "items": [
+       "Review the creative and copy that may have violated the rules",
+       "File an appeal",
+       "Set up connections on the backup account",
+       "Check the status of your appeal in 24–48 hours"
+      ],
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "In his appeal, the media buyer wrote: \"Your system made a mistake! My ad is legitimate—unblock my account immediately!\" Problem?",
+      "options": [
+       "The appeal should be longer",
+       "An aggressive tone reduces your chances—an appeal should be polite and constructive",
+       "Appeals must be filed in English only",
+       "No problem—being straightforward helps"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m9l5",
+   "code": "9.5",
+   "title": "Account Portfolio Structure",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "The Principle of Diversification",
+     "body": "If you have just one account and it gets banned, your work comes to a complete halt for several days. If you have a structured setup, the ban on a single account is just a technical issue that can be resolved in 30 minutes.\n\n**Basic structure for a solo media buyer:**\n\n- **Main account** — where profitable campaigns run\n- **Backup account × 1–2** — ready to launch, fully set up, with a linked card. If the main account gets banned, you switch to this one immediately\n- **Test account** — for initial testing of new connections so as not to risk the main account",
+     "restricted": true
+    },
+    {
+     "title": "Isolation Rules in the Account Park",
+     "body": "- Each account is a separate profile in the anti-detection browser\n- Each account has its own proxy\n- Each account has its own card\n- Never share Fan Pages between accounts\n- Keep backup accounts fully farm-ready—do not start farming after a ban",
+     "restricted": true
+    },
+    {
+     "title": "Why the reserve must be prepared in advance",
+     "body": "Dofarm takes 4–5 days. If you start after a ban, that’s 4–5 days of downtime. At $100/day in profit, that’s $400–500 lost.\n\nA ready-to-use backup account = zero downtime in the event of a ban.\n\nRule: Buy new accounts in advance, not after you’ve been banned. When scaling up, always keep 2–3 backup accounts ready.",
+     "restricted": true
+    },
+    {
+     "title": "Teamwork",
+     "body": "When working as a team, each media buyer has their own isolated set of accounts. Never allow two people to access the same account at the same time—Facebook detects different devices and IP addresses, which raises a red flag.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "Why keep backup accounts pre-filled in advance?",
+     "options": [
+      "Dopharm is banned after the ban",
+      "Dopharm takes 4–5 days — ready-to-use supply = zero downtime during the bath",
+      "Facebook blocks new accounts if the old one has been banned",
+      "Pre-made accounts have a higher trust score"
+     ],
+     "answer": 1,
+     "restricted": true
+    },
+    {
+     "type": "choice",
+     "q": "Two media buyers take turns logging into the same account from their computers. Is there a problem?",
+     "options": [
+      "Facebook allows only one admin",
+      "Facebook tracks different devices and IP addresses—suspicious logins, risk of verification, or a ban",
+      "Different computers have different optimization speeds",
+      "It's no problem if both have anti-detection"
+     ],
+     "answer": 1,
+     "restricted": true
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nSolo media buyer, 3 active campaigns, $150/day, all on a single account.",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "The minimum valid structure?",
+      "options": [
+       "One account is enough if it's a good one",
+       "One main account + 1–2 backup accounts with verified profiles + a separate card and proxy for each",
+       "Three accounts—one for each connection",
+       "Five accounts—maximum protection"
+      ],
+      "answer": 1,
+      "restricted": true
+     },
+     {
+      "type": "choice",
+      "q": "I set up all 3 bundles on separate accounts \"for security.\" Is that a problem?",
+      "options": [
+       "Three accounts are more expensive",
+       "If all three are connected via a shared proxy or card, a ban on one could affect the rest",
+       "Facebook limits the number of active accounts to two",
+       "No problem—the right strategy"
+      ],
+      "answer": 1,
+      "restricted": true
+     }
+    ]
+   }
+  },
+  {
+   "id": "m9l6",
+   "code": "9.6",
+   "title": "Cloaking: Why It's Used and How It Works",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "The Mechanics of Cloaking",
+     "body": "In M03, we learned about cloaking [→ Lesson 3.4]. Now let’s take a closer look at how it works.\n\n**Principle:** The tracker (usually Keitaro) analyzes each incoming request and decides what to display:\n- Facebook moderator or bot → “blank page” (harmless content)\n- Real user → real offer\n\n**How a moderator is identified:**\n- IP addresses of Facebook servers and known verification services (constantly updated databases)\n- Browser user-agent (known crawlers and bots)\n- Behavioral patterns: immediate transition without delay, no scrolling, specific viewport dimensions\n- Time between the click and the page opening\n\nCloaking must be constantly maintained—databases of moderators’ IP addresses are updated, and outdated cloaking ceases to filter effectively.",
+     "restricted": true
+    },
+    {
+     "title": "When to Use Cloaking and When Not to",
+     "body": "**Required:**\n- Nutra offers with direct medical claims (Facebook blocks them)\n- Gambling and betting (prohibited in most GEOs)\n- Any ad where the actual content will not pass moderation\n\n**NOT needed:**\n- Product ads — most simple products pass moderation without cloaking\n- White-hat offers (finance, e-commerce, education)\n- Anything where you can write copy that will pass moderation\n\n**For beginners:** Start without cloaking. Test creatives that comply with Facebook’s rules. Learn about cloaking once you move on to gray-area verticals with real-world experience.",
+     "restricted": true
+    },
+    {
+     "title": "Risks of Cloaking",
+     "body": "- Direct violation of Facebook's rules\n- If detected, the account and Business Manager will be banned, and all associated accounts will often be banned as well\n- Requires constant maintenance of cloaking databases\n- Additional costs and complexity",
+     "restricted": true
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "A media buyer is promoting a pain relief cream (product). The ad is passing moderation without any issues. Is cloaking necessary?",
+     "options": [
+      "Yes—it always improves results",
+      "No—if an offer passes moderation without cloaking, then it's unnecessary and only adds to the complexity.",
+      "Depends on GEO",
+      "That's right—without cloaking, Facebook shows ads to moderators"
+     ],
+     "answer": 1,
+     "restricted": true
+    },
+    {
+     "type": "choice",
+     "q": "How does the tracker identify a Facebook moderator?",
+     "options": [
+      "Based on the amount of money on the card",
+      "Based on IP address, user-agent, and behavioral patterns",
+      "By the number of friends on Facebook",
+      "By Internet speed"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nThree offers:\n\nA: Pain relief cream, “Feel relief in a week.” Moderation is normal.\nB: Potency pills. Any direct advertising is rejected.\nC: Weight-loss product with the text “Lose 15 kg in a month.” Rejected. If the text is toned down (“support natural weight loss”), it’s approved.",
+    "situationRestricted": false,
+    "isFinal": true,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "For which type of offer is cloaking most justified?",
+      "options": [
+       "Offer A",
+       "Offer B — Direct advertising isn't possible without cloaking",
+       "Option B — a more lenient wording would suffice",
+       "All three"
+      ],
+      "answer": 1,
+      "restricted": true
+     },
+     {
+      "type": "choice",
+      "q": "Mediabuyer decided to use cloaking for Offer B instead of softened text. What are the risks?",
+      "options": [
+       "It's okay—cloaking is safer",
+       "If detected, the account and BM will be banned, while the toned-down text remains within the rules",
+       "Cloaking lowers the CTR",
+       "The affiliate network will lower the rate"
+      ],
+      "answer": 1,
+      "restricted": true
+     }
+    ]
+   }
+  }
+ ],
+ "summary": "After completing this module, the student will:\n\n- Know the different types of accounts and when to use each one\n- Be able to properly farm a purchased account within 4–5 days\n- Know the main reasons for bans and how to minimize them\n- Understand the different types of restrictions and the correct response to each\n- Be able to build a basic account portfolio\n- Understand cloaking, when it’s necessary, and when there are simpler solutions\n\n**Next module:** Career and the independent buyer."
+}

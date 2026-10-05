@@ -1,0 +1,265 @@
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { TopBar } from '../../src/components/TopBar';
+import { GrindykSay } from '../../src/components/GrindykSay';
+import { CARDS, CATEGORIES, categoryFor, PRICES_AS_OF } from '../../src/data/library';
+import { TERMS } from '../../src/data/glossary';
+import { ADS_MANAGER_TOUR } from '../../src/data/adsManagerTour';
+import { BM_ADSMANAGER } from '../../src/data/bm/adsmanager';
+import { Markdown } from '../../src/components/Markdown';
+import { ScreenHotspot, hotspotFeedback } from '../../src/components/ScreenHotspot';
+import { Calculators } from '../../src/components/Calculators';
+import { INCLUDE_RESTRICTED } from '../../src/data/restricted';
+import { SHOW_MY_NUMBERS } from '../../src/flags';
+import { say } from '../../src/data/phrases';
+import { useT } from '../../src/i18n';
+import { cardShadow, Theme, useStyles, useTheme } from '../../src/theme';
+import { Glow } from '../../src/components/Glow';
+
+export default function Library() {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const t = useT();
+  const params = useLocalSearchParams<{ cat?: string }>();
+  const [talk, setTalk] = useState(() => say('library'));
+  const cats = useMemo(
+    () =>
+      [{ id: 'Калькулятори', icon: '🧮' }, { id: 'Рекламний кабінет', icon: '🖥️' }, { id: 'Словник', icon: '📖' }, ...CATEGORIES].filter(
+        (c) => c.id === 'Калькулятори' || c.id === 'Рекламний кабінет' || c.id === 'Словник' || CARDS.some((k) => k.category === c.id && (INCLUDE_RESTRICTED || !k.risky))
+      ),
+    []
+  );
+  const fromLink = params.cat ? categoryFor(params.cat) : undefined;
+  const [cat, setCat] = useState<string>(fromLink ?? cats[0]?.id ?? '');
+  const [open, setOpen] = useState<string | null>(null);
+  const [bmPicked, setBmPicked] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (fromLink) setCat(fromLink);
+  }, [fromLink]);
+
+  const cards = CARDS.filter((k) => k.category === cat && (INCLUDE_RESTRICTED || !k.risky));
+
+  return (
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <Glow />
+      <TopBar title={t('titleLibrary')} />
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 30 }}>
+        <GrindykSay text={talk.text} pose={talk.pose} height={100} onPress={() => setTalk(say('library'))} />
+
+        {SHOW_MY_NUMBERS && (
+          <Pressable onPress={() => router.push('/numbers')} style={({ pressed }) => [styles.numbers, pressed && { transform: [{ translateY: 2 }] }]}>
+            <Text style={{ fontSize: 26 }}>📈</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.numbersTitle}>Мої цифри</Text>
+              <Text style={styles.numbersSub}>Трекер твоїх кампаній: дані, зміни, поради й нагадування перевірити кабінет</Text>
+            </View>
+          </Pressable>
+        )}
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 12 }} contentContainerStyle={{ gap: 8 }}>
+          {cats.map((c) => (
+            <Pressable key={c.id} onPress={() => setCat(c.id)} style={[styles.chip, cat === c.id && styles.chipOn]}>
+              <Text style={[styles.chipTxt, cat === c.id && { color: C.onAccent }]}>
+                {c.icon} {c.id}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+
+        {cat === 'Калькулятори' && <Calculators />}
+
+        {cat === 'Рекламний кабінет' && (
+          <>
+            <Text style={styles.tourIntro}>
+              Реальні екрани Facebook Ads Manager — точний вигляд, кольори й поведінка, зняті з живого кабінету.
+            </Text>
+            <Pressable onPress={() => router.push('/adsim')} style={styles.simBtn}>
+              <Text style={{ fontSize: 24 }}>🕹️</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.simBtnTitle}>Тренажер кабінету</Text>
+                <Text style={styles.simBtnSub}>5 рішень від старту кампанії до публікації — клікабельно, з реакцією на помилку</Text>
+              </View>
+            </Pressable>
+
+            <View style={styles.bmCard}>
+              <Text style={styles.bmTag}>НОВЕ · СПРАВЖНІЙ СКРІНШОТ</Text>
+              <Text style={styles.simBtnSub}>{BM_ADSMANAGER[0].talk}</Text>
+              <Text style={[styles.simBtnTitle, { marginTop: 8, marginBottom: 8 }]}>{BM_ADSMANAGER[0].task}</Text>
+              <ScreenHotspot screen={BM_ADSMANAGER[0]} picked={bmPicked} onPick={setBmPicked} />
+              {bmPicked && <Text style={styles.bmFeedback}>{hotspotFeedback(BM_ADSMANAGER[0], bmPicked)}</Text>}
+              {bmPicked && (
+                <Pressable onPress={() => setBmPicked(null)} style={styles.bmReset}>
+                  <Text style={styles.bmResetTxt}>Спробувати ще раз</Text>
+                </Pressable>
+              )}
+            </View>
+
+            <Pressable onPress={() => router.push('/bm')} style={styles.simBtn}>
+              <Text style={{ fontSize: 24 }}>🗺️</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.simBtnTitle}>Карта кабінету</Text>
+                <Text style={styles.simBtnSub}>Усі зняті екрани одразу — переходь по кнопках так само, як у живому Ads Manager</Text>
+              </View>
+            </Pressable>
+
+            {ADS_MANAGER_TOUR.map((s) => {
+              const isOpen = open === `ads-${s.id}`;
+              return (
+                <Pressable key={s.id} onPress={() => setOpen(isOpen ? null : `ads-${s.id}`)} style={styles.termRow}>
+                  <View style={styles.head}>
+                    <Text style={styles.termTitle}>{s.title}</Text>
+                    <Text style={styles.arrow}>{isOpen ? '▲' : '▼'}</Text>
+                  </View>
+                  {isOpen && (
+                    <View style={{ marginTop: 8 }}>
+                      <Markdown text={s.body} small />
+                    </View>
+                  )}
+                </Pressable>
+              );
+            })}
+          </>
+        )}
+
+        {cat === 'Словник' &&
+          TERMS.map((t) => {
+            const isOpen = open === `term-${t.id}`;
+            return (
+              <Pressable key={t.id} onPress={() => setOpen(isOpen ? null : `term-${t.id}`)} style={styles.termRow}>
+                <View style={styles.head}>
+                  <Text style={styles.termTitle}>{t.title}</Text>
+                  <Text style={styles.arrow}>{isOpen ? '▲' : '▼'}</Text>
+                </View>
+                {isOpen && <Text style={styles.termDef}>{t.def}</Text>}
+              </Pressable>
+            );
+          })}
+
+        {cards.map((k) => {
+          const isOpen = open === k.id;
+          return (
+            <Pressable key={k.id} onPress={() => setOpen(isOpen ? null : k.id)} style={styles.card}>
+              <View style={styles.head}>
+                <Text style={styles.name}>{k.name}</Text>
+                <Text style={styles.arrow}>{isOpen ? '▲' : '▼'}</Text>
+              </View>
+              <Text style={styles.forWhat}>{k.forWhat}</Text>
+              <Text style={styles.price}>💰 {k.price}</Text>
+              {isOpen && (
+                <View style={{ marginTop: 10 }}>
+                  <Text style={styles.plus}>ТАРИФИ</Text>
+                  {k.pricing.map((p) => (
+                    <Text key={p} style={styles.li}>
+                      • {p}
+                    </Text>
+                  ))}
+                  {k.terms && <Text style={styles.terms}>Умови: {k.terms}</Text>}
+                  <Text style={[styles.plus, { marginTop: 10 }]}>ПЛЮСИ</Text>
+                  {k.pros.map((p) => (
+                    <Text key={p} style={styles.li}>
+                      + {p}
+                    </Text>
+                  ))}
+                  <Text style={[styles.plus, { color: C.redTxt, marginTop: 8 }]}>МІНУСИ</Text>
+                  {k.cons.map((p) => (
+                    <Text key={p} style={styles.li}>
+                      − {p}
+                    </Text>
+                  ))}
+                </View>
+              )}
+            </Pressable>
+          );
+        })}
+
+        <Text style={styles.foot}>
+          Ціни зібрані з відкритих джерел станом на {PRICES_AS_OF} і часто змінюються: перед оплатою перевір сайт сервісу. Інформація довідкова, не реклама і не порада.
+        </Text>
+      </ScrollView>
+    </View>
+  );
+}
+
+const makeStyles = (C: Theme) => StyleSheet.create({
+  tourIntro: { color: C.muted, fontSize: 13, lineHeight: 19, marginBottom: 12 },
+  simBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: C.panel,
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 14,
+    borderWidth: 2,
+    borderBottomWidth: 4,
+    borderColor: C.gold,
+    borderBottomColor: C.goldEdge,
+    ...cardShadow(C, 'sm'),
+  },
+  simBtnTitle: { color: C.txt, fontWeight: '900', fontSize: 15 },
+  simBtnSub: { color: C.muted, fontSize: 12, marginTop: 2, lineHeight: 16 },
+  bmCard: {
+    backgroundColor: C.panel,
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 14,
+    borderWidth: 2,
+    borderColor: C.blue,
+    ...cardShadow(C, 'sm'),
+  },
+  bmTag: { color: C.blueTxt, fontWeight: '900', fontSize: 10, letterSpacing: 1, marginBottom: 6 },
+  bmFeedback: { color: C.txt, fontSize: 13, lineHeight: 19, marginTop: 12, backgroundColor: C.panel2, borderRadius: 10, padding: 10 },
+  bmReset: { alignSelf: 'center', marginTop: 10, paddingVertical: 8, paddingHorizontal: 16 },
+  bmResetTxt: { color: C.blueTxt, fontWeight: '800', fontSize: 13 },
+  termRow: { backgroundColor: C.panel, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14, marginBottom: 6, borderWidth: 2, borderColor: C.line, ...cardShadow(C, 'sm') },
+  termTitle: { color: C.txt, fontWeight: '800', fontSize: 15, flex: 1 },
+  terms: { color: C.goldTxt, fontSize: 12, lineHeight: 18, marginTop: 6 },
+  termDef: { color: C.txt, fontSize: 14, lineHeight: 21, marginTop: 8 },
+  numbers: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: C.panel,
+    borderRadius: 16,
+    padding: 14,
+    marginTop: 12,
+    borderWidth: 2,
+    borderBottomWidth: 4,
+    borderColor: C.accent,
+    borderBottomColor: C.accentEdge,
+  },
+  numbersTitle: { color: C.txt, fontWeight: '900', fontSize: 16 },
+  numbersSub: { color: C.muted, fontSize: 12, marginTop: 2, lineHeight: 16 },
+  chip: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    backgroundColor: C.panel,
+    borderWidth: 2,
+    borderColor: C.line,
+  },
+  chipOn: { backgroundColor: C.accent, borderColor: C.accentEdge },
+  chipTxt: { color: C.txt, fontWeight: '700', fontSize: 13 },
+  card: {
+    backgroundColor: C.panel,
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 2,
+    borderBottomWidth: 4,
+    borderColor: C.line,
+  },
+  head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  name: { color: C.txt, fontWeight: '900', fontSize: 17, flex: 1 },
+  arrow: { color: C.muted, fontSize: 12 },
+  forWhat: { color: C.txt, fontSize: 14, lineHeight: 20, marginTop: 6 },
+  price: { color: C.goldTxt, fontWeight: '700', fontSize: 13, marginTop: 8 },
+  plus: { color: C.accentTxt, fontWeight: '900', fontSize: 11, letterSpacing: 1, marginBottom: 4 },
+  li: { color: C.txt, fontSize: 13, lineHeight: 19, marginBottom: 2 },
+  foot: { color: C.muted, fontSize: 12, textAlign: 'center', marginTop: 12 },
+});

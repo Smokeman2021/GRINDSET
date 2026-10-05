@@ -1,0 +1,600 @@
+{
+ "id": "m4",
+ "number": "04",
+ "title": "Offers and Affiliate Networks",
+ "restricted": false,
+ "finalRestricted": false,
+ "lessons": [
+  {
+   "id": "m4l1",
+   "code": "4.1",
+   "title": "How an affiliate network works from the inside",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "What Happens After Registration",
+     "body": "In M01, we learned about affiliate networks as intermediaries between advertisers and arbitrageurs. Now let’s take a closer look at how they work from the inside—what you’ll see after you sign up and gain access.\n\nEvery affiliate network is a platform with several key elements.",
+     "restricted": false
+    },
+    {
+     "title": "Personal Manager",
+     "body": "This isn't just \"support.\" Your affiliate manager is your partner within the network.\n\nHere's what your manager can do for you:\n- Recommend which offers are currently converting well in your vertical and GEO\n- Increase your payout rate (bump) if you’re showing good results—an extra $1–5 on top of the standard payout is realistic\n- Warn you if an offer is “dying” or changing its terms (it’s better to hear it from your manager than to lose your budget)\n- Increase your caps if you’re scaling up and the standard limit isn’t enough\n- Resolve conversion disputes if there are issues with tracking\n\nYou need to communicate with your manager—not just to ask for things, but also to share your results. “Here are my numbers for the week, here’s what I’m testing, here are my questions”—this kind of communication builds trust and unlocks better terms.",
+     "restricted": false
+    },
+    {
+     "title": "Offer Catalog",
+     "body": "A list of all available offers, with the option to filter by vertical, GEO, payout, and payment model. Each offer has a card with its terms and conditions—details in the next lesson.\n\nSome offers are “closed”—available only to certain partners (usually those who have already demonstrated good results). These are exclusive offers or offers with higher rates.",
+     "restricted": false
+    },
+    {
+     "title": "Hold",
+     "body": "**Hold** — a mandatory period between a conversion and payment. The network holds the funds until the advertiser verifies the quality of the traffic.\n\nWhy it exists: The advertiser has the right to verify that conversions are genuine and not “fake” or off-target traffic. After verification, the network pays the arbitrageur.\n\nThe duration of the hold period depends significantly on the vertical:\n- Nuta/COD: 7–21 days\n- E-commerce: 14–30 days (due to the delivery cycle and possible returns)\n- Finance: 30–60 days\n- Gambling: 14–30 days\n\nActual time until payment = hold period + reconciliation with the advertiser + the network’s net payment term (Net7 = payment 7 days after the end of the week, Net14 = 14 days, etc.).\n\nConclusion: It can take 1–2 months from the moment of conversion to receiving payment. This is critically important for cash flow planning.",
+     "restricted": false
+    },
+    {
+     "title": "Statistics and Payments",
+     "body": "The Partner Dashboard displays the following in real time (or with a slight delay):\n- Number of clicks\n- Number of conversions and their status (Pending / Approved / Rejected)\n- Earned revenue\n- Paid revenue\n- Balance until the next payout\n\nConversion statuses:\n- **Pending** — conversion recorded, awaiting review\n- **Approved** — confirmed, will be paid after the hold period\n- **Rejected** — rejected (non-targeted traffic, duplicate, fraud)\n- **Trash** — clearly fictitious contacts (non-existent numbers, test applications)",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "MediaBuyer has been showing a steady ROI of 55% over the past month. What’s the logical next step with the network manager?",
+     "options": [
+      "It's okay—the manager will offer a raise on his own",
+      "Send a message to your manager, share your results, and ask for a bump (a rate increase)",
+      "Switch to another network with a higher base rate",
+      "Increase the budget without talking to the manager"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "The media buyer received the conversion on Monday. The network is Net14, with a 14-day hold period. When will he actually receive the money?",
+     "options": [
+      "Next Monday",
+      "At least 14 days of hold + up to 14 days of the Net term = up to 28 days",
+      "At the end of this week",
+      "Immediately after the conversion is confirmed"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nMaksym, a newcomer, has just signed up for an affiliate network. The manager wrote: \"Hi, what area are you planning to focus on? Tell us a little about yourself and your experience.\"",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "What is Maxim's correct answer?",
+      "options": [
+       "\"I want to make as much money as possible—please recommend the most profitable offer.\"",
+       "\"Hi! I'm planning to start with a product, targeting Poland or Ukraine. I'm just starting out—I'm learning about arbitrage. I'll be testing small budgets of $100–200. Which offers are currently performing well on Facebook in this niche?\"",
+       "\"I don't have any experience; I just want to give it a try.\"",
+       "Don't reply—I'll find it myself in the catalog"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "Why is it important to be honest with your manager about your level of experience?",
+      "options": [
+       "The network might fail if you lie",
+       "The manager will select suitable offers and set realistic expectations—it's in both of our best interests for you to succeed",
+       "The manager will raise the starting salary for new hires",
+       "This is a requirement of the network rules"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m4l2",
+   "code": "4.2",
+   "title": "How to Read an Offer Card",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Why Learn to Read a Map?",
+     "body": "An offer sheet is a document that outlines the terms and conditions of a campaign. Each parameter affects the actual profitability. A media buyer who doesn’t know how to read the offer sheet correctly risks launching a campaign that’s unprofitable from the start or violating the terms and conditions and not receiving payment.",
+     "restricted": false
+    },
+    {
+     "title": "Key Card Specifications",
+     "body": "**Product Name and Description**\nWhat it is, who it’s for, and what problem it solves. Understand the product before you advertise it.\n\n**Vertical**\nOffer category: e-commerce, health and wellness, gambling, betting, finance, dating, etc.\n\n**GEO**\nCountries where traffic is allowed. Conversions from other GEOs will not be counted. Check that your planned GEO is on the list.\n\n**Payout**\nThe amount paid per confirmed conversion. However, this is a nominal payout—the actual amount is lower due to the approval rate.\n\n**Payment Model**\nCPA, CPL, CPS, RevShare [→ Lesson 1.4]. The specific action for which payment is made.\n\n**Approval Rate**\nThe percentage of conversions that the advertiser confirms and pays for. A critical factor for calculating actual profitability.\n\n**Actual Payout = Nominal Payout × Approval Rate**\n\nExample: payout of $15, approval rate of 35% → actual payout of $5.25 per acquired lead.\n\nAsk your manager for the approval rate for the LAST 2–4 weeks—not the overall average over the entire period, as that may be outdated.\n\n**Caps**\nLimits on the number of conversions. A daily cap is the maximum number of conversions per day. A weekly or monthly cap applies to the corresponding period.\n\nIf you exceed the cap, conversions beyond the limit will not be paid. Always check the cap with your manager and request an increase if you plan to scale up.\n\n**Allowed Traffic Sources**\nFacebook, TikTok, Google, email, push notifications—make sure your source is on the list. If Facebook isn’t listed as allowed, you can’t use it.\n\n**Prohibited Methods**\nIncentivized traffic (when people are paid to sign up), competitors’ branded traffic, email spam, etc. Violating the terms = conversions will be voided.\n\n**Landing Pages and Pre-landing Pages**\nWhich landing pages does the network provide? Is it allowed to use your own?\n\n**Hold**\nHow many days does the network hold the payment [→ Lesson 4.1].",
+     "restricted": false
+    },
+    {
+     "title": "Break-even CPA — the break-even point",
+     "body": "**Break-even CPA** — the maximum cost per acquisition at which you’re still breaking even.\n\nBreak-even CPA = Actual payout = Nominal payout × Approval rate\n\nIf your actual CPA is below the break-even point, you’re in the black. If it’s higher, you’re in the red.\n\nExample: payout of $14, approval rate of 35% → break-even = $4.9. You’re in the black only if your CPA is below $4.9.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "The media buyer received 80 conversions. The approval rate is 40%. The payout is $12. How much will they receive?",
+     "options": [
+      "$960",
+      "$384",
+      "$480",
+      "$336"
+     ],
+     "answer": 1,
+     "explain": "Correct: 80 × 40% × $12 = $384",
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "The media buyer received 60 conversions, but the daily cap is 50. What will happen to the 10 extra ones?",
+     "options": [
+      "The network will automatically lift the cap",
+      "10 conversions in excess of the cap will not be paid",
+      "All 60 will be credited, but the cap will decrease the next day",
+      "The network will block the account"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation — Offer Card:\n- Product: \"SlimPro\" weight-loss supplement\n- GEO: UA, PL, RO\n- Payout: $9 (CPS)\n- Approval rate: 25%\n- Daily cap: 30\n- Traffic sources: Facebook (prohibited: TikTok, Google, push notifications)\n- Hold period: 21 days",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "numeric",
+      "q": "What are the actual payout and break-even CPA?",
+      "fields": [
+       {
+        "label": "Actual payout (= break-even CPA)",
+        "answer": 2.25,
+        "unit": "$"
+       }
+      ],
+      "explain": "$9 × 25% = $2.25",
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "What is the biggest concern regarding this offer?",
+      "options": [
+       "A payment of $9 is too low",
+       "A 25% approval rate and a 21-day hold—the actual payout of $2.25 is very small, and you'll have to wait a long time",
+       "A daily cap of 30 isn't enough for scaling",
+       "Ban on TikTok"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "numeric",
+      "q": "If I spent $200 and got 60 conversions (within the cap, 20 per day × 3 days), what would the actual payout be?",
+      "fields": [
+       {
+        "label": "Actual payment",
+        "answer": 135,
+        "unit": "$"
+       }
+      ],
+      "explain": "60 × 25% × $9 = $135. Loss of $65.",
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m4l3",
+   "code": "4.3",
+   "title": "How to Choose Your First Offer",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Mistakes When Choosing an Offer",
+     "body": "The most common mistakes beginners make when choosing an offer:\n\n**Focusing only on the payout amount.** A $20 payout looks better than $12—but if the approval rate for the first is 15% and for the second is 40%, the actual payout for the first is $3 and for the second is $4.80. The second one is better.\n\n**Ignoring caps.** If you’re planning for 30 conversions a day but the cap is 15, that’s a ceiling that will prevent you from scaling up. Find out about the cap and whether it can be increased in advance.\n\n**Untested landing page.** Launching traffic and only then realizing that the landing page takes 8 seconds to load is a waste of your budget.",
+     "restricted": false
+    },
+    {
+     "title": "Criteria for a Good First Offer",
+     "body": "**A Clear Product.** You need to understand what you’re advertising and to whom. Pain relief cream, weight-loss supplements, joint support—these are clear. Complex financial schemes or obscure niche products without clear positioning—not a good place to start.\n\n**Reasonable approval rate.** For product sales or COD, a normal approval rate is 30–35%. If the manager says the approval rate is below 20%, either the call center is weak or the offer has “burned out.”\n\n**Realistic margin.** The break-even CPA (payout × approval rate) should leave some wiggle room. If the break-even is $3 but the average CPA in the niche is $8–12, the numbers won’t add up.\n\n**Facebook is listed among the allowed sources.** It’s obvious, but double-check.\n\n**A reasonable cap.** Confirm the cap and whether it can be increased if results are good.",
+     "restricted": false
+    },
+    {
+     "title": "What to Ask Your Manager Before You Start",
+     "body": "- \"What's the actual approval rate over the last 2–4 weeks?\" (not the overall rate, but the most recent one)\n- \"Are there any issues with the call center or shipping?\"\n- “How many affiliates are currently running this offer?” (if there are too many, competition is high)\n- “Are there any new landing pages?”\n- “What’s the minimum amount required to request a bump?”",
+     "restricted": false
+    },
+    {
+     "title": "Where to Find Offers",
+     "body": "- **Affiliate Network Directory** — filter by vertical, GEO, and payout\n- **Manager's Recommendation** — \"What's trending right now on Facebook in the PL product category?\"\n- **Spy tools** — spotted a successful creative, found a similar offer across networks\n- **Arbitrage chats and forums** — people share current offers (but verify them yourself)",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "Two offers, same traffic costs:\n- Offer A: $20 payout, 18% approval rate\n- Offer B: $12 payout, 42% approval rate\nWhich one is more profitable?",
+     "options": [
+      "Offer A — Higher Nominal Payout",
+      "Offer B — an actual payout of $5.04 versus $3.6 in Offer A",
+      "Identical",
+      "Depends on GEO"
+     ],
+     "answer": 1,
+     "explain": "Correct: A = $20 × 18% = $3.6; B = $12 × 42% = $5.04",
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "The media buyer wants 25 conversions per day, but the cap on the offer is 15. Correct action to take BEFORE launch:",
+     "options": [
+      "Launch it and hope the network doesn't notice",
+      "Discuss increasing the cap with the manager before launch",
+      "Allocate only half of the budget",
+      "Select another offer"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "The situation: three offers to choose from, a budget of $150 per test, GEO: Poland:\n\n| Parameter | Offer A | Offer B | Offer C |\n|----------|---------|---------|---------|\n| Product | Joint cream | Weight loss product | Vitamins |\n| Payout | $16 | $11 | $8 |\n| Approval rate | 22% | 38% | 55% |\n| GEO | PL | UA (Poland NOT allowed) | PL, UA |\n| Cap/day | 20 | 50 | 100 |\n| Facebook | Yes | Yes | Yes |\n| Hold | 14 days | 7 days | 7 days |",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "numeric",
+      "q": "Break-even CPA for each:",
+      "fields": [
+       {
+        "label": "Offer A",
+        "answer": 3.52,
+        "unit": "$"
+       },
+       {
+        "label": "Offer B",
+        "answer": 4.18,
+        "unit": "$"
+       },
+       {
+        "label": "Offer B",
+        "answer": 4.4,
+        "unit": "$"
+       }
+      ],
+      "explain": "A — $3.52; B — $4.18 (but not for PL); C — $4.40",
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "What's the offer for the Poland test?",
+      "options": [
+       "Offer A — the highest nominal payout",
+       "Offer B has a good approval rate, but the GEO UA does not include Poland",
+       "Offer B — highest break-even point, profit allowed, high cap, and short hold",
+       "Option A — A smaller cap is better for control"
+      ],
+      "answer": 2,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "What should I clarify with the manager before launching Offer B?",
+      "options": [
+       "Is it possible to exceed the 100 cap?",
+       "Actual approval rates over the past 2–4 weeks, whether there are any new landing pages, and whether a bump is possible if the results are good",
+       "Is TikTok allowed?",
+       "Minimum payout amount on the network"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m4l4",
+   "code": "4.4",
+   "title": "Types of Offers and Verticals",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "What is a vertical?",
+     "body": "**Vertical** — a category of offers grouped by product type, audience, and monetization model. Each vertical has its own characteristics: payout rates, moderation complexity, traffic requirements, and seasonality.\n\nIt’s important to understand these verticals so you can make informed decisions about which ones to work with and where to expand.",
+     "restricted": false
+    },
+    {
+     "title": "Cash on Delivery (COD)",
+     "body": "Physical products with cash on delivery. The buyer places an order → the call center confirms it → the product is shipped → the buyer pays the courier or at the post office upon receipt.\n\nProduct categories: health (creams, pain relievers, joint support), beauty, weight loss, household goods, unique products from TV shopping channels.\n\nPros: straightforward products, broad audience, Facebook usually doesn’t block ads for simple products.\nCons: Approval rate depends on the call center (often 30–40%); there are delivery refusals (the buyer changes their mind).\n\nConsumer goods are the best niche to start with. That’s why this course uses it as the main example.",
+     "restricted": false
+    },
+    {
+     "title": "Nutra",
+     "body": "Dietary supplements, weight-loss products, products to enhance sexual performance, anti-aging products, and health supplements.\n\nHigher payouts than for general merchandise (often $15–30+). However, Facebook’s moderation is stricter—direct medical claims (“cures,” “guaranteed weight loss”) are rejected. Often requires cloaking or more careful wording in ad creatives and copy.\n\nSales are made via COD and CartSale (online payment). Online payments have a higher approval rate but face stiffer competition.",
+     "restricted": true
+    },
+    {
+     "title": "Gambling and Betting",
+     "body": "Online casinos, poker, slots (gambling). Sports betting.\n\nHigh sign-up bonus with a deposit ($50–200+). However: prohibited or strictly regulated in most regions. Requires special accounts, cloaking, and experience. Facebook moderation is very strict.\n\nNot recommended for beginners—without experience and an understanding of the specifics, your budget will run out quickly.",
+     "restricted": true
+    },
+    {
+     "title": "Finance",
+     "body": "Loans, microloans, credit cards, investments.\n\nHigh payout per lead or approved application. Strict traffic quality requirements—lending companies thoroughly verify leads. GEO restrictions apply.",
+     "restricted": false
+    },
+    {
+     "title": "Dating",
+     "body": "Dating sites. Payment for registration or subscription.\n\nRelatively simple moderation. A wide audience. But payouts are lower. There is a risk of rejections due to \"suggestive\" content in the creative.",
+     "restricted": false
+    },
+    {
+     "title": "Why do they start with a girlfriend?",
+     "body": "E-commerce is the most straightforward vertical:\n- The product is tangible and easy to understand (cream, pills, device)\n- The audience is broad and easy to identify\n- Facebook’s moderation policies are relatively lenient toward simple products\n- The process is relatively straightforward: ad → landing page → lead → call center → shipment\n- There is plenty of educational material and community experience available\n\nThe principles of working with consumer goods—targeting, creative, optimization, analytics—apply to any other vertical. You build your user base with consumer goods, then move on to affiliate marketing or gambling.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "match",
+     "q": "Match the vertical line with the description:",
+     "pairs": [
+      [
+       "Tovarka",
+       "Physical goods with cash on delivery—a straightforward process"
+      ],
+      [
+       "Nutra",
+       "Dietary supplements and health products, high payouts, stricter moderation"
+      ],
+      [
+       "Gambling",
+       "Online casino, poker, and slots; high deposit bonus"
+      ],
+      [
+       "Betting",
+       "Sports Betting, Strict Regulation"
+      ]
+     ],
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "Why is the \"tovarka\" the best vertical for a start?",
+     "options": [
+      "The highest payout among the verticals",
+      "A clear product and target audience, more lenient moderation, and plenty of educational materials",
+      "The product does not require a Facebook Ads account",
+      "There is no competition in this product category"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nSergey, a newcomer, read that in gambling, you get a $100–$200 payout per deposit. He wants to start gambling right away.",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "Why isn't gambling a good option for a startup?",
+      "options": [
+       "There are no affiliate networks for beginners in the gambling industry",
+       "Gambling requires cloaking, special accounts, and experience—without a solid foundation, your budget will be wasted on bans and rejections",
+       "Payouts in gambling are actually lower than advertised",
+       "Gambling is prohibited in Ukraine"
+      ],
+      "answer": 1,
+      "restricted": true
+     },
+     {
+      "type": "choice",
+      "q": "Which skills from sales will carry over to gambling later on?",
+      "options": [
+       "Knowledge of specific gambling products",
+       "Analyzing metrics, optimizing ad sets, understanding the logic behind the connection, and conducting A/B tests on creative—these basic operational skills are the same across all verticals",
+       "Cloaking and Bypassing Moderation",
+       "Skills are not transferable"
+      ],
+      "answer": 1,
+      "restricted": true
+     }
+    ]
+   }
+  },
+  {
+   "id": "m4l5",
+   "code": "4.5",
+   "title": "Registration and First Steps in the Affiliate Network",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Registration Process",
+     "body": "Most affiliate networks require manual verification—automatic registration does not grant full access. Process:\n\n1. Fill out the application form: name or username, contact information (usually Telegram), niches you want to work with, experience, and traffic sources\n2. Wait for the manager to contact you (from a few hours to 1–2 days)\n3. Verification interview: the manager clarifies details and explains how to use the dashboard\n4. Access to the offer catalog",
+     "restricted": false
+    },
+    {
+     "title": "How to Fill Out the Form Correctly",
+     "body": "Honesty is the best strategy. If you claim to have “5 years of experience” when you’re actually just starting out, the manager will quickly realize the discrepancy during your first conversation. Trust will be lost, and it will be harder to secure good terms.\n\nThe right approach for a beginner: “I’m new to arbitrage and am ready to test small budgets of $100–200 to start. I’d like to begin with product or native ads, targeting Poland or Ukraine. I’ll ask questions if anything is unclear.”\n\nIt’s in the manager’s best interest to have a reliable partner, even if they’re a beginner. Because over time, a good beginner becomes a middle or senior affiliate—and starts driving more traffic.",
+     "restricted": false
+    },
+    {
+     "title": "How many networks are there at the start?",
+     "body": "The clear-cut answer: 1–2 networks to start with. It’s better to know one well and have a good relationship with the manager than to be on 10 networks but lack relationships and understanding.\n\nAdvantages of focusing on a single network at the start:\n- A deep understanding of the terms and rules of that specific platform\n- The ability to quickly get a bump and an increased cap thanks to your relationship\n- Less cognitive load—one dashboard, one manager\n\nYou can add additional networks later—for diversification or if a specific offer is only available on another network.",
+     "restricted": false
+    },
+    {
+     "title": "When and How to Ask for a Bump",
+     "body": "**Bump** — an increase in payment above the standard rate.\n\nWhen it’s actually appropriate to ask for a bump:\n- You’ve been consistently driving traffic for 2–4 weeks and the results are good\n- Your traffic’s approval rate is higher than the average for the offer\n- You’re ready to increase your volume\n\nHow to ask for one: Prepare specific numbers. “In 3 weeks, I’ve generated X conversions, with a conversion rate of Y% and an ROI of Z%. I’d like to increase my volume—is a bump to $2 possible?”\n\nA $1–5 bump on top of the standard rate is possible with good traffic. Some affiliates receive exclusive offers with higher, non-public rates.",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "A newcomer wrote in his profile, \"3 years of experience and a 200% ROI.\" In reality, this is his first registration. Is this a problem?",
+     "options": [
+      "The network will check against the database of media buyers",
+      "The manager will quickly notice the discrepancy, and trust will be lost—it’s better to be honest",
+      "The network will immediately block the account",
+      "No problem"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "When is it actually okay to ask for a bump?",
+     "options": [
+      "Right after you sign up—to get the best terms from day one",
+      "After 2–4 weeks of consistent, high-quality traffic with specific figures",
+      "Only after a year on the job",
+      "A bump is not possible—the odds are fixed"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nTwo media buyers registered at the same time.\n\nDenis: on 5 networks, one test on each, didn’t communicate with any manager.\n\nYulia: on one network, honestly said she was a newbie, sends results to the manager once a week, and after a month asked for a bump.",
+    "situationRestricted": false,
+    "isFinal": false,
+    "questions": [
+     {
+      "type": "choice",
+      "q": "Who will be in a better position a month from now?",
+      "options": [
+       "Denis — More networks = More options",
+       "Yulia — the manager knows her, sees how consistent she is, and is willing to help and offer her better terms",
+       "Either way, it's the results that matter",
+       "Denis — more tests = more data"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "Why is it easier for Yulia to get a bump?",
+      "options": [
+       "Women are more likely to be given a bump",
+       "The manager knows Yulia personally, has seen her results for the month, and can justify a raise",
+       "Yulia is on the same network, so the manager is interested in keeping her",
+       "Yulia pays for a premium account on the network"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "m4l6",
+   "code": "4.6",
+   "title": "How to Analyze an Offer Before Launching It",
+   "restricted": false,
+   "teach": [
+    {
+     "title": "Why Conduct an Analysis Before Launch?",
+     "body": "Spending 20–30 minutes on analysis before launching can save your entire testing budget. The goal: to identify obvious problems before you spend any money.\n\nAnalysis doesn’t guarantee that the offer will work—but it helps you avoid situations that are clearly doomed to fail.",
+     "restricted": false
+    },
+    {
+     "title": "Complete Checklist for Analyzing an Offer",
+     "body": "**Step 1: Calculate the actual payout and break-even point**\nPayout × approval rate = break-even CPA. If the break-even point is less than $3, it’s very difficult to find traffic at that price. If the break-even is $8–10, it’s a realistic goal.\n\n**Step 2: Ask the manager for the latest approval rate**\nThe overall approval rate shown by the network may be outdated. You need the approval rate for the last 2–4 weeks. Also ask: “Are there any current issues with the call center or delivery?”\n\n**Step 3: Test the landing page**\n- Visit the landing page as a regular user\n- Measure the load time on a mobile phone (mobile data, not Wi-Fi)\n- Check the mobile version—does it display correctly?\n- Check the domain using the Facebook Sharing Debugger\n- Submit a test application—make sure the data is sent to the affiliate’s CRM\n- Assess the quality: Does the landing page look trustworthy? Are there contact details and guarantees?\n\n**Step 4: Check using spy tools**\n- Are there active ads for a similar product?\n- Are there long-running ads (30+ days)? — This confirms the vertical is active\n- No ads at all? — Either the niche is new (a chance to avoid competition) or no one has been able to make it profitable (risk)\n\n**Step 5: Assess the competition**\n- How many affiliates are currently running this offer? (Ask the manager)\n- Are there similar products on other networks?\n- High competition → higher CPM → higher CPA → lower margin\n\n**Step 6: Check the technical requirements**\n- Is Facebook on the list of allowed sources?\n- Is the cap sufficient for your plans?\n- Is the GEO you’re planning to target included?",
+     "restricted": false
+    }
+   ],
+   "l1": [
+    {
+     "type": "choice",
+     "q": "The Spy tool shows zero ads for the product over the past 3 months. What does this mean?",
+     "options": [
+      "The perfect niche—no competition",
+      "Either it’s a new niche with no competition (opportunity) or no one has been able to make it profitable (risk)—further verification is needed",
+      "Facebook has blocked all ads for this product",
+      "The product is too expensive"
+     ],
+     "answer": 1,
+     "restricted": false
+    },
+    {
+     "type": "choice",
+     "q": "A media buyer submitted a test request on the landing page—the data didn't show up in the affiliate program's CRM. What does this mean?",
+     "options": [
+      "That's normal—the data is coming in with a delay",
+      "Technical issue: The postback or pixels are configured incorrectly—if you launch the traffic, conversions will not be credited",
+      "The call center hasn't processed the request yet",
+      "You need to wait 24 hours"
+     ],
+     "answer": 1,
+     "restricted": false
+    }
+   ],
+   "l2": {
+    "situation": "Situation:\nThe manager made an offer:\n- Product: \"JointFlex\" joint capsules\n- GEO: PL, HU, RO\n- Payout: $13 (CPS)\n- Approval rate (recent, 3 weeks): 32%\n- Cap: 40/day\n- Sources: Facebook (TikTok is prohibited)\n- Landing page: loads in 3.8 seconds, clean domain\n- On AdHeart: 3 active ads for a similar product; one has been running for 7 weeks",
+    "situationRestricted": false,
+    "isFinal": true,
+    "questions": [
+     {
+      "type": "numeric",
+      "q": "What is the break-even CPA for this offer?",
+      "fields": [
+       {
+        "label": "Break-Even CPA",
+        "answer": 4.16,
+        "unit": "$"
+       }
+      ],
+      "explain": "$13 × 32% = $4.16",
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "Is a slow load time (3.8 seconds) a problem?",
+      "options": [
+       "No—3–4 seconds is normal",
+       "That's right—every extra second reduces the CR, especially on mobile devices; the optimal time is up to 3 seconds, preferably up to 2 seconds",
+       "Only on a weak Wi-Fi connection",
+       "Only if the traffic is cold"
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "A competitor's ad that's been running for 7 weeks—is that a positive or negative sign?",
+      "options": [
+       "Negative — high competition",
+       "Positive — confirms that the niche is active and the offer can be profitable",
+       "Neutral",
+       "Negative — the audience is already \"tired\""
+      ],
+      "answer": 1,
+      "restricted": false
+     },
+     {
+      "type": "choice",
+      "q": "What is the final decision?",
+      "options": [
+       "Do not launch—the break-even point is too low",
+       "Run a $100–150 test—the conditions are reasonable, and there's evidence that the niche is active, but first, speed up the landing page",
+       "Start with $500 right away—the offer looks good",
+       "Wait until a competitor turns off their ads"
+      ],
+      "answer": 1,
+      "restricted": false
+     }
+    ]
+   }
+  }
+ ],
+ "summary": "After completing this module, the student will be able to:\n\n- Understand how an affiliate network works from the inside and communicate effectively with the manager\n- Read an offer card and calculate the actual payout and break-even CPA\n- Compare offers and choose the best one based on actual figures rather than the nominal payout\n- Distinguish between the main verticals and make an informed choice of product category to start with\n- Register correctly with the network and build a relationship with the manager\n- Analyze an offer before launching using a comprehensive checklist\n\n**Next module:** Facebook Ads Manager — objectives, audiences, pixels, budgets, the learning phase, and the structure of a test campaign."
+}

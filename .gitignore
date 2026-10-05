@@ -17,3 +17,9 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+
+scripts/.translate-cache-*.json
+
+# Локальні файли, які не комітимо
+files.zip
+.claude/settings.local.json
