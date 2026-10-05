@@ -12,6 +12,7 @@ import { Markdown } from '../../src/components/Markdown';
 import { ScreenHotspot, hotspotFeedback } from '../../src/components/ScreenHotspot';
 import { Calculators } from '../../src/components/Calculators';
 import { INCLUDE_RESTRICTED } from '../../src/data/restricted';
+import { SHOW_MY_NUMBERS } from '../../src/flags';
 import { say } from '../../src/data/phrases';
 import { useT } from '../../src/i18n';
 import { cardShadow, Theme, useStyles, useTheme } from '../../src/theme';
@@ -50,13 +51,15 @@ export default function Library() {
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 30 }}>
         <GrindykSay text={talk.text} pose={talk.pose} height={100} onPress={() => setTalk(say('library'))} />
 
-        <Pressable onPress={() => router.push('/numbers')} style={({ pressed }) => [styles.numbers, pressed && { transform: [{ translateY: 2 }] }]}>
-          <Text style={{ fontSize: 26 }}>📈</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.numbersTitle}>Мої цифри</Text>
-            <Text style={styles.numbersSub}>Трекер твоїх кампаній: дані, зміни, поради й нагадування перевірити кабінет</Text>
-          </View>
-        </Pressable>
+        {SHOW_MY_NUMBERS && (
+          <Pressable onPress={() => router.push('/numbers')} style={({ pressed }) => [styles.numbers, pressed && { transform: [{ translateY: 2 }] }]}>
+            <Text style={{ fontSize: 26 }}>📈</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.numbersTitle}>Мої цифри</Text>
+              <Text style={styles.numbersSub}>Трекер твоїх кампаній: дані, зміни, поради й нагадування перевірити кабінет</Text>
+            </View>
+          </Pressable>
+        )}
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 12 }} contentContainerStyle={{ gap: 8 }}>
           {cats.map((c) => (

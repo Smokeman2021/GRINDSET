@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Image, Pressable, ScrollView, useWindowDimensions, StyleSheet, Text } from 'react-native';
+import { View, Image, Pressable, ScrollView, useWindowDimensions, StyleSheet, Text, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as ScreenOrientation from 'expo-screen-orientation';
@@ -16,7 +16,10 @@ export function BmExplorer() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const styles = useStyles(makeStyles);
-  const { width: winW } = useWindowDimensions();
+  const { width: winW, height: winH } = useWindowDimensions();
+  const [zoom, setZoom] = useState(1); // 1 → 1.7 → 2.5: кнопка 🔍 (на iOS додатково працює щипок)
+  const [hintOff, setHintOff] = useState(false);
+  const portraitPhone = winW < 600 && winH > winW;
   const [stack, setStack] = useState<string[]>([START_ID]);
   const [boxW, setBoxW] = useState(Math.min(winW, 1100));
   const scrollRef = useRef<ScrollView>(null);
@@ -24,7 +27,8 @@ export function BmExplorer() {
   const currentId = stack[stack.length - 1];
   const screen = useMemo(() => findBmScreen(currentId) ?? BM_SCREENS[0], [currentId]);
   // Вузькі довгі знімки (меню, склеєні панелі) не розтягуємо на весь широкий екран — лишаємо читабельну ширину.
-  const drawW = screen.imgW < 700 ? Math.min(boxW, 520) : Math.min(boxW, 1100);
+  const baseW = screen.imgW < 700 ? Math.min(boxW, 520) : Math.min(boxW, 1100);
+  const drawW = baseW * zoom;
   const boxH = (drawW * screen.imgH) / screen.imgW;
 
   // Карту можна крутити в широкий формат; при виході з неї повертаємо портрет, як у решті застосунку.
@@ -64,17 +68,30 @@ export function BmExplorer() {
         <Pressable onPress={menu} style={styles.topBtn} hitSlop={10} accessibilityLabel="Меню кабінету">
           <Text style={styles.topBtnTxt}>☰</Text>
         </Pressable>
+        <Pressable onPress={() => setZoom((z) => (z < 1.5 ? 1.7 : z < 2 ? 2.5 : 1))} style={styles.topBtn} hitSlop={10} accessibilityLabel="Масштаб">
+          <Text style={styles.topBtnTxt}>{zoom === 1 ? '🔍' : `${zoom}×`}</Text>
+        </Pressable>
         <Pressable onPress={home} style={styles.topBtn} hitSlop={10} accessibilityLabel="На початок">
           <Text style={styles.topBtnTxt}>⟲</Text>
         </Pressable>
       </View>
+      {portraitPhone && !hintOff && (
+        <Pressable onPress={() => setHintOff(true)} style={styles.hint}>
+          <Text style={styles.hintTxt}>↻ Поверни телефон, і кабінет стане ширшим. Або збільш кнопкою 🔍 (на iPhone ще й щипком).</Text>
+          <Text style={styles.hintX}>✕</Text>
+        </Pressable>
+      )}
       <View style={styles.frame} onLayout={(e) => setBoxW(e.nativeEvent.layout.width)}>
         <ScrollView
           ref={scrollRef}
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={boxH > 0}
+          maximumZoomScale={Platform.OS === 'ios' ? 3 : 1}
+          minimumZoomScale={1}
+          bouncesZoom
         >
+          <ScrollView horizontal scrollEnabled={zoom > 1} showsHorizontalScrollIndicator={zoom > 1} nestedScrollEnabled contentContainerStyle={{ minWidth: boxW, justifyContent: 'center' }}>
           <View style={{ width: drawW, height: boxH }}>
             <Image source={screen.image} style={{ width: drawW, height: boxH }} resizeMode="contain" />
             {screen.hotspots.map((h) => {
@@ -96,6 +113,7 @@ export function BmExplorer() {
               );
             })}
           </View>
+          </ScrollView>
         </ScrollView>
       </View>
     </View>
@@ -120,7 +138,10 @@ const makeStyles = (C: Theme) =>
     topTitle: { flex: 1, color: C.txt, fontSize: 13, fontWeight: '700', textAlign: 'center' },
     frame: { flex: 1, paddingTop: 8 },
     scroll: { flex: 1 },
-    scrollContent: { alignItems: 'center', paddingBottom: 24 },
+    scrollContent: { paddingBottom: 24 },
+    hint: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 12, marginTop: 8, padding: 10, borderRadius: 12, backgroundColor: C.panel2, borderWidth: 1, borderColor: C.line },
+    hintTxt: { flex: 1, color: C.txt, fontSize: 12, lineHeight: 16 },
+    hintX: { color: C.muted, fontSize: 14, fontWeight: '900' },
     hotspot: { borderRadius: 4 },
     hotspotNav: { borderWidth: 1.5, borderStyle: 'dashed', borderColor: 'rgba(90,167,255,0.5)' },
     hotspotPressed: { backgroundColor: 'rgba(90,167,255,0.18)' },

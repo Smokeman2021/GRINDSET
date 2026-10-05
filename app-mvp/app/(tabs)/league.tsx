@@ -35,7 +35,13 @@ export default function League() {
   const rank = rankOf(list);
   const t = TIERS[tier];
 
-  const kind: PhraseKind = rank <= 3 ? 'leagueTop' : rank > LEAGUE_SIZE - DEMOTE_BOTTOM ? 'leagueBottom' : 'leagueMid';
+  const kind: PhraseKind = rank === 1
+      ? 'leagueTop'
+      : tier < TIERS.length - 1 && rank <= PROMOTE_TOP
+      ? 'leagueZone'
+      : tier > 0 && rank > LEAGUE_SIZE - DEMOTE_BOTTOM
+      ? 'leagueBottom'
+      : 'leagueMid';
   const [talk, setTalk] = useState(() => say(kind));
   const daysLeft = Math.max(0, Math.ceil(7 * (1 - frac)));
 

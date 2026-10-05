@@ -115,6 +115,7 @@ export default function LessonScreen() {
   const isChoiceLike = step.type === 'choice' || step.type === 'fill';
   const isCorrect = step.type === 'teach' ? false : isChoiceLike ? selected === step.answer : extCorrect === true;
   const canContinue = isTeach || answered;
+  const needsCheck = isChoiceLike && !answered;
 
   function refFor(i: number) {
     return virtual ? virtual.refs[i] : { lessonId: id, idx: i };
@@ -148,14 +149,21 @@ export default function LessonScreen() {
   function useHintNow() {
     if (answered || hidden !== null || (step.type !== 'choice' && step.type !== 'fill') || !takeHint()) return;
     const wrong = step.options.map((_, k) => k).filter((k) => k !== step.answer);
-    setHidden(wrong[Math.floor(Math.random() * wrong.length)]);
+    const h = wrong[Math.floor(Math.random() * wrong.length)];
+    setHidden(h);
+    if (selected === h) setSelected(null);
   }
 
-  function onAnswer(k: number) {
+  // Вибір варіанта лише підсвічує його; зарахування відбувається після кнопки «Перевірити»
+  function onPick(k: number) {
     if (answered || (step.type !== 'choice' && step.type !== 'fill')) return;
     setSelected(k);
+  }
+
+  function onCheck() {
+    if (answered || selected === null || (step.type !== 'choice' && step.type !== 'fill')) return;
     setAnswered(true);
-    record(k === step.answer);
+    record(selected === step.answer);
   }
 
   function onExternal(ok: boolean) {
@@ -329,9 +337,7 @@ export default function LessonScreen() {
           </>
         ) : (
           <>
-            <Text style={styles.layer}>
-              {step.layer === 1 ? 'ШАР 1 · РОЗУМІННЯ' : 'ШАР 2 · ЗАСТОСУВАННЯ'}
-            </Text>
+            <View style={{ height: 10 }} />
             <View style={styles.qRow}>
               <Grindyk mood={mood} size={40} />
               <Text style={styles.q}>{step.q}</Text>
@@ -362,16 +368,18 @@ export default function LessonScreen() {
                 step.options.map((o, k) => {
                   const showCorrect = answered && k === step.answer;
                   const showWrong = answered && k === selected && k !== step.answer;
+                  const picked = !answered && k === selected;
                   if (k === hidden) return null;
                   return (
                     <Pressable
                       key={k}
                       disabled={answered}
-                      onPress={() => onAnswer(k)}
+                      onPress={() => onPick(k)}
                       style={({ pressed }) => [
                         styles.opt,
                         showCorrect && styles.optCorrect,
                         showWrong && styles.optWrong,
+                        picked && styles.optPicked,
                         pressed && !answered && styles.optPressed,
                       ]}
                     >
@@ -418,9 +426,9 @@ export default function LessonScreen() {
 
       <View style={{ paddingTop: 12, paddingBottom: insets.bottom + 12 }}>
         <Button
-          title={isTeach ? (isQuiz && idx === 0 ? 'Старт' : 'Зрозумів') : idx + 1 >= total ? 'Завершити' : 'Далі'}
-          onPress={onContinue}
-          disabled={!canContinue}
+          title={isTeach ? (isQuiz && idx === 0 ? 'Старт' : 'Зрозумів') : needsCheck ? 'Перевірити' : idx + 1 >= total ? 'Завершити' : 'Далі'}
+          onPress={needsCheck ? onCheck : onContinue}
+          disabled={needsCheck ? selected === null : !canContinue}
         />
       </View>
     </View>
@@ -494,6 +502,11 @@ const makeStyles = (C: Theme) => StyleSheet.create({
     borderBottomWidth: 5,
   },
   optPressed: { transform: [{ translateY: 3 }], borderBottomWidth: 2 },
+  optPicked: {
+    borderColor: C.blue,
+    backgroundColor: C.panel2,
+    borderBottomColor: C.blueEdge,
+  },
   optCorrect: {
     borderColor: C.accent,
     backgroundColor: C.accentTint,

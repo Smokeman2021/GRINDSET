@@ -2,6 +2,7 @@
 // але позначаємо фокус, пропозицію пропуску й оцінку часу). Правила прості й прозорі.
 import { MODULES } from './modules';
 import { SKILL_LEVELS } from './quiz';
+import type { DailyGoal } from '../store';
 
 export type PlanItem = {
   moduleId: string;
@@ -33,7 +34,10 @@ const plural = (n: number, one: string, few: string, many: string) => {
   return many;
 };
 
-export function buildPlan(a: Record<string, string>): Plan {
+// Уроків на день за ціллю дня (див. онбординг: 1 / 2 / 3+)
+const LESSONS_PER_DAY: Record<DailyGoal, number> = { casual: 1, regular: 2, intense: 3 };
+
+export function buildPlan(a: Record<string, string>, dailyGoal: DailyGoal = 'regular'): Plan {
   const metrics = level(a, 'sk_metrics');
   const goal = a.goal ?? '';
   const fear = a.fear ?? '';
@@ -89,9 +93,8 @@ export function buildPlan(a: Record<string, string>): Plan {
 
   const todo = items.filter((i) => i.tag !== 'skip');
   const totalLessons = todo.reduce((s, i) => s + i.lessons, 0);
-  const t = a.time ?? '';
-  const minPerDay = t.includes('5-10') ? 8 : t.includes('15-20') ? 17 : t.includes('30+') ? 35 : t.includes('Скільки') ? 45 : 15;
-  const lessonsPerWeek = Math.max(2, Math.round((minPerDay / 7) * 5));
+  // Тривалість рахуємо від обраної цілі дня: уроків на день × 6 днів на тиждень (один день на відпочинок)
+  const lessonsPerWeek = LESSONS_PER_DAY[dailyGoal] * 6;
   const weeks = Math.max(1, Math.ceil(totalLessons / lessonsPerWeek));
   const summary = `${todo.length} ${plural(todo.length, 'модуль', 'модулі', 'модулів')}, ${totalLessons} ${plural(totalLessons, 'урок', 'уроки', 'уроків')}, приблизно ${weeks} ${plural(weeks, 'тиждень', 'тижні', 'тижнів')}`;
   return { items, totalLessons, weeks, summary };

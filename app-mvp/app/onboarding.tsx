@@ -10,13 +10,16 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { QUIZ, SKILL_LEVELS } from '../src/data/quiz';
+import { ONBOARD_STEPS as QUIZ, SKILL_LEVELS } from '../src/data/quiz';
+import { ArchetypeId, AVATAR_CHANGE_PRICE } from '../src/data/avatars';
+import { ArchetypePicker } from '../src/components/ArchetypePicker';
 import { DailyGoal, GOAL_LABEL, GOAL_XP, useStore } from '../src/store';
 import { askPermission } from '../src/notifications';
 import { Button } from '../src/components/Button';
 import { Theme, useStyles, useTheme } from '../src/theme';
 
-type Phase = 'welcome' | 'quiz' | 'goal' | 'name';
+// Онбординг коротко: мета, досвід, ціль дня, імʼя, образ, одразу урок 1.1. Решту питань пропонуємо після першого уроку (app/adapt.tsx).
+type Phase = 'welcome' | 'quiz' | 'goal' | 'name' | 'avatar';
 
 const FULL = require('../assets/grindyk-full.png');
 const BUST = require('../assets/grindyk-bust.png');
@@ -34,6 +37,7 @@ export default function Onboarding() {
   const insets = useSafeAreaInsets();
   const setQuizAnswer = useStore((s) => s.setQuizAnswer);
   const finishOnboarding = useStore((s) => s.finishOnboarding);
+  const setArchetype = useStore((s) => s.setArchetype);
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [stepIdx, setStepIdx] = useState(0);
@@ -41,6 +45,7 @@ export default function Onboarding() {
   const [skillAns, setSkillAns] = useState<Record<string, number>>({});
   const [goal, setGoal] = useState<DailyGoal | null>(null);
   const [name, setName] = useState('');
+  const [arch, setArch] = useState<ArchetypeId | null>(null);
 
   const pad = { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20 };
 
@@ -109,13 +114,28 @@ export default function Onboarding() {
           placeholder="Твій нік"
           placeholderTextColor={C.muted}
         />
+        <Button title="Далі" disabled={name.trim().length === 0} onPress={() => setPhase('avatar')} />
+      </View>
+    );
+  }
+
+  if (phase === 'avatar') {
+    return (
+      <View style={[styles.screen, pad]}>
+        <ScrollView contentContainerStyle={{ paddingTop: 6 }} showsVerticalScrollIndicator={false}>
+          <Text style={styles.h2}>Обери свій образ</Text>
+          <ArchetypePicker value={arch} onSelect={setArch} previewHeight={190} />
+          <Text style={styles.avatarNote}>Він росте разом із твоїм прогресом. Змінити образ пізніше можна, але це платно (💎 {AVATAR_CHANGE_PRICE}).</Text>
+        </ScrollView>
         <Button
-          title="Готово"
-          disabled={name.trim().length === 0}
+          title="До першого уроку"
+          disabled={arch === null}
           onPress={() => {
+            if (!arch) return;
+            setArchetype(arch);
             finishOnboarding(name, goal ?? 'regular');
             askPermission(); // дозвіл на нагадування (не блокує)
-            router.replace('/plan');
+            router.replace('/lesson/l1');
           }}
         />
       </View>
@@ -247,6 +267,7 @@ const makeStyles = (C: Theme) => StyleSheet.create({
   },
   optSoon: { opacity: 0.55 },
   soon: { color: C.goldTxt, fontSize: 11, fontWeight: '800' },
+  avatarNote: { color: C.muted, fontSize: 12, lineHeight: 17, marginTop: 12, marginBottom: 12, textAlign: 'center' },
   hint: { color: C.muted, fontSize: 13, marginTop: -8, marginBottom: 14 },
   skill: { marginBottom: 14 },
   skillLabel: { color: C.txt, fontWeight: '800', fontSize: 15, marginBottom: 6 },

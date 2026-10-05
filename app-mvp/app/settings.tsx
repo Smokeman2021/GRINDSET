@@ -7,7 +7,7 @@ import { useT, LANG_LABEL, Lang } from '../src/i18n';
 import { GOAL_LABEL, GOAL_XP, DailyGoal, useStore } from '../src/store';
 import { cardShadow, Theme, useStyles, useTheme } from '../src/theme';
 import { Glow } from '../src/components/Glow';
-import { CHANGELOG, UI_BUILD, loadedAtLabel } from '../src/version';
+import { CHANGELOG, SHOW_BUILD, UI_BUILD, loadedAtLabel } from '../src/version';
 
 const GOALS: DailyGoal[] = ['casual', 'regular', 'intense'];
 
@@ -19,7 +19,7 @@ export default function Settings() {
   const router = useRouter();
   const s = useStore();
   const t = useT();
-  const [confirmReset, setConfirmReset] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const Seg = ({ on, onPress, children, sub }: { on: boolean; onPress: () => void; children: string; sub?: string }) => (
     <Pressable onPress={onPress} style={[styles.seg, on && styles.segOn]}>
@@ -120,6 +120,10 @@ export default function Settings() {
 
         <Text style={styles.h}>МАРШРУТ І ТЕСТИ</Text>
         <View style={styles.card}>
+          <Pressable onPress={() => router.push('/adapt')} style={styles.link}>
+            <Text style={styles.linkTxt}>🎯 Підлаштувати курс</Text>
+          </Pressable>
+          <View style={styles.divider} />
           <Pressable onPress={() => router.push('/plan')} style={styles.link}>
             <Text style={styles.linkTxt}>🗺️ Мій маршрут</Text>
           </Pressable>
@@ -129,7 +133,9 @@ export default function Settings() {
           </Pressable>
         </View>
 
-        <Text style={styles.h}>ЩО НОВОГО</Text>
+        {SHOW_BUILD && (
+        <>
+        <Text style={styles.h}>ЩО НОВОГО (ДЛЯ РОЗРОБНИКА)</Text>
         <View style={styles.card}>
           <Text style={styles.label}>Збірка {UI_BUILD} · завантажено о {loadedAtLabel()}</Text>
           <Text style={[styles.sub, { marginBottom: 8 }]}>Якщо номер не змінився після оновлення — перезапусти сервер "GRINDSET на телефон.bat" і натисни Reload у Expo Go.</Text>
@@ -142,18 +148,35 @@ export default function Settings() {
             </View>
           ))}
         </View>
+        </>
+        )}
 
         <Text style={styles.h}>ПРО ЗАСТОСУНОК</Text>
         <View style={styles.card}>
           <Text style={styles.sub}>
             Навчальний контент про performance-маркетинг. Не фінансова порада і не гарантія доходу. Результати залежать від бюджету, ніші та виконання. Політики Meta змінюються: звіряйся з офіційною документацією.
           </Text>
+        </View>
+
+        <Text style={styles.h}>АКАУНТ</Text>
+        <View style={styles.card}>
+          <Pressable onPress={() => (s.pausedAt ? s.resumeAccount() : s.pauseAccount())} style={styles.link}>
+            <Text style={styles.linkTxt}>{s.pausedAt ? '▶️ Відновити акаунт' : '⏸ Пауза акаунта'}</Text>
+          </Pressable>
+          <Text style={styles.sub}>
+            {s.pausedAt
+              ? 'Акаунт на паузі: нагадування вимкнені, стрік не згасає. Прогрес збережений.'
+              : 'Нагадування вимикаються, стрік не згасає, поки ти не повернешся. Прогрес зберігається.'}
+          </Text>
           <View style={styles.divider} />
-          <Pressable onPress={() => (confirmReset ? (s.reset(), router.replace('/')) : setConfirmReset(true))} style={styles.link}>
+          <Pressable onPress={() => (confirmDelete ? (setConfirmDelete(false), s.reset(), router.replace('/')) : setConfirmDelete(true))} style={styles.link}>
             <Text style={[styles.linkTxt, { color: C.redTxt }]}>
-              {confirmReset ? '⚠️ Натисни ще раз: видалити весь прогрес' : '🗑 Скинути прогрес'}
+              {confirmDelete ? '⚠️ Натисни ще раз: видалити акаунт і всі дані' : '🗑 Видалити акаунт'}
             </Text>
           </Pressable>
+          <Text style={styles.sub}>
+            Стирає прогрес, ім’я, образ і налаштування на цьому пристрої. Акаунта на сервері поки немає, тож видаляти більше нічого.
+          </Text>
         </View>
       </ScrollView>
     </View>

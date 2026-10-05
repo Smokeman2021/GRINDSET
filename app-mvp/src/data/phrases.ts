@@ -33,6 +33,7 @@ export type PhraseKind =
   | 'shopMax'
   | 'shopOwned'
   | 'leagueTop'
+  | 'leagueZone'
   | 'leagueMid'
   | 'leagueBottom'
   | 'leagueUp'
@@ -115,9 +116,10 @@ const BANK: Record<PhraseKind, string[]> = {
   shopPoor: ['Коїнів не вистачає. Іди вчись, а не витрачай.', 'Порожня кишеня? Це не привід ниття, це привід урока.', 'Баланс нижче ціни. Класика арбітражу.'],
   shopMax: ['Більше не влізе. Не жадібничай.', 'Уже повний запас. Не переплачуй.'],
   shopOwned: ['Це в тебе вже є.'],
-  leagueTop: ['Ти в топі. Не розслабляйся, боти теж хочуть на п’єдестал.', 'Лідируєш! Тримайся, а то тебе зжеруть.', 'Перше місце? Твої вороги вже плачуть у чаті.'],
-  leagueMid: ['Посередині. Найнебезпечніша зона: ні слави, ні падіння.', 'Ще трохи XP, і будеш у зоні підвищення.', 'Ботів обійти можна. Вони навіть не сплять, але тупіше за тебе.'],
-  leagueBottom: ['Ти на дні ліги. Боти вже сміються. Виправ це.', 'Зона вильоту. Час перестати грати в тімлід і почати вчитись.', 'Ще один урок, і ти вже не остання ланка харчового ланцюга.'],
+  leagueTop: ['Перше місце. Утримати його складніше, ніж узяти.', 'Лідируєш! Тримайся, за тобою вже женуться.', 'Перше місце? Конкуренти вже нервово гортають рейтинг.'],
+  leagueZone: ['Ти в зоні підвищення. Ще кілька уроків, щоб не вислизнуло.', 'Топ-5 це вже виграш. Тримай позицію до кінця тижня.', 'Підвищення близько. Не віддавай місце без бою.'],
+  leagueMid: ['Посередині. Найнебезпечніша зона: ні слави, ні падіння.', 'Ще трохи XP, і будеш у зоні підвищення.', 'Місце в середині ліги легко змінити: один гарний урок і ти вище.'],
+  leagueBottom: ['Ти в зоні вильоту. Час виправляти.', 'Зона вильоту. Час перестати грати в тімлід і почати вчитись.', 'Ще один урок, і ти вже не остання ланка харчового ланцюга.'],
   leagueUp: ['Підвищення! Тепер твої опоненти лютіші і гроші в лізі жирніші.'],
   leagueDown: ['Вильот на лігу нижче. Буває. Повернешся і всіх порвеш.'],
   profile: ['Це ти. Гарна мордочка, стабільний стрік. Ну, майже.', 'Твої цифри. Мої улюблені.', 'Тут твоє досьє. Без шантажу.'],
@@ -130,46 +132,47 @@ const BANK: Record<PhraseKind, string[]> = {
 };
 
 const POSE_FOR: Record<PhraseKind, PoseName[]> = {
-  correct: ['cheer'],
-  combo3: ['cheer'],
+  correct: ['cheer', 'point'],
+  combo3: ['cheer', 'point'],
   combo5: ['cheer', 'coin'],
   wrong: ['shrug', 'think'],
-  timeout: ['shrug'],
+  timeout: ['shrug', 'think'],
   lessonDone: ['cheer', 'point'],
   lessonPerfect: ['cheer', 'crown'],
-  lessonPractice: ['point'],
+  lessonPractice: ['point', 'stand'],
   quizDone: ['coin', 'cheer'],
-  crownPass: ['crown'],
-  crownFail: ['shrug'],
+  crownPass: ['crown', 'cheer'],
+  crownFail: ['shrug', 'think'],
   levelUp: ['cheer', 'crown'],
   idle: ['stand', 'laptop', 'rest', 'phone', 'coin', 'point', 'think'],
-  lowEnergy: ['rest'],
+  lowEnergy: ['rest', 'shrug'],
   goalDone: ['cheer', 'coin'],
-  freezeBought: ['rest'],
-  streak3: ['cheer'],
+  freezeBought: ['rest', 'cheer'],
+  streak3: ['cheer', 'point'],
   streak7: ['cheer', 'crown'],
-  streak30: ['crown'],
-  comeback: ['wave'],
+  streak30: ['crown', 'cheer'],
+  comeback: ['wave', 'cheer'],
   morning: ['rest', 'wave'],
   day: ['laptop', 'point'],
   evening: ['laptop', 'phone'],
-  night: ['rest'],
+  night: ['rest', 'phone'],
   shopWelcome: ['stand', 'coin'],
   shopOk: ['cheer', 'coin'],
-  shopPoor: ['shrug'],
-  shopMax: ['point'],
-  shopOwned: ['point'],
+  shopPoor: ['shrug', 'think'],
+  shopMax: ['point', 'shrug'],
+  shopOwned: ['point', 'stand'],
   leagueTop: ['crown', 'cheer'],
+  leagueZone: ['cheer', 'point'],
   leagueMid: ['point', 'stand'],
   leagueBottom: ['shrug', 'think'],
   leagueUp: ['cheer', 'crown'],
-  leagueDown: ['shrug'],
+  leagueDown: ['shrug', 'think'],
   profile: ['stand', 'point'],
   library: ['laptop', 'think'],
   diagIntro: ['point', 'stand'],
-  diagPass: ['cheer'],
-  diagFail: ['think'],
-  diagPerfect: ['crown'],
+  diagPass: ['cheer', 'point'],
+  diagFail: ['think', 'shrug'],
+  diagPerfect: ['crown', 'cheer'],
 };
 
 function pickFrom<T>(list: T[], key: string, store: Record<string, number>): T {
@@ -181,14 +184,37 @@ function pickFrom<T>(list: T[], key: string, store: Record<string, number>): T {
 }
 
 const lastText: Record<string, number> = {};
-const lastPose: Record<string, number> = {};
+
+// Остання показана поза на будь-якому екрані: наступна не повторює її, якщо в контексті є з чого обирати
+let lastShownPose: PoseName | null = null;
+
+function pickPose(list: readonly PoseName[]): PoseName {
+  const pool = list.filter((p) => p !== lastShownPose);
+  const from = pool.length ? pool : list;
+  const p = from[Math.floor(Math.random() * from.length)];
+  lastShownPose = p;
+  return p;
+}
+
+// Мапінг поз на контекст (теорія, помилка, успіх, магазин, ліга, робота). Репліки (PhraseKind) мають свої списки в POSE_FOR,
+// екрани без репліки беруть позу через poseFor(контекст).
+export type PoseContext = 'theory' | 'error' | 'success' | 'shop' | 'league' | 'work';
+const CONTEXT_POSES: Record<PoseContext, PoseName[]> = {
+  theory: ['laptop', 'think', 'point', 'stand'], // пояснення, маршрут, діагностика, адаптація
+  error: ['shrug', 'think'], // помилка, таймаут, провал корони
+  success: ['cheer', 'crown', 'coin'], // правильна відповідь, урок, рівень, нагорода
+  shop: ['coin', 'stand', 'point'], // магазин: вітання й покупки (бідність: shrug у POSE_FOR)
+  league: ['crown', 'cheer', 'point', 'stand'], // ліга (по місцю: див. POSE_FOR leagueTop…leagueBottom)
+  work: ['laptop', 'phone', 'point'], // симулятори й кабінет
+};
+export const poseFor = (ctx: PoseContext): PoseName => pickPose(CONTEXT_POSES[ctx]);
 
 export type Say = { text: string; pose: PoseName };
 
 export function say(kind: PhraseKind): Say {
   return {
     text: pickFrom(BANK[kind], kind, lastText),
-    pose: pickFrom(POSE_FOR[kind], `pose:${kind}`, lastPose),
+    pose: pickPose(POSE_FOR[kind]),
   };
 }
 

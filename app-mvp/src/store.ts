@@ -34,6 +34,8 @@ type State = {
   archetype: ArchetypeId | null; // обраний архетип персонажа-аватара (повний зріст, еволюціонує по модулях)
   equipped: Partial<Record<EquipSlot, string>>; // itemId зі src/data/equipment.ts на слот; поки каталог порожній
   charStart: CharStart;
+  adaptDone: boolean; // пройдено «підлаштувати курс» (решта питань після першого уроку)
+  adaptDismissed: boolean; // гравець відмахнувся від пропозиції
   energy: number;
   energyAt: number; // мс: від якого моменту рахуємо відновлення енергії
   lastBonusDate: string | null; // дата останнього щоденного бонусу енергії
@@ -45,8 +47,10 @@ type State = {
   coins: number;
   xp: number;
   xpToday: number;
-  streak: number;
+  streak: number; // 0 до першого уроку; зростає лише за дні з пройденим уроком
+  streakDate: string | null; // YYYY-MM-DD останнього дня, за який зараховано стрік
   streakFreezes: number;
+  pausedAt: number | null; // пауза акаунта (локально): нагадування вимкнені, стрік не згасає
   lastActiveDate: string | null; // YYYY-MM-DD, local
   daysAway: number; // скільки днів гравця не було на момент останнього входу (для реплік Гріндіка)
   dailyGoal: DailyGoal;
@@ -102,6 +106,10 @@ type State = {
   lastWeek: LastWeek | null;
 
   setHydrated: () => void;
+  finishAdapt: () => void;
+  dismissAdapt: () => void;
+  pauseAccount: () => void;
+  resumeAccount: () => void;
   setQuizAnswer: (key: string, value: string) => void;
   finishOnboarding: (name: string, goal: DailyGoal) => void;
   setPlayerName: (name: string) => void;
@@ -179,6 +187,24 @@ function startFromExp(exp?: string): CharStart {
   if (exp.includes('Чув')) return 'sapiens';
   if (exp.includes('Запускав') || exp.includes('працюю')) return 'early';
   return 'caveman';
+}
+
+// Зарахування стріку за урок: +1 лише за новий день з уроком; пропуск на 1 день лікує заморозка, більше скидає до 1
+function creditStreak(s: State): Partial<State> {
+  const today = todayStr();
+  const ref = s.streakDate ?? (s.streak > 0 ? s.lastActiveDate : null);
+  if (ref === today) return s.streakDate === today ? {} : { streakDate: today };
+  let streak = 1;
+  let streakFreezes = s.streakFreezes;
+  if (s.streak > 0 && ref) {
+    const gap = daysBetween(ref, today);
+    if (gap === 1) streak = s.streak + 1;
+    else if (gap === 2 && streakFreezes > 0) {
+      streak = s.streak + 1;
+      streakFreezes -= 1;
+    }
+  }
+  return { streak, streakFreezes, streakDate: today };
 }
 
 const isCrownId = (id: string) => id.startsWith('checkpoint');
@@ -261,6 +287,8 @@ const FRESH = {
   archetype: null as ArchetypeId | null,
   equipped: {} as Partial<Record<EquipSlot, string>>,
   charStart: 'caveman' as CharStart,
+  adaptDone: false,
+  adaptDismissed: false,
   energy: MAX_ENERGY,
   energyAt: 0,
   lastBonusDate: null,
@@ -272,8 +300,10 @@ const FRESH = {
   coins: 0,
   xp: 0,
   xpToday: 0,
-  streak: 1,
+  streak: 0,
+  streakDate: null as string | null,
   streakFreezes: 0,
+  pausedAt: null as number | null,
   lastActiveDate: null,
   daysAway: 0,
   dailyGoal: 'regular' as DailyGoal,
@@ -321,6 +351,21 @@ export const useStore = create<State>()(
 
       setHydrated: () => set({ hydrated: true }),
 
+      finishAdapt: () => set((s) => ({ adaptDone: true, charStart: startFromExp(s.quiz.exp) })),
+
+      dismissAdapt: () => set({ adaptDismissed: true }),
+
+      pauseAccount: () => set({ pausedAt: Date.now() }),
+
+      // Після паузи стрік продовжується так, ніби гравець був учора
+      resumeAccount: () =>
+        set((s) => {
+          const d = new Date();
+          d.setDate(d.getDate() - 1);
+          const y = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+          return { pausedAt: null, ...(s.streak > 0 ? { streakDate: y } : {}) };
+        }),
+
       setQuizAnswer: (key, value) => set((s) => ({ quiz: { ...s.quiz, [key]: value } })),
 
       finishOnboarding: (name, goal) =>
@@ -365,6 +410,7 @@ export const useStore = create<State>()(
 
       setNotif: (p) => set(p),
 
+      // Стрік тут лише згасає (якщо днів без уроку забагато); зараховується він у completeLesson
       checkStreak: () =>
         set((s) => {
           const today = todayStr();
@@ -374,17 +420,12 @@ export const useStore = create<State>()(
           } else if (s.lastActiveDate === today) {
             if (s.daysAway) patch = { daysAway: 0 };
           } else {
-            const gap = daysBetween(s.lastActiveDate, today);
-            const away = { daysAway: gap };
-            if (gap === 1) {
-              patch = { ...away, streak: s.streak + 1, lastActiveDate: today, xpToday: 0 };
-            } else if (gap === 2 && s.streakFreezes > 0) {
-              patch = { ...away, streak: s.streak + 1, lastActiveDate: today, xpToday: 0, streakFreezes: s.streakFreezes - 1 };
-            } else if (gap > 1) {
-              patch = { ...away, streak: 1, lastActiveDate: today, xpToday: 0 };
-            } else {
-              patch = { lastActiveDate: today, xpToday: 0 };
-            }
+            patch = { daysAway: daysBetween(s.lastActiveDate, today), lastActiveDate: today, xpToday: 0 };
+          }
+          const ref = s.streakDate ?? (s.streak > 0 ? s.lastActiveDate : null);
+          if (s.streak > 0 && ref && !s.pausedAt) {
+            const gap = daysBetween(ref, today);
+            if (gap > 2 || (gap === 2 && s.streakFreezes <= 0)) patch = { ...patch, streak: 0 };
           }
           const next = { ...s, ...patch } as State;
           return withAchievements(s, { ...patch, ...rolloverWeek(next), ...questsRoll(next), ...energyPatch(next, Date.now()) });
@@ -420,6 +461,7 @@ export const useStore = create<State>()(
           const patch: Partial<State> = {
             ...week,
             ...q0,
+            ...creditStreak(s),
             questProgress: qp,
             completed,
             coins: s.coins + coinsEarned,

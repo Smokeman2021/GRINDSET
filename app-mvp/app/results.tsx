@@ -90,6 +90,10 @@ export default function Results() {
   const next = isQuiz || isDiagnostic || isMistakes ? undefined : nextAfter(id);
 
   const failedCheckpoint = isCheckpoint && !passed;
+  // Точність нижче 60%: головна дія — повторити помилки, наступний урок другорядний
+  const lowAccuracy = !isDiagnostic && !failedCheckpoint && correct + errors > 0 && accuracy < 60;
+  const goMistakes = () => router.replace(`/lesson/${MISTAKES_ID}`);
+  const goNext = () => (next ? router.replace(`/lesson/${next.id}`) : router.replace('/home'));
 
   const talkKind: PhraseKind = failedCheckpoint
     ? 'crownFail'
@@ -124,6 +128,8 @@ export default function Results() {
     ? 'Модуль закрито на корону. Це фундамент — далі цікавіше.'
     : perfect
     ? 'Жодної помилки. Ростеш, красава.'
+    : lowAccuracy
+    ? `Точність ${accuracy}%. Краще одразу розібрати помилки, поки свіжо.`
     : isPractice
     ? 'Повторення — половина нагороди, але пам’ять дякує.'
     : 'Норм. Помилки — частина процесу.';
@@ -134,6 +140,7 @@ export default function Results() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20 }]}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 8 }} showsVerticalScrollIndicator={false}>
       <View style={styles.center}>
         <View style={{ width: '100%', marginBottom: 6 }}>
           <GrindykSay text={talk.text} pose={talk.pose} height={120} />
@@ -224,10 +231,19 @@ export default function Results() {
         </Text>
       </View>
 
-      <Button
-        title={failedCheckpoint || isMistakes ? 'Повернутись' : 'Забрати нагороду'}
-        onPress={() => router.replace('/home')}
-      />
+      </ScrollView>
+
+      {lowAccuracy ? (
+        <View style={{ gap: 10 }}>
+          <Button title="Повторити помилки" onPress={goMistakes} />
+          <Button title={next ? 'Наступний урок' : 'На головну'} ghost onPress={goNext} />
+        </View>
+      ) : (
+        <Button
+          title={failedCheckpoint || isMistakes ? 'Повернутись' : 'Забрати нагороду'}
+          onPress={() => router.replace('/home')}
+        />
+      )}
     </View>
   );
 }

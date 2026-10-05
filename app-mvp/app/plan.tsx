@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../src/components/Button';
 import { GrindykSay } from '../src/components/GrindykSay';
+import { poseFor } from '../src/data/phrases';
 import { buildPlan } from '../src/data/plan';
 import { FUTURE_ROUTES } from '../src/data/quiz';
 import { useStore } from '../src/store';
@@ -24,11 +25,13 @@ export default function Plan() {
   const insets = useSafeAreaInsets();
   const quiz = useStore((s) => s.quiz);
   const onboarded = useStore((s) => s.onboarded);
-  const plan = useMemo(() => buildPlan(quiz), [quiz]);
+  const dailyGoal = useStore((s) => s.dailyGoal);
+  const pose = useMemo(() => poseFor('theory'), []);
+  const plan = useMemo(() => buildPlan(quiz, dailyGoal), [quiz, dailyGoal]);
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={{ padding: 22, paddingTop: insets.top + 20, paddingBottom: insets.bottom + 30 }}>
-      <GrindykSay text="Склав тобі маршрут. Порядок лінійний, я лише підказую, що важливе, а що можна пропустити." pose="point" height={130} />
+      <GrindykSay text="Склав тобі маршрут. Порядок лінійний, я лише підказую, що важливе, а що можна пропустити." pose={pose} height={130} />
       <Text style={styles.h1}>Твій маршрут</Text>
       <Text style={styles.sum}>{plan.summary}</Text>
 

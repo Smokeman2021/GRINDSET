@@ -12,8 +12,9 @@ import { MemeCard } from '../../src/components/MemeCard';
 import { MEMES } from '../../src/data/memes';
 import { levelProgress, levelTitle } from '../../src/data/levels';
 import { ALL_LESSONS, crownsCompleted } from '../../src/data/modules';
-import { ARCHETYPES, ArchetypeId, avatarStage, avatarFrame } from '../../src/data/avatars';
-import { CharacterAvatar } from '../../src/components/CharacterAvatar';
+import { ArchetypeId, avatarStage, AVATAR_CHANGE_PRICE } from '../../src/data/avatars';
+import { ArchetypePicker } from '../../src/components/ArchetypePicker';
+import { Button } from '../../src/components/Button';
 import { STAT_DEFS, STAT_MAX } from '../../src/data/stats';
 import { useT } from '../../src/i18n';
 import { say } from '../../src/data/phrases';
@@ -21,7 +22,7 @@ import { masteredCount } from '../../src/data/srs';
 import { statsOf, useStore } from '../../src/store';
 import { cardShadow, Theme, useStyles, useTheme } from '../../src/theme';
 import { Glow } from '../../src/components/Glow';
-import { UI_BUILD, loadedAtLabel } from '../../src/version';
+import { SHOW_BUILD, UI_BUILD, loadedAtLabel } from '../../src/version';
 
 function lessonTitle(id: string): string {
   if (id === 'mistakes') return 'Надолуження помилок';
@@ -41,7 +42,7 @@ export default function Profile() {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const [talk, setTalk] = useState(() => say('profile'));
-  const [genderFilter, setGenderFilter] = useState<'m' | 'f'>(s.archetype ? (s.archetype[0] as 'm' | 'f') : 'm');
+  const [pendingArch, setPendingArch] = useState<ArchetypeId | null>(null); // обраний, але ще не підтверджений образ
 
   const prog = levelProgress(s.xp);
   const stats = statsOf(s);
@@ -74,9 +75,11 @@ export default function Profile() {
       <TopBar title={t('titleProfile')} />
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 40 }}>
         <View style={styles.hero}>
-          <View style={styles.build}>
-            <Text style={styles.buildTxt}>збірка {UI_BUILD} · {loadedAtLabel()}</Text>
-          </View>
+          {SHOW_BUILD && (
+            <View style={styles.build}>
+              <Text style={styles.buildTxt}>збірка {UI_BUILD} · {loadedAtLabel()}</Text>
+            </View>
+          )}
           <Pressable onPress={() => router.push('/settings')} style={styles.gear} hitSlop={10}>
             <Text style={styles.gearTxt}>⚙️</Text>
           </Pressable>
@@ -122,34 +125,26 @@ export default function Profile() {
         <GrindykSay text={talk.text} pose={talk.pose} height={100} onPress={() => setTalk(say('profile'))} />
 
         <Text style={styles.h}>ПЕРСОНАЖ · СТАДІЯ {stage}/10</Text>
-        <View style={styles.charBox}>
-          {s.archetype ? (
-            <CharacterAvatar archetype={s.archetype} stage={stage} height={200} />
-          ) : (
-            <Text style={styles.empty}>Обери свій образ нижче</Text>
-          )}
-        </View>
-        <View style={styles.genderRow}>
-          {(['m', 'f'] as const).map((g) => (
-            <Pressable key={g} onPress={() => setGenderFilter(g)} style={[styles.genderBtn, genderFilter === g && styles.goalOn]}>
-              <Text style={[styles.goalTxt, genderFilter === g && { color: C.onAccent }]}>{g === 'm' ? '♂ Чоловічий' : '♀ Жіночий'}</Text>
-            </Pressable>
-          ))}
-        </View>
-        <View style={styles.archGrid}>
-          {ARCHETYPES.filter((a) => a.gender === genderFilter).map((a) => {
-            const f = avatarFrame(a.id, 1);
-            const on = s.archetype === a.id;
-            return (
-              <Pressable key={a.id} onPress={() => s.setArchetype(a.id)} style={[styles.archCell, on && styles.archCellOn]}>
-                <Image source={f.src} style={{ width: 48 * f.ratio, height: 48 }} resizeMode="contain" />
-                <Text style={[styles.archLbl, on && { color: C.accentTxt }]} numberOfLines={1}>
-                  {a.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <ArchetypePicker
+          value={pendingArch ?? s.archetype}
+          stage={stage}
+          onSelect={(id) => (s.archetype && id !== s.archetype ? setPendingArch(id) : s.setArchetype(id))}
+        />
+        {pendingArch && pendingArch !== s.archetype && (
+          <View style={styles.changeBox}>
+            <Text style={styles.changeTxt}>
+              Зміна образу платна: 💎 {AVATAR_CHANGE_PRICE} преміум-валюти. Преміум-валюта з'явиться пізніше, тому зараз зміна безкоштовна.
+            </Text>
+            <Button
+              title={`Змінити образ · 💎 ${AVATAR_CHANGE_PRICE}`}
+              onPress={() => {
+                s.setArchetype(pendingArch);
+                setPendingArch(null);
+              }}
+            />
+            <Button title="Лишити як є" ghost onPress={() => setPendingArch(null)} />
+          </View>
+        )}
 
         <Text style={styles.h}>
           ХАРАКТЕРИСТИКИ{s.statPoints > 0 ? ` · ${s.statPoints} очок` : ''}
@@ -301,6 +296,8 @@ const makeStyles = (C: Theme) => StyleSheet.create({
   xpFill: { height: '100%', backgroundColor: C.blue, borderRadius: 8 },
   xpTxt: { color: C.muted, fontSize: 12, marginTop: 6 },
   h: { color: C.muted, fontWeight: '800', fontSize: 12, letterSpacing: 1, marginTop: 22, marginBottom: 10 },
+  changeBox: { gap: 10, marginTop: 12 },
+  changeTxt: { color: C.muted, fontSize: 12, lineHeight: 17 },
   charBox: { alignItems: 'center', justifyContent: 'center', minHeight: 210, marginBottom: 12 },
   genderRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
   genderBtn: {

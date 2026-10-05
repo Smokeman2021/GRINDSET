@@ -17,9 +17,11 @@ export function MemeCard({ meme, locked }: { meme: Meme; locked?: boolean }) {
         </View>
       ) : (
         <>
-          <Image source={p.src} style={styles.pose} resizeMode="contain" />
-          <Text style={[styles.cap, styles.top]}>{meme.top}</Text>
-          <Text style={[styles.cap, styles.bottom]}>{meme.bottom}</Text>
+          <Text style={styles.cap}>{meme.top}</Text>
+          <View style={styles.poseBox}>
+            <Image source={p.src} style={styles.pose} resizeMode="contain" />
+          </View>
+          <Text style={styles.cap}>{meme.bottom}</Text>
         </>
       )}
     </View>
@@ -29,12 +31,11 @@ export function MemeCard({ meme, locked }: { meme: Meme; locked?: boolean }) {
 // підписи лишаються білими з чорною обводкою в обох темах: вони лежать на кольоровому тлі мема
 const makeStyles = (C: Theme) =>
   StyleSheet.create({
-    card: { aspectRatio: 1, borderRadius: 14, overflow: 'hidden', width: '100%' },
-    pose: { position: 'absolute', bottom: '14%', top: '16%', alignSelf: 'center', width: '70%' },
+    // підписи й зображення йдуть колонкою: підпис не налазить на позу, навіть якщо займає 2-3 рядки
+    card: { aspectRatio: 1, borderRadius: 14, overflow: 'hidden', width: '100%', paddingVertical: 8, paddingHorizontal: 8, justifyContent: 'space-between' },
+    poseBox: { flex: 1, marginVertical: 4, minHeight: 0 },
+    pose: { flex: 1, width: '100%' },
     cap: {
-      position: 'absolute',
-      left: 8,
-      right: 8,
       textAlign: 'center',
       color: '#fff',
       fontWeight: '900',
@@ -44,8 +45,6 @@ const makeStyles = (C: Theme) =>
       textShadowOffset: { width: 0, height: 0 },
       textShadowRadius: 4,
     },
-    top: { top: 8 },
-    bottom: { bottom: 8 },
     lock: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6 },
     lockTxt: { color: C.muted, fontSize: 11, fontWeight: '700' },
   });

@@ -7,7 +7,7 @@ const num = (s: string) => {
   const v = parseFloat(s.replace(',', '.'));
   return Number.isFinite(v) ? v : NaN;
 };
-const money = (v: number) => (Number.isFinite(v) ? `$${v.toFixed(2)}` : '—');
+const money = (v: number) => (Number.isFinite(v) ? `${v < 0 ? '−' : ''}${Math.abs(v).toFixed(2)}` : '—');
 const pct = (v: number) => (Number.isFinite(v) ? `${v.toFixed(1)}%` : '—');
 
 function Field({ label, value, onChange, suffix }: { label: string; value: string; onChange: (v: string) => void; suffix?: string }) {

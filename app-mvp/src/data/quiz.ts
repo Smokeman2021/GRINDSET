@@ -1,4 +1,5 @@
-// Опитування перед грою (15 питань): будує особистий лінійний план. Чернетка була в content/adaptive-questionnaire.md.
+// Опитування для особистого лінійного плану. Чернетка була в content/adaptive-questionnaire.md.
+// До першого уроку гравець відповідає лише на питання з ONBOARD_KEYS (мета, досвід); решта (ADAPT_STEPS) пропонується після першого уроку.
 export type Option = { emoji: string; text: string; soon?: boolean };
 
 export type ChoiceStep = { kind: 'choice'; q: string; key: string; hint?: string; options: Option[] };
@@ -21,7 +22,7 @@ export const QUIZ: QuizStep[] = [
   },
   {
     kind: 'choice',
-    q: 'Який дохід хочеш за рік на місяць?',
+    q: 'Який дохід хочеш на місяць?',
     key: 'income',
     hint: 'Для мотивації, не гарантія результату',
     options: [
@@ -79,17 +80,6 @@ export const QUIZ: QuizStep[] = [
   },
   {
     kind: 'choice',
-    q: 'Скільки часу в день?',
-    key: 'time',
-    options: [
-      { emoji: '⚡', text: '5-10 хвилин' },
-      { emoji: '📚', text: '15-20 хвилин' },
-      { emoji: '🔥', text: '30+ хвилин' },
-      { emoji: '💪', text: 'Скільки треба' },
-    ],
-  },
-  {
-    kind: 'choice',
     q: 'Як вчимось?',
     key: 'mode',
     options: [
@@ -135,6 +125,10 @@ export const QUIZ: QuizStep[] = [
     ],
   },
 ];
+
+export const ONBOARD_KEYS = ['goal', 'exp'];
+export const ONBOARD_STEPS: QuizStep[] = QUIZ.filter((s) => s.kind === 'choice' && ONBOARD_KEYS.includes(s.key));
+export const ADAPT_STEPS: QuizStep[] = QUIZ.filter((s) => !(s.kind === 'choice' && ONBOARD_KEYS.includes(s.key)));
 
 // Майбутні маршрути: показуються затемненими
 export const FUTURE_ROUTES = [

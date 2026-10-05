@@ -151,3 +151,6 @@ export function avatarFrame(archetype: ArchetypeId, stage: number): Frame {
   const s = Math.max(1, Math.min(10, Math.round(stage)));
   return FILES[`${archetype}_s${s}`];
 }
+
+// Зміна образу після онбордингу платна в преміальній валюті. Валюти ще нема: показуємо ціну, списання поки не підключене.
+export const AVATAR_CHANGE_PRICE = 50;

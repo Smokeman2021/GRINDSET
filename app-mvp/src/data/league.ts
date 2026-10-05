@@ -1,4 +1,4 @@
-// Тижнева ліга. Онлайн-суперників ще нема (бекенд поза MVP), тому решту ліги грають боти:
+// Тижнева ліга. Онлайн-суперників ще нема (бекенд поза MVP), тому решту ліги грають симульовані суперники:
 // їхній XP детермінований від тижня й імені, тож рейтинг не стрибає при перезапуску.
 export const TIERS = [
   { name: 'Бронза', icon: '🥉', color: '#cd8a4b', base: 70 },
@@ -50,14 +50,26 @@ export function weekFraction(weekId: string, now = new Date()): number {
   return Math.min(1, Math.max(0, (now.getTime() - start) / (7 * MS_DAY)));
 }
 
+// У кожного бота свій характер (інтенсивність, регулярність) і свої щоденні сплески: XP росте днями,
+// а не плавною кривою, і не залежить від XP гравця
 export function rivalsFor(weekId: string, tier: number, frac: number): Rival[] {
   const base = TIERS[tier].base;
   const start = 3 + Math.floor(rnd(`${weekId}:${tier}:off`) * 3); // зсув у списку імен
+  const days = Math.min(7, Math.max(0, frac * 7));
+  const full = Math.floor(days);
+  const part = days - full;
   return Array.from({ length: LEAGUE_SIZE - 1 }, (_, k) => {
     const name = BOT_NAMES[(start + k) % BOT_NAMES.length];
-    const goal = base * (0.35 + 1.25 * rnd(`${weekId}:${tier}:${name}`));
-    const pace = 0.85 + 0.3 * rnd(`${weekId}:${name}:pace`);
-    return { name, xp: Math.round(goal * Math.min(1, Math.pow(frac, pace))) };
+    const seed = `${weekId}:${tier}:${name}`;
+    const power = 0.25 + 1.9 * Math.pow(rnd(`${seed}:pow`), 1.4); // розкид «сили» від ледачих до запеклих
+    const regular = 0.45 + 0.5 * rnd(`${seed}:reg`); // імовірність активного дня
+    const dayXp = (d: number) =>
+      rnd(`${seed}:on:${d}`) < regular ? (base / 7 / regular) * power * (0.35 + 1.3 * rnd(`${seed}:amt:${d}`)) : 0;
+    let xp = 0;
+    for (let d = 0; d < full; d++) xp += dayXp(d);
+    // поточна доба: бот «встає» не одразу, тож частка зростає нерівно
+    xp += dayXp(full) * Math.pow(part, 0.8 + 0.8 * rnd(`${seed}:pace`));
+    return { name, xp: Math.round(xp) };
   });
 }
 

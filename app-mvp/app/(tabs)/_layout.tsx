@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View, StyleSheet } from 'react-native';
+import { Text, View, StyleSheet, Platform, useWindowDimensions } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme, useStyles, useTheme } from '../../src/theme';
@@ -19,15 +19,18 @@ function TabIcon({ glyph, focused }: { glyph: string; focused: boolean }) {
 export default function TabsLayout() {
   const C = useTheme();
   const insets = useSafeAreaInsets();
-  const { notifEnabled, notifMorning, notifEvening, streak, playerName, campaigns } = useStore();
+  const { width: winW } = useWindowDimensions();
+  const web = Platform.OS === 'web';
+  const sidebar = web && winW > 1024; // широкий веб: бічна навігація замість нижньої панелі
+  const { notifEnabled, notifMorning, notifEvening, streak, playerName, campaigns, pausedAt } = useStore();
   const t = useT();
   const checksKey = JSON.stringify(campaigns.filter((c) => c.status === 'active' && c.remindTimes.length).map((c) => [c.id, c.name, c.remindTimes]));
 
   // Переплановуємо нагадування на 7 діб уперед при запуску і зміні налаштувань
   React.useEffect(() => {
     const checks = (JSON.parse(checksKey) as [string, string, string[]][]).map(([id, name, times]) => ({ id, name, times }));
-    scheduleAll({ enabled: notifEnabled, morning: notifMorning, evening: notifEvening }, streak, playerName, checks);
-  }, [notifEnabled, notifMorning, notifEvening, streak, playerName, checksKey]);
+    scheduleAll({ enabled: notifEnabled && !pausedAt, morning: notifMorning, evening: notifEvening }, streak, playerName, checks);
+  }, [notifEnabled, pausedAt, notifMorning, notifEvening, streak, playerName, checksKey]);
 
   return (
     <Tabs
@@ -36,15 +39,18 @@ export default function TabsLayout() {
         tabBarActiveTintColor: C.accent,
         tabBarInactiveTintColor: C.muted,
         tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
-        tabBarStyle: {
-          backgroundColor: C.panel,
-          borderTopColor: C.line,
-          borderTopWidth: 2,
-          height: 62 + insets.bottom,
-          paddingBottom: insets.bottom + 4,
-          paddingTop: 6,
-        },
-        sceneStyle: { backgroundColor: C.bg },
+        tabBarPosition: sidebar ? 'left' : 'bottom',
+        tabBarStyle: sidebar
+          ? { backgroundColor: C.panel, borderRightColor: C.line, borderRightWidth: 2, width: 190, paddingTop: 24 }
+          : {
+              backgroundColor: C.panel,
+              borderTopColor: C.line,
+              borderTopWidth: 2,
+              height: 62 + insets.bottom,
+              paddingBottom: insets.bottom + 4,
+              paddingTop: 6,
+            },
+        sceneStyle: web ? { backgroundColor: C.bg, width: '100%', maxWidth: 600, marginHorizontal: 'auto' } : { backgroundColor: C.bg },
       }}
     >
       <Tabs.Screen

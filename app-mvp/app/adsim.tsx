@@ -98,7 +98,7 @@ export default function AdsSim() {
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 30 }}>
         {phase === 'intro' && (
           <>
-            <GrindykSay text="Спробуємо настройку кампанії — так само, як у справжньому Ads Manager. 5 рішень, кожне впливає на результат." pose="laptop" height={130} />
+            <GrindykSay text="Спробуємо налаштування кампанії — так само, як у справжньому Ads Manager. 5 рішень, кожне впливає на результат." pose="laptop" height={130} />
             <View style={styles.introCard}>
               <Text style={styles.introTitle}>Як це працює</Text>
               <Text style={styles.introLine}>• Екрани виглядають так само, як реальний кабінет Facebook.</Text>

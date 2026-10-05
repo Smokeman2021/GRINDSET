@@ -99,7 +99,9 @@ export default function Home() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width: winW } = useWindowDimensions();
-  const { energy, xpToday, dailyGoal, completed, daysAway, strictEnergy, refreshEnergy, srs } = useStore();
+  const { energy, xpToday, dailyGoal, completed, daysAway, strictEnergy, refreshEnergy, srs, adaptDone, adaptDismissed, dismissAdapt, quiz: quizAnswers } = useStore();
+  // Після першого уроку пропонуємо підлаштувати курс (решта питань); хто вже відповідав на старе опитування, не турбуємо
+  const offerAdapt = completed.length >= 1 && !adaptDone && !adaptDismissed && !quizAnswers.income;
   const dueCount = dueKeys(srs).length;
 
   useFocusEffect(
@@ -146,6 +148,70 @@ export default function Home() {
     scrollRef.current?.scrollTo({ y: Math.max(0, pathTop + yAt(currentIdx) - 260), animated: false });
   }, [pathTop, currentIdx]);
 
+  // Геометрія квізів (кишені між вигинами): вузол, Гріндік і відгалуження від шляху
+  const quizGeo = QUIZ_SLOTS.map(({ quiz: quiz0, bend }) => {
+    const quiz = ALL_LESSONS.find((l) => l.id === quiz0.id) ?? quiz0; // актуальна мова контенту
+    const unlocked = (quiz.requires ?? []).every((id) => completed.includes(id));
+    const done = completed.includes(quiz.id);
+    const pose: PoseName = done ? 'cheer' : unlocked ? 'stand' : 'think';
+    const gw = POSE_H * poseFile(pose).ratio;
+    const yc = yAt(bend.t);
+    const pathX = xAt(bend.t);
+    const left = bend.pocketSide < 0 ? 4 : pathX + NODE / 2 + 20;
+    const right = bend.pocketSide < 0 ? pathX - NODE / 2 - 20 : W - 4;
+    const qx = bend.pocketSide < 0 ? right - QUIZ_NODE : left;
+    const gx = bend.pocketSide < 0 ? left : right - gw;
+    const qTop = yc - 12 - QUIZ_NODE / 2;
+    return { quiz, unlocked, done, pose, gw, yc, pathX, qx, gx, qTop, side: bend.pocketSide };
+  });
+
+  // Підпис поточного уроку: шукаємо місце, де він не перекриває вузли, підписи, заголовки модулів, квізи й Гріндіка
+  const chipRect = (() => {
+    if (allDone || !PATH[firstOpen]) return null;
+    const cur = PATH[firstOpen];
+    const title = `${cur.isCrown ? 'КОРОНА' : cur.lesson.code} · ${cur.lesson.title}`;
+    const w = Math.min(W - 8, 300, Math.round(title.length * 6.1 + 18));
+    const h = 17;
+    const x0 = xAt(firstOpen);
+    const y0 = yAt(firstOpen);
+    type R = { x: number; y: number; w: number; h: number };
+    const obstacles: R[] = [];
+    for (let i = Math.max(0, firstOpen - 2); i <= Math.min(LAST, firstOpen + 2); i++) {
+      obstacles.push({ x: xAt(i) - NODE / 2, y: yAt(i) - NODE / 2, w: NODE, h: NODE + 8 });
+      if (i !== firstOpen) obstacles.push({ x: xAt(i) - 40, y: yAt(i) + NODE / 2 + 11, w: 80, h: 16 });
+    }
+    quizGeo.forEach((g) => {
+      obstacles.push({ x: g.qx, y: g.qTop, w: QUIZ_NODE, h: QUIZ_NODE + 10 });
+      obstacles.push({ x: g.qx + QUIZ_NODE / 2 - 55, y: g.qTop + QUIZ_NODE + 14, w: 110, h: 32 });
+      obstacles.push({ x: g.gx, y: g.yc + 62 - POSE_H, w: g.gw, h: POSE_H });
+    });
+    MODULES.forEach((_, mi) => {
+      const yc = mi === 0 ? TOP / 2 : yAt(MODULE_START[mi] - 0.5);
+      obstacles.push({ x: cx - 135, y: yc - 20, w: 270, h: 36 });
+    });
+    const hit = (a: R, b: R) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+    const clampX = (x: number, cw: number) => Math.max(4, Math.min(W - 4 - cw, x));
+    // кандидати: над вузлом, під ним і збоку від нього (збоку ширину обрізаємо до вільного місця)
+    const cands: R[] = [];
+    const ys = [y0 + NODE / 2 + 9, y0 - NODE / 2 - 1 - h, y0 + NODE / 2 + 32];
+    for (const y of ys) for (const x of [x0 - w / 2, 4, W - 4 - w, x0 - w - 6, x0 + 6]) cands.push({ x: clampX(x, w), y, w, h });
+    const leftW = Math.min(w, x0 - NODE / 2 - 10 - 4);
+    if (leftW >= 90) cands.push({ x: x0 - NODE / 2 - 10 - leftW, y: y0 - h / 2, w: leftW, h });
+    const rightW = Math.min(w, W - 4 - (x0 + NODE / 2 + 10));
+    if (rightW >= 90) cands.push({ x: x0 + NODE / 2 + 10, y: y0 - h / 2, w: rightW, h });
+    let best: R | null = null;
+    let bestScore = Infinity;
+    for (const r of cands) {
+      const score = obstacles.reduce((sum, o) => sum + hit(r, o), 0);
+      if (score < bestScore) {
+        bestScore = score;
+        best = r;
+      }
+      if (score === 0) return { ...r, title };
+    }
+    return best ? { ...best, title } : null;
+  })();
+
   const pathD = (toT: number) => {
     let d = '';
     for (let t = 0; t <= toT + 1e-6; t += 0.05) {
@@ -175,6 +241,26 @@ export default function Home() {
         <BoostBanner />
 
         <Quests />
+
+        {offerAdapt && (
+          <View style={[styles.practice, { borderColor: C.blue, borderBottomColor: C.blueEdge, flexDirection: 'column', alignItems: 'stretch' }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <Text style={{ fontSize: 26 }}>🎯</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.practiceTitle}>Підлаштувати курс під тебе?</Text>
+                <Text style={styles.practiceSub}>Кілька питань про досвід і цілі. Я підкажу, що пропустити, а на чому зосередитись.</Text>
+              </View>
+            </View>
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+              <Pressable onPress={() => router.push('/adapt')} style={styles.offerBtn}>
+                <Text style={styles.offerBtnTxt}>Підлаштувати</Text>
+              </Pressable>
+              <Pressable onPress={dismissAdapt} style={styles.offerLater}>
+                <Text style={styles.offerLaterTxt}>Не зараз</Text>
+              </Pressable>
+            </View>
+          </View>
+        )}
 
         <Pressable onPress={() => router.push('/sim')} style={({ pressed }) => [styles.practice, { borderColor: C.gold, borderBottomColor: C.goldEdge }, pressed && { transform: [{ translateY: 2 }] }]}>
           <Text style={{ fontSize: 26 }}>📊</Text>
@@ -212,6 +298,17 @@ export default function Home() {
           <Svg width={W} height={H} style={StyleSheet.absoluteFill}>
             <Path d={pathD(LAST)} stroke={C.pathBed} strokeWidth={28} strokeLinecap="round" strokeLinejoin="round" fill="none" />
             <Path d={pathD(LAST)} stroke={C.pathDots} strokeWidth={4} strokeDasharray="2 12" strokeLinecap="round" fill="none" />
+            {quizGeo.map((g) => {
+              const ex = g.side < 0 ? g.qx + QUIZ_NODE - 6 : g.qx + 6;
+              const ey = g.qTop + QUIZ_NODE / 2;
+              const d = `M${g.pathX.toFixed(1)} ${g.yc.toFixed(1)} Q${((g.pathX + ex) / 2).toFixed(1)} ${g.yc.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)}`;
+              return (
+                <React.Fragment key={`br-${g.quiz.id}`}>
+                  <Path d={d} stroke={C.pathBed} strokeWidth={16} strokeLinecap="round" fill="none" />
+                  <Path d={d} stroke={g.done ? C.accent : g.unlocked ? C.blue : C.pathDots} strokeWidth={g.done || g.unlocked ? 6 : 4} strokeDasharray={g.done || g.unlocked ? undefined : '2 12'} strokeLinecap="round" fill="none" />
+                </React.Fragment>
+              );
+            })}
             {currentIdx > 0 && (
               <>
                 <Path d={pathD(currentIdx)} stroke={C.accent} strokeOpacity={C.name === 'night' ? 0.22 : 0.16} strokeWidth={24} strokeLinecap="round" strokeLinejoin="round" fill="none" />
@@ -233,41 +330,27 @@ export default function Home() {
           })}
 
           {/* кишені між вигинами: квіз + Гріндік у різних позах */}
-          {QUIZ_SLOTS.map(({ quiz: quiz0, bend }) => {
-            const quiz = ALL_LESSONS.find((l) => l.id === quiz0.id) ?? quiz0; // актуальна мова контенту
-            const unlocked = (quiz.requires ?? []).every((id) => completed.includes(id));
-            const done = completed.includes(quiz.id);
-            const pose: PoseName = done ? 'cheer' : unlocked ? 'stand' : 'think';
-            const gw = POSE_H * poseFile(pose).ratio;
-            const yc = yAt(bend.t);
-            const pathX = xAt(bend.t);
-            const left = bend.pocketSide < 0 ? 4 : pathX + NODE / 2 + 20;
-            const right = bend.pocketSide < 0 ? pathX - NODE / 2 - 20 : W - 4;
-            const qx = bend.pocketSide < 0 ? right - QUIZ_NODE : left;
-            const gx = bend.pocketSide < 0 ? left : right - gw;
-            const qTop = yc - 12 - QUIZ_NODE / 2;
-            return (
-              <React.Fragment key={quiz.id}>
-                <Image
-                  source={poseFile(pose).src}
-                  style={{ position: 'absolute', left: gx, top: yc + 62 - POSE_H, width: gw, height: POSE_H }}
-                  resizeMode="contain"
+          {quizGeo.map((g) => (
+            <React.Fragment key={g.quiz.id}>
+              <Image
+                source={poseFile(g.pose).src}
+                style={{ position: 'absolute', left: g.gx, top: g.yc + 62 - POSE_H, width: g.gw, height: POSE_H }}
+                resizeMode="contain"
+              />
+              <View style={{ position: 'absolute', left: g.qx, top: g.qTop }}>
+                <PathNode
+                  kind={(g.done ? 'quizDone' : g.unlocked ? 'quizOpen' : 'quizLocked') as NodeKind}
+                  size={QUIZ_NODE}
+                  disabled={!g.unlocked}
+                  onPress={() => open(g.quiz.id)}
                 />
-                <View style={{ position: 'absolute', left: qx, top: qTop }}>
-                  <PathNode
-                    kind={(done ? 'quizDone' : unlocked ? 'quizOpen' : 'quizLocked') as NodeKind}
-                    size={QUIZ_NODE}
-                    disabled={!unlocked}
-                    onPress={() => open(quiz.id)}
-                  />
-                </View>
-                <Text style={[styles.quizLabel, { left: qx + QUIZ_NODE / 2 - 55, top: qTop + QUIZ_NODE + 14 }]} numberOfLines={2}>
-                  {quiz.title}
-                  {'\n'}⏱ на час · бонус
-                </Text>
-              </React.Fragment>
-            );
-          })}
+              </View>
+              <Text style={[styles.quizLabel, { left: g.qx + QUIZ_NODE / 2 - 55, top: g.qTop + QUIZ_NODE + 14 }]} numberOfLines={2}>
+                {g.quiz.title}
+                {'\n'}⏱ на час · бонус
+              </Text>
+            </React.Fragment>
+          ))}
 
           {/* вузли уроків на течії */}
           {PATH.map(({ lesson: l, isCrown }, i) => {
@@ -286,29 +369,20 @@ export default function Home() {
                     onPress={() => open(l.id)}
                   />
                 </View>
-                <View style={[styles.codeWrap, { left: x - 40, top: y + NODE / 2 + 11 }]}>
-                  <Text style={styles.code}>{isCrown ? 'КОРОНА' : l.code}</Text>
-                </View>
+                {!(i === firstOpen && chipRect) && (
+                  <View style={[styles.codeWrap, { left: x - 40, top: y + NODE / 2 + 11 }]}>
+                    <Text style={styles.code}>{isCrown ? 'КОРОНА' : l.code}</Text>
+                  </View>
+                )}
               </React.Fragment>
             );
           })}
 
-          {/* підпис поточного уроку окремим верхнім шаром, щоб не ховався під наступним вузлом */}
-          {!allDone && PATH[firstOpen] && (
-            <View
-              pointerEvents="none"
-              style={{
-                position: 'absolute',
-                alignItems: 'center',
-                width: Math.min(W - 16, 300),
-                left: Math.max(0, Math.min(W - Math.min(W - 16, 300), xAt(firstOpen) - Math.min(W - 16, 300) / 2)),
-                top: yAt(firstOpen) + NODE / 2 + 29,
-              }}
-            >
-              <Text style={[styles.chip, { position: 'relative', maxWidth: '100%' }]} numberOfLines={1}>
-                {PATH[firstOpen].lesson.title}
-              </Text>
-            </View>
+          {/* підпис поточного уроку: верхній шар, місце підібране так, щоб нічого не перекривати */}
+          {chipRect && (
+            <Text pointerEvents="none" numberOfLines={1} style={[styles.chip, { left: chipRect.x, top: chipRect.y, width: chipRect.w }]}>
+              {chipRect.title}
+            </Text>
           )}
         </View>
 
@@ -441,25 +515,10 @@ const makeStyles = (C: Theme) => StyleSheet.create({
     borderWidth: 1.5,
     borderColor: C.accentTint,
   },
-  node: {
-    position: 'absolute',
-    width: NODE,
-    height: NODE,
-    borderRadius: NODE / 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: C.panel,
-    borderBottomWidth: 7,
-    borderBottomColor: C.edge,
-    ...cardShadow(C, 'sm'),
-  },
-  nodeDone: { backgroundColor: C.accent, borderBottomColor: C.accentEdge },
-  nodeCur: { backgroundColor: C.accent, borderBottomColor: C.accentEdge },
-  nodeLock: { opacity: 0.55 },
-  nodeCrown: { backgroundColor: C.gold, borderBottomColor: C.goldEdge },
-  nodePressed: { transform: [{ translateY: 4 }], borderBottomWidth: 3 },
-  nodeTxt: { fontSize: 26, color: C.txt },
-  nodeTxtOn: { color: C.onAccent },
+  offerBtn: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 12, backgroundColor: C.blue, borderBottomWidth: 4, borderBottomColor: C.blueEdge },
+  offerBtnTxt: { color: '#fff', fontWeight: '900', fontSize: 14 },
+  offerLater: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 12, backgroundColor: C.panel2, borderWidth: 2, borderColor: C.line },
+  offerLaterTxt: { color: C.muted, fontWeight: '800', fontSize: 14 },
   codeWrap: { position: 'absolute', width: 80, alignItems: 'center' },
   code: {
     color: C.muted,
@@ -475,27 +534,15 @@ const makeStyles = (C: Theme) => StyleSheet.create({
     position: 'absolute',
     textAlign: 'center',
     color: C.txt,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
     backgroundColor: C.panel,
-    borderRadius: 10,
+    borderRadius: 9,
     overflow: 'hidden',
-    paddingVertical: 4,
+    paddingVertical: 1,
     paddingHorizontal: 8,
+    lineHeight: 15,
   },
-  quiz: {
-    position: 'absolute',
-    width: QUIZ_NODE,
-    height: QUIZ_NODE,
-    borderRadius: QUIZ_NODE / 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: C.panel,
-    borderBottomWidth: 8,
-    borderBottomColor: C.edge,
-  },
-  quizOpen: { backgroundColor: C.blue, borderBottomColor: C.blueEdge },
-  quizTxt: { fontSize: 34, fontWeight: '900', color: C.txt },
   quizLabel: { position: 'absolute', width: 110, textAlign: 'center', color: C.muted, fontSize: 11, fontWeight: '700' },
   doneBox: {
     backgroundColor: C.panel,
