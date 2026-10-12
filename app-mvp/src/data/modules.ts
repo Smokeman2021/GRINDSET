@@ -58,7 +58,7 @@ function build(lang: Lang): Module[] {
     },
     {
       id: 'm2',
-      title: 'Модуль 02 · Facebook: знайомство та фундамент',
+      title: 'Модуль 02 · Рекламна платформа: знайомство та фундамент',
       lessons: M2_LESSONS,
       checkpoint: M2_CHECKPOINT,
       quizzes: [

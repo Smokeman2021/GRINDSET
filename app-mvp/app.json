@@ -2,6 +2,7 @@
   "expo": {
     "name": "GRINDSET",
     "slug": "grindset",
+    "description": "Навчання арбітражу трафіку у форматі гри",
     "version": "0.1.0",
     "scheme": "grindset",
     "orientation": "portrait",
@@ -17,7 +18,9 @@
       }
     },
     "web": {
-      "bundler": "metro"
+      "bundler": "metro",
+      "name": "GRINDSET",
+      "shortName": "GRINDSET"
     },
     "plugins": [
       "expo-router",

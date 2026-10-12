@@ -1,10 +1,11 @@
 // Словник термінів: у тексті уроків перше згадування підсвічується, тап відкриває пояснення.
 // `match` — регулярний вираз (без прапорів): враховує відмінки й варіанти написання.
 import { INCLUDE_RESTRICTED } from './restricted';
+import { RESTRICTED_TERMS } from './glossary.restricted';
 
 export type Term = { id: string; title: string; match: string; def: string; risky?: boolean };
 
-const ALL: Term[] = [
+const BASE: Term[] = [
   { id: 'cpm', title: 'CPM', match: 'CPM', def: 'Cost Per Mille: вартість 1000 показів реклами. Показує, наскільки дорого «купувати» аудиторію.' },
   { id: 'ctr', title: 'CTR', match: 'CTR', def: 'Click-Through Rate: відсоток тих, хто клікнув, від тих, хто побачив. Кліки ÷ покази × 100.' },
   { id: 'cpc', title: 'CPC', match: 'CPC', def: 'Cost Per Click: вартість одного кліка. Витрати ÷ кліки.' },
@@ -40,13 +41,9 @@ const ALL: Term[] = [
   { id: 'aida', title: 'AIDA', match: 'AIDA', def: 'Модель тексту: Attention (увага), Interest (інтерес), Desire (бажання), Action (дія).' },
   { id: 'tds', title: 'TDS', match: 'TDS', def: 'Traffic Distribution System: розподіляє трафік між офер-сторінками за правилами.' },
   { id: 'spy', title: 'Spy-сервіс', match: '[Ss]py-?\\p{L}*|[Сс]пай-?\\p{L}*', def: 'Сервіс із базою чужих оголошень: дивишся, що і як довго крутять конкуренти.' },
-  { id: 'cloak', title: 'Клоакінг', match: '[Кк]лоак\\p{L}*', def: 'Показ різного контенту модератору й користувачу. Порушує правила Meta.', risky: true },
-  { id: 'antidetect', title: 'Антидетект', match: '[Аа]нтидетект\\p{L}*', def: 'Браузер, що створює окремі «відбитки» для кожного акаунта, щоб профілі не пов’язувались.', risky: true },
-  { id: 'dofarm', title: 'Дофарм', match: '[Дд]офарм\\p{L}*', def: 'Підготовка придбаного акаунта до запуску реклами: додати активність, стабілізувати траст.', risky: true },
-  { id: 'proxy', title: 'Проксі', match: '[Пп]роксі', def: 'Проміжний сервер, що підміняє IP. Використовується, щоб акаунти мали різні мережеві «адреси».', risky: true },
 ];
 
-export const TERMS: Term[] = ALL.filter((t) => INCLUDE_RESTRICTED || !t.risky);
+export const TERMS: Term[] = [...BASE, ...RESTRICTED_TERMS].filter((t) => INCLUDE_RESTRICTED || !t.risky);
 
 const LEFT = '(?<![\\p{L}\\d_])';
 export const TERM_RE = new RegExp(`${LEFT}(${TERMS.map((t) => `(?:${t.match})`).join('|')})`, 'u');

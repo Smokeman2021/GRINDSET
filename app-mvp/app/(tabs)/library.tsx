@@ -76,7 +76,7 @@ export default function Library() {
         {cat === 'Рекламний кабінет' && (
           <>
             <Text style={styles.tourIntro}>
-              Реальні екрани Facebook Ads Manager — точний вигляд, кольори й поведінка, зняті з живого кабінету.
+              Реальні екрани рекламного кабінету: точний вигляд, кольори й поведінка, зняті з живого кабінету.
             </Text>
             <Pressable onPress={() => router.push('/adsim')} style={styles.simBtn}>
               <Text style={{ fontSize: 24 }}>🕹️</Text>
@@ -103,7 +103,7 @@ export default function Library() {
               <Text style={{ fontSize: 24 }}>🗺️</Text>
               <View style={{ flex: 1 }}>
                 <Text style={styles.simBtnTitle}>Карта кабінету</Text>
-                <Text style={styles.simBtnSub}>Усі зняті екрани одразу — переходь по кнопках так само, як у живому Ads Manager</Text>
+                <Text style={styles.simBtnSub}>Усі зняті екрани одразу — переходь по кнопках так само, як у живому кабінеті</Text>
               </View>
             </Pressable>
 

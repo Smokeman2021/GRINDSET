@@ -17,6 +17,7 @@ import { DailyGoal, GOAL_LABEL, GOAL_XP, useStore } from '../src/store';
 import { askPermission } from '../src/notifications';
 import { Button } from '../src/components/Button';
 import { Theme, useStyles, useTheme } from '../src/theme';
+import { META_DISCLAIMER } from '../src/brand';
 
 // Онбординг коротко: мета, досвід, ціль дня, імʼя, образ, одразу урок 1.1. Решту питань пропонуємо після першого уроку (app/adapt.tsx).
 type Phase = 'welcome' | 'quiz' | 'goal' | 'name' | 'avatar';
@@ -38,6 +39,7 @@ export default function Onboarding() {
   const setQuizAnswer = useStore((s) => s.setQuizAnswer);
   const finishOnboarding = useStore((s) => s.finishOnboarding);
   const setArchetype = useStore((s) => s.setArchetype);
+  const lang = useStore((s) => s.lang);
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [stepIdx, setStepIdx] = useState(0);
@@ -63,6 +65,7 @@ export default function Onboarding() {
         <Text style={styles.disclaimer}>
           Навчальний контент. Не фінансова порада і не гарантія доходу.
         </Text>
+        <Text style={styles.metaNote}>{META_DISCLAIMER[lang]}</Text>
         <Button title="Погнали" onPress={() => setPhase('quiz')} />
       </View>
     );
@@ -267,6 +270,7 @@ const makeStyles = (C: Theme) => StyleSheet.create({
   },
   optSoon: { opacity: 0.55 },
   soon: { color: C.goldTxt, fontSize: 11, fontWeight: '800' },
+  metaNote: { color: C.muted, fontSize: 10, opacity: 0.8, textAlign: 'center', marginTop: -10, marginBottom: 14 },
   avatarNote: { color: C.muted, fontSize: 12, lineHeight: 17, marginTop: 12, marginBottom: 12, textAlign: 'center' },
   hint: { color: C.muted, fontSize: 13, marginTop: -8, marginBottom: 14 },
   skill: { marginBottom: 14 },

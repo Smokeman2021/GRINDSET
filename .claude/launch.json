@@ -6,6 +6,12 @@
       "runtimeExecutable": "cmd",
       "runtimeArgs": ["/c", "set PATH=C:\\Program Files\\nodejs;%PATH% && cd app-mvp && npx expo start --web --port 8081"],
       "port": 8081
+    },
+    {
+      "name": "grindset-web-public",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "set PATH=C:\\Program Files\\nodejs;%PATH% && set EXPO_PUBLIC_INCLUDE_RESTRICTED=false&& cd app-mvp && npx expo start --web --port 8082 -c"],
+      "port": 8082
     }
   ]
 }

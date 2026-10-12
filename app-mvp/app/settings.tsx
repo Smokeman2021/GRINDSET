@@ -8,6 +8,7 @@ import { GOAL_LABEL, GOAL_XP, DailyGoal, useStore } from '../src/store';
 import { cardShadow, Theme, useStyles, useTheme } from '../src/theme';
 import { Glow } from '../src/components/Glow';
 import { CHANGELOG, SHOW_BUILD, UI_BUILD, loadedAtLabel } from '../src/version';
+import { META_DISCLAIMER } from '../src/brand';
 
 const GOALS: DailyGoal[] = ['casual', 'regular', 'intense'];
 
@@ -156,6 +157,7 @@ export default function Settings() {
           <Text style={styles.sub}>
             Навчальний контент про performance-маркетинг. Не фінансова порада і не гарантія доходу. Результати залежать від бюджету, ніші та виконання. Політики Meta змінюються: звіряйся з офіційною документацією.
           </Text>
+          <Text style={[styles.sub, { marginTop: 8 }]}>{META_DISCLAIMER[s.lang]}</Text>
         </View>
 
         <Text style={styles.h}>АКАУНТ</Text>

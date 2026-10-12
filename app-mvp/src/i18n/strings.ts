@@ -3,6 +3,9 @@
 
 export type Lang = 'uk' | 'en' | 'ru';
 
+// Назва курсу в шапці береться з src/brand.ts (COURSE_NAMES), тут лише запасне значення типу
+const NAME = { uk: 'Арбітраж трафіку', en: 'Traffic Arbitrage', ru: 'Арбитраж трафика' };
+
 export const LANG_LABEL: Record<Lang, string> = { uk: 'Українська', en: 'English', ru: 'Русский' };
 
 export type StringKey = keyof typeof STRINGS.uk;
@@ -14,7 +17,7 @@ export const STRINGS = {
     tabShop: 'Магазин',
     tabLeague: 'Рейтинг',
     tabProfile: 'Профіль',
-    titleHome: 'FB АРБІТРАЖ',
+    titleHome: NAME.uk,
     titleLibrary: 'БІБЛІОТЕКА',
     titleProfile: 'ПРОФІЛЬ',
     titleShop: 'МАГАЗИН',
@@ -31,7 +34,7 @@ export const STRINGS = {
     tabShop: 'Shop',
     tabLeague: 'Leaderboard',
     tabProfile: 'Profile',
-    titleHome: 'FB ARBITRAGE',
+    titleHome: NAME.en,
     titleLibrary: 'LIBRARY',
     titleProfile: 'PROFILE',
     titleShop: 'SHOP',
@@ -48,7 +51,7 @@ export const STRINGS = {
     tabShop: 'Магазин',
     tabLeague: 'Рейтинг',
     tabProfile: 'Профиль',
-    titleHome: 'FB АРБИТРАЖ',
+    titleHome: NAME.ru,
     titleLibrary: 'БИБЛИОТЕКА',
     titleProfile: 'ПРОФИЛЬ',
     titleShop: 'МАГАЗИН',

@@ -1,6 +1,6 @@
 // Перетворює згенеровані scripts/import-modules.mjs дані (src/data/generated/mNN.json) на уроки застосунку.
 import { buildCrown, buildQuiz, isQuizzable, type Lesson, type Question, type Step } from './lessons';
-import { INCLUDE_RESTRICTED, isRestricted } from './restricted';
+import { INCLUDE_RESTRICTED } from './restricted';
 import type { Lang } from '../i18n/strings';
 
 type RawTask =
@@ -34,6 +34,7 @@ export type RawModule = {
   finalRestricted: boolean;
   lessons: RawLesson[];
   summary: string | null;
+  summaryRestricted?: number[]; // індекси рядків підсумку, позначених у content/restricted.json
 };
 
 const ok = (t: RawTask) => INCLUDE_RESTRICTED || !t.restricted;
@@ -149,7 +150,7 @@ export function buildModule(raw: RawModule, lang: Lang = 'uk'): BuiltModule | nu
       ? finalRaw.questions.filter(ok).map((t) => toStep(t, 2, finalRaw.situation, lang))
       : [];
 
-  const summaryLines = (raw.summary ?? '').split('\n').filter((l) => INCLUDE_RESTRICTED || !isRestricted(l));
+  const summaryLines = (raw.summary ?? '').split('\n').filter((_, i) => INCLUDE_RESTRICTED || !raw.summaryRestricted?.includes(i));
   const checkpoint = buildCrown({
     id: `checkpoint${n}`,
     title: `${x.crown} ${raw.number}`,

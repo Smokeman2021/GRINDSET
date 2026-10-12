@@ -45,7 +45,7 @@ export const QUIZ: QuizStep[] = [
   },
   {
     kind: 'choice',
-    q: 'А з рекламним кабінетом Facebook?',
+    q: 'А з рекламним кабінетом?',
     key: 'cabinet',
     options: [
       { emoji: '🙈', text: 'Не бачив' },

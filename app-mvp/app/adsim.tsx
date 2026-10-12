@@ -13,7 +13,7 @@ import { Theme, useStyles, useTheme } from '../src/theme';
 
 // Фіксована палітра «як у справжньому кабінеті» — не залежить від Ночі/Дня застосунку,
 // бо мета — впізнати реальний Ads Manager, а не наш дизайн.
-const META = {
+const CAB = {
   bg: '#ffffff',
   panel: '#f5f6f7',
   border: '#cbd2d9',
@@ -151,7 +151,7 @@ export default function AdsSim() {
                         wasWrongBefore && styles.optDimmed,
                       ]}
                     >
-                      <Text style={[styles.optLabel, isRightPick && { color: META.green }, isWrongPick && { color: META.red }]}>{o.label}</Text>
+                      <Text style={[styles.optLabel, isRightPick && { color: CAB.green }, isWrongPick && { color: CAB.red }]}>{o.label}</Text>
                       {o.sub && <Text style={styles.optSub}>{o.sub}</Text>}
                     </Pressable>
                   );
@@ -211,22 +211,22 @@ const makeStyles = (C: Theme) => StyleSheet.create({
   introTitle: { color: C.muted, fontWeight: '800', fontSize: 12, letterSpacing: 1, marginBottom: 8, textTransform: 'uppercase' },
   introLine: { color: C.txt, fontSize: 14, lineHeight: 21, marginBottom: 2 },
   task: { color: C.txt, fontWeight: '800', fontSize: 16, marginTop: 12, marginBottom: 10 },
-  device: { backgroundColor: META.bg, borderRadius: 16, overflow: 'hidden', borderWidth: 2, borderColor: META.border },
-  deviceTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: META.border, backgroundColor: META.panel },
-  deviceTitle: { color: META.text, fontWeight: '800', fontSize: 14 },
+  device: { backgroundColor: CAB.bg, borderRadius: 16, overflow: 'hidden', borderWidth: 2, borderColor: CAB.border },
+  deviceTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: CAB.border, backgroundColor: CAB.panel },
+  deviceTitle: { color: CAB.text, fontWeight: '800', fontSize: 14 },
   deviceDots: { flexDirection: 'row', gap: 4 },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: META.border },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: CAB.border },
   emptyState: { alignItems: 'center', paddingVertical: 30, paddingHorizontal: 20, gap: 10 },
-  emptyTitle: { color: META.text, fontWeight: '700', fontSize: 13, textAlign: 'center' },
+  emptyTitle: { color: CAB.text, fontWeight: '700', fontSize: 13, textAlign: 'center' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, padding: 14 },
-  gridItem: { width: '47%', flexGrow: 1, backgroundColor: META.bg, borderRadius: 10, borderWidth: 2, borderColor: META.border, padding: 12, alignItems: 'center' },
+  gridItem: { width: '47%', flexGrow: 1, backgroundColor: CAB.bg, borderRadius: 10, borderWidth: 2, borderColor: CAB.border, padding: 12, alignItems: 'center' },
   list: { padding: 14, gap: 10 },
-  listItem: { backgroundColor: META.bg, borderRadius: 10, borderWidth: 2, borderColor: META.border, padding: 13 },
-  optOk: { borderColor: META.green, backgroundColor: META.greenBg },
-  optBad: { borderColor: META.red, backgroundColor: META.redBg },
+  listItem: { backgroundColor: CAB.bg, borderRadius: 10, borderWidth: 2, borderColor: CAB.border, padding: 13 },
+  optOk: { borderColor: CAB.green, backgroundColor: CAB.greenBg },
+  optBad: { borderColor: CAB.red, backgroundColor: CAB.redBg },
   optDimmed: { opacity: 0.4 },
-  optLabel: { color: META.text, fontWeight: '700', fontSize: 14, textAlign: 'center' },
-  optSub: { color: META.muted, fontSize: 11, marginTop: 3, textAlign: 'center' },
+  optLabel: { color: CAB.text, fontWeight: '700', fontSize: 14, textAlign: 'center' },
+  optSub: { color: CAB.muted, fontSize: 11, marginTop: 3, textAlign: 'center' },
   feedback: { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 14, padding: 12, marginTop: 14, borderWidth: 2 },
   feedbackOk: { backgroundColor: C.accentTint, borderColor: C.accent },
   feedbackBad: { backgroundColor: C.redTint, borderColor: C.red },

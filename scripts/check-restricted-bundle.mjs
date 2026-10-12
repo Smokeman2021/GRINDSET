@@ -3,11 +3,14 @@
 //   node scripts/check-restricted-bundle.mjs            (платформа web)
 //   node scripts/check-restricted-bundle.mjs --platform android
 //   node scripts/check-restricted-bundle.mjs --no-build  (лише просканувати вже зібраний dist/restricted-check)
-// Код виходу 1, якщо знайдено збіги. Збіги виводяться з контекстом і кількістю по файлах.
+// Перед збіркою запускається `import-modules.mjs --strict`: публічний набір має бути свіжим, а регулярка не повинна
+// знаходити фрагментів, яких нема в content/restricted.json. Слова беруться з scripts/restricted-patterns.mjs.
+// Код виходу 1, якщо знайдено збіги. Збіги виводяться з контекстом і кількістю.
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { BUNDLE_PATTERNS } from './restricted-patterns.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const app = join(root, 'app-mvp');
@@ -15,23 +18,6 @@ const OUT = join('dist', 'restricted-check'); // відносно app-mvp, dist/
 const args = process.argv.slice(2);
 const platform = args.includes('--platform') ? args[args.indexOf('--platform') + 1] : 'web';
 const noBuild = args.includes('--no-build');
-
-// Шаблони. Український збігається з RESTRICT_RE у app-mvp/src/data/restricted.ts і scripts/import-modules.mjs
-const PATTERNS = {
-  uk: /клоак|антидетект|fingerprint|дофарм|проксі|акаунт-парк|купле\p{L}*\s+акаунт|(?<![\p{L}])фарм(?!ац|ак)/giu,
-  en: /cloak(?:ing|ed)?|anti-?detect|fingerprint(?:ing)?|(?:bought|buy(?:ing)?|purchased)\s+accounts?|account\s+farm(?:ing)?|warm(?:ing)?[- ]up\s+(?:of\s+)?accounts?|(?:residential|mobile|datacenter|buy|rent(?:ing)?|cheap)\s+prox(?:y|ies)|Proxies:\s+Why|prox(?:y|ies)\s+(?:server|provider|pool)s?/giu,
-  ru: /клоак|антидетект|фингерпринт|прогрев\p{L}*\s+аккаунт|(?<![\p{L}])фарм(?!ац|ак)|купленн\p{L}*\s+аккаунт|прокси/giu,
-};
-
-// Сам вихідний текст регулярки з restricted.ts потрапляє в бандл: його вирізаємо, щоб не ловити власний фільтр
-function selfSources() {
-  const src = readFileSync(join(app, 'src', 'data', 'restricted.ts'), 'utf8');
-  const m = src.match(/RESTRICT_RE\s*=\s*\/(.+)\/[a-z]*;/);
-  if (!m) return [];
-  // у бандлі кирилиця в літералі екранована як \uXXXX, тому вирізаємо і цей варіант
-  const esc = m[1].replace(/[^\u0000-\u007f]/g, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
-  return [m[1], esc];
-}
 
 function walk(dir, out = []) {
   for (const name of readdirSync(dir)) {
@@ -45,6 +31,12 @@ function walk(dir, out = []) {
 const outDir = join(app, OUT);
 
 if (!noBuild) {
+  console.log('Оновлюю набори контенту (import-modules --strict) ...');
+  const imp = spawnSync(process.execPath, [join(root, 'scripts', 'import-modules.mjs'), '--strict'], { cwd: root, stdio: 'inherit' });
+  if (imp.status !== 0) {
+    console.error('import-modules --strict не пройшов: перевірку не виконано');
+    process.exit(2);
+  }
   rmSync(outDir, { recursive: true, force: true });
   console.log(`Збираю (${platform}) з EXPO_PUBLIC_INCLUDE_RESTRICTED=false ...`);
   const r = spawnSync('npx', ['expo', 'export', '--platform', platform, '--clear', '--output-dir', OUT], {
@@ -64,13 +56,11 @@ if (!existsSync(outDir)) {
   process.exit(2);
 }
 
-const strip = selfSources();
 const files = walk(outDir);
 const hits = []; // { lang, file, word, ctx }
 for (const f of files) {
-  let text = readFileSync(f, 'utf8');
-  for (const s of strip) text = text.split(s).join('');
-  for (const [lang, re] of Object.entries(PATTERNS)) {
+  const text = readFileSync(f, 'utf8');
+  for (const [lang, re] of Object.entries(BUNDLE_PATTERNS)) {
     re.lastIndex = 0;
     let m;
     while ((m = re.exec(text))) {
@@ -96,5 +86,5 @@ for (const h of hits) {
   groups.set(key, g);
 }
 for (const g of [...groups.values()].sort((a, b) => b.n - a.n).slice(0, 40)) console.error(` [${g.lang}] «${g.word}» x${g.n} ...${g.ctx}...`);
-console.error('\nСкрипт нічого не змінює. Прибрати ризикові матеріали з бандла: рішення автора (див. docs/DECISIONS.md, 1.2).');
+console.error('\nСкрипт нічого не змінює. Позначити фрагмент: content/restricted.json, далі node scripts/import-modules.mjs.');
 process.exit(1);

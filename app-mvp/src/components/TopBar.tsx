@@ -6,9 +6,10 @@ import { useStore } from '../store';
 import { cardShadow, Theme, useStyles, useTheme } from '../theme';
 import { Icon, IconName } from './Icon';
 import { SHOW_BUILD, UI_BUILD } from '../version';
+import { COURSE_NAME } from '../brand';
 
 // Верхня панель показників: стрік, XP, коїни, енергія. Тап по коїнах/енергії веде в магазин.
-export function TopBar({ title = 'FB АРБІТРАЖ' }: { title?: string }) {
+export function TopBar({ title = COURSE_NAME }: { title?: string }) {
   const C = useTheme();
   const styles = useStyles(makeStyles);
   const insets = useSafeAreaInsets();

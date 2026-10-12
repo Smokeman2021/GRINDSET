@@ -14,22 +14,26 @@
     {
      "title": "Why Is It Important to Understand the Structure?",
      "body": "Sooner or later, most media buyers end up joining a team or building their own. Understanding the structure means understanding your place within it and where you can grow.",
-     "restricted": false
+     "restricted": false,
+     "id": "m10l1:t1"
     },
     {
      "title": "Typical Roles",
      "body": "**Media Buyer**\nLaunches and optimizes advertising campaigns. A primarily operational role. Responsible for the ROI of their campaigns. Junior, Middle, and Senior roles differ in terms of level of autonomy and scope of work.\n\n**Team Lead / Head of Media Buying**\nLeads a team of media buyers. Sets goals, monitors results, allocates resources, and is responsible for the overall strategy. Typically the most experienced media buyer on the team.\n\n**Creative Department**\nDesigners and videographers who create creative assets. In small teams, the media buyer creates the creative assets themselves, or there is a single jack-of-all-trades specialist.\n\n**Farmer / Account Manager**\nHandles account setup, media buying, and rotation. In small teams, this role is handled by the media buyer.\n\n**Webmaster / Layout Designer**\nCreates landing pages and pre-landing pages. In small teams, this role is handled by the media buyer or outsourced.\n\n**Financial Manager**\nManages budgets, payments from affiliate partners, and operating expenses.",
-     "restricted": true
+     "restricted": true,
+     "id": "m10l1:t2"
     },
     {
      "title": "Team Sizes",
      "body": "**Micro (2–3 people):** team lead + 1–2 developers. Everyone does everything. High flexibility, low specialization.\n\n**Medium (5–10 people):** There is specialization—a dedicated designer, front-end developer, and possibly a front-end engineer. Developers focus on the backend and optimization.\n\n**Large (10+ people):** a full organizational structure with departments. Each team member is a narrow specialist.",
-     "restricted": true
+     "restricted": true,
+     "id": "m10l1:t3"
     },
     {
      "title": "Solo vs. Team",
      "body": "**Solo:** Complete autonomy; all the profits are yours, but everything is limited by your time and skills. It’s harder to scale.\n\n**Team:** greater potential for scaling, mentorship, and division of labor—but less autonomy, dependence on the team, and a smaller share of the profits.\n\nFor beginners: start by learning as a solo entrepreneur to understand the entire process → join a team for mentorship and resources → eventually build your own team or return to working solo at a higher level.",
-     "restricted": false
+     "restricted": false,
+     "id": "m10l1:t4"
     }
    ],
    "l1": [
@@ -43,7 +47,8 @@
       "Affiliate Network Manager"
      ],
      "answer": 1,
-     "restricted": true
+     "restricted": true,
+     "id": "m10l1:a1"
     },
     {
      "type": "choice",
@@ -55,7 +60,8 @@
       "Outsourcing is always mandatory"
      ],
      "answer": 1,
-     "restricted": true
+     "restricted": true,
+     "id": "m10l1:a2"
     }
    ],
    "l2": {
@@ -73,7 +79,8 @@
        "To the affiliate manager"
       ],
       "answer": 1,
-      "restricted": false
+      "restricted": false,
+      "id": "m10l1:b1"
      },
      {
       "type": "choice",
@@ -85,7 +92,8 @@
        "Places orders on a freelance basis without prior approval"
       ],
       "answer": 1,
-      "restricted": false
+      "restricted": false,
+      "id": "m10l1:b2"
      }
     ]
    }
@@ -99,17 +107,20 @@
     {
      "title": "Basic Expectations",
      "body": "**Autonomy in Operational Tasks**\nDon’t ask how to launch a campaign or set up an audience. You should already know that. Questions should be strategic: “Which hypothesis should we test first, given the current offer?”\n\n**Transparency and Reporting**\nDaily or weekly reports without reminders. The team lead shouldn’t have to constantly ask, “How’s it going?”—they receive the data automatically.\n\n**KPI Achievement**\nSpecific metrics: target CPA, minimum ROI, volume. The first few months may fall short of KPIs—but progress and consistency are what matter.\n\n**Proactive Testing**\nDon’t wait for the team lead to tell you what to test. Come up with hypotheses and supporting rationale.\n\n**Early Communication of Issues**\nDon’t hide poor results. If the team lead finds out on Wednesday about a problem that started on Monday, it’s awkward for both of you. If they find out on Monday, there’s time to fix it.",
-     "restricted": false
+     "restricted": false,
+     "id": "m10l2:t1"
     },
     {
      "title": "What NOT to Expect",
      "body": "- Perfect results starting in the first month\n- Knowing absolutely every detail right away\n- Solving all problems without ever having to ask for help",
-     "restricted": false
+     "restricted": false,
+     "id": "m10l2:t2"
     },
     {
      "title": "Daily Reporting Format",
      "body": "A brief report on Telegram (takes 2–3 minutes to write):\n\n\"10/14\n- Ad Set A: $9.8 / 2 leads / CPA $4.9 ✓ → left it running\n- Ad Set B: $9.5 / 0 leads → turned it off, auto-stop at 12:00 a.m.\n- Asset C (new): $6.3 / 1 lead / CPA $6.3 → waiting for the second day\nTomorrow: launching a new audience test with a hook question\"",
-     "restricted": false
+     "restricted": false,
+     "id": "m10l2:t3"
     }
    ],
    "l1": [
@@ -123,7 +134,8 @@
       "Hands the campaign over to an experienced campaign manager"
      ],
      "answer": 1,
-     "restricted": false
+     "restricted": false,
+     "id": "m10l2:a1"
     },
     {
      "type": "choice",
@@ -135,7 +147,8 @@
       "No problem"
      ],
      "answer": 1,
-     "restricted": false
+     "restricted": false,
+     "id": "m10l2:a2"
     }
    ],
    "l2": {
@@ -153,7 +166,8 @@
        "Denis — Fewer notifications mean fewer distractions"
       ],
       "answer": 1,
-      "restricted": false
+      "restricted": false,
+      "id": "m10l2:b1"
      },
      {
       "type": "choice",
@@ -165,7 +179,8 @@
        "Once a week is too infrequent"
       ],
       "answer": 0,
-      "restricted": false
+      "restricted": false,
+      "id": "m10l2:b2"
      }
     ]
    }
@@ -179,12 +194,14 @@
     {
      "title": "Key KPIs",
      "body": "**CPA** — target cost per acquisition. For example, “CPA no more than $8 with a payout of $12.”\n\n**ROI** — return on investment. “Minimum ROI of 30%” = for every $100 spent, the team must generate at least $130 in revenue.\n\n**Volume (Spend/Volume)** — how much of the budget a media buyer can allocate to profitable campaigns.\n- Junior: $500–3,000/month\n- Middle: $3,000–20,000/month\n- Senior: $20,000+/month\n\n**Number of Active Campaigns** — how many profitable campaigns are running simultaneously.\n\n**Testing Speed** — how many new hypotheses are tested per week. This directly affects the speed at which profitable campaigns are identified.\n\n**Traffic approval rate** — for product-based marketing: the percentage of leads confirmed by the call center. A sharp drop is a sign that non-targeted leads are coming in.",
-     "restricted": false
+     "restricted": false,
+     "id": "m10l3:t1"
     },
     {
      "title": "ROI Calculation",
      "body": "ROI = (Payouts − Expenses) / Expenses × 100%\n\nWith expenses of $3,000 and payouts of $3,900:\nROI = ($3,900 − $3,000) / $3,000 × 100% = 30%\n\nInclude EVERYTHING in your costs: advertising budget + accounts + tools + consumables.",
-     "restricted": false
+     "restricted": false,
+     "id": "m10l3:t2"
     }
    ],
    "l1": [
@@ -200,7 +217,8 @@
       }
      ],
      "explain": "($3,600–$3,000)/$3,000 × 100% = 20%. The KPI has been met—the minimum value has been achieved.",
-     "restricted": false
+     "restricted": false,
+     "id": "m10l3:a1"
     },
     {
      "type": "choice",
@@ -212,7 +230,8 @@
       "Timlid should come up with hypotheses on his own"
      ],
      "answer": 1,
-     "restricted": false
+     "restricted": false,
+     "id": "m10l3:a2"
     }
    ],
    "l2": {
@@ -230,7 +249,8 @@
        "Reduce the budget"
       ],
       "answer": 1,
-      "restricted": false
+      "restricted": false,
+      "id": "m10l3:b1"
      },
      {
       "type": "choice",
@@ -242,7 +262,8 @@
        "Switch to another offer"
       ],
       "answer": 1,
-      "restricted": false
+      "restricted": false,
+      "id": "m10l3:b2"
      }
     ]
    }
@@ -256,22 +277,26 @@
     {
      "title": "Where to Look",
      "body": "**Telegram channels and chats** — the main place to find job openings in affiliate marketing. Search for: \"affiliate marketing jobs,\" \"media buyer jobs,\" \"affiliate jobs CIS.\"\n\n**Affiliate marketing conferences** — Affiliate World, MAC, KINZA, and others. In-person networking opens up opportunities you won’t find online. One valuable contact made at a conference is often better than sending out 100 resumes.\n\n**Affiliate networks** — managers often know who’s looking for buyers. If you’ve shown good results, a manager might recommend you to a team.\n\n**Direct contact** — Found an interesting team? Reach out directly with a specific explanation of why you want to join them.",
-     "restricted": false
+     "restricted": false,
+     "id": "m10l4:t1"
     },
     {
      "title": "What to Consider Before Searching",
      "body": "**Portfolio of Results:** Screenshots of dashboards showing actual numbers. Even small but real results are better than nothing. Test campaigns with an explanation of what was tested and what conclusions were drawn also count as a portfolio.\n\n**Specific description of experience:**\nBad: “I have experience with Facebook ads”\nGood: “I ran a product campaign targeting Poland via Facebook, achieved a CPA of $8 with a spend of $12 over 3 weeks of testing, and used Dolphin{anty}, mobile proxies, and CapCut for creative assets.”",
-     "restricted": true
+     "restricted": true,
+     "id": "m10l4:t2"
     },
     {
      "title": "Types of Test Questions",
      "body": "**Creative Analysis:** Find 5 long-standing players in the niche, describe their patterns, and suggest what to test.\n\n**Metrics Analysis:** You’re given a table with numbers; you need to draw conclusions and propose solutions.\n\n**Media Plan:** You’re given an offer and a budget; you need to create a test plan with a rationale.\n\n**Live Test:** You’re given a small budget and asked to launch a real campaign.",
-     "restricted": false
+     "restricted": false,
+     "id": "m10l4:t3"
     },
     {
      "title": "How to Properly Take a Test",
      "body": "- Complete the task fully and on time (if you need more time, let us know in advance)\n- Structure your answer: situation → analysis → solution → rationale\n- Show your thought process: “I chose ‘broad’ because, given this budget and the new pixel, ‘broad’ will provide more data for training the algorithm”\n- If you don’t know something—be honest about it and show how you would go about figuring it out",
-     "restricted": false
+     "restricted": false,
+     "id": "m10l4:t4"
     }
    ],
    "l1": [
@@ -285,7 +310,8 @@
       "In the newspapers"
      ],
      "answer": 1,
-     "restricted": false
+     "restricted": false,
+     "id": "m10l4:a1"
     },
     {
      "type": "choice",
@@ -297,7 +323,8 @@
       "Letter of Recommendation from a Professor"
      ],
      "answer": 1,
-     "restricted": false
+     "restricted": false,
+     "id": "m10l4:a2"
     }
    ],
    "l2": {
@@ -315,7 +342,8 @@
        "Find a similar offer for comparison"
       ],
       "answer": 1,
-      "restricted": false
+      "restricted": false,
+      "id": "m10l4:b1"
      },
      {
       "type": "choice",
@@ -327,7 +355,8 @@
        "The correct answer is “broad”—it’s best for getting started"
       ],
       "answer": 1,
-      "restricted": false
+      "restricted": false,
+      "id": "m10l4:b2"
      },
      {
       "type": "choice",
@@ -339,7 +368,8 @@
        "Submit both versions"
       ],
       "answer": 1,
-      "restricted": false
+      "restricted": false,
+      "id": "m10l4:b3"
      }
     ]
    }
@@ -353,17 +383,20 @@
     {
      "title": "The First Week",
      "body": "**What to Do:**\n- Get to know everyone and understand who is responsible for what\n- Gain access to everything: office spaces, Telegram chats, spreadsheets\n- Understand the current offers and approaches\n- Take notes on answers to questions—don’t ask the same thing twice\n- Establish a daily reporting routine starting on day one\n\n**What NOT to do:**\n- Rush to launch something “of your own” without understanding the context\n- Ignore the team’s processes\n- Argue with the team lead without sufficient experience on this team",
-     "restricted": false
+     "restricted": false,
+     "id": "m10l5:t1"
     },
     {
      "title": "Weeks 2–4",
      "body": "- Initial tests based on instructions or agreed-upon hypotheses\n- Initial conclusions and communication of results\n- Initial personal hypotheses — “I want to try this approach to the hook; budget: $50”\n- Understanding where progress is being made and where help is needed",
-     "restricted": false
+     "restricted": false,
+     "id": "m10l5:t2"
     },
     {
      "title": "Qualities That Make a Good Junior",
      "body": "- Asks questions when unsure but tries to figure things out on their own first\n- Fulfills promises on time\n- Comes forward with a problem and a proposed solution\n- Isn’t afraid to make mistakes but analyzes them\n- Takes the initiative but coordinates new directions",
-     "restricted": false
+     "restricted": false,
+     "id": "m10l5:t3"
     }
    ],
    "l1": [
@@ -377,7 +410,8 @@
       "Ignore it and use yours at the same time"
      ],
      "answer": 1,
-     "restricted": false
+     "restricted": false,
+     "id": "m10l5:a1"
     },
     {
      "type": "choice",
@@ -389,7 +423,8 @@
       "Plug it in and start using it right away"
      ],
      "answer": 1,
-     "restricted": false
+     "restricted": false,
+     "id": "m10l5:a2"
     }
    ],
    "l2": {
@@ -407,7 +442,8 @@
        "Neither—neither of them meets expectations"
       ],
       "answer": 1,
-      "restricted": false
+      "restricted": false,
+      "id": "m10l5:b1"
      },
      {
       "type": "choice",
@@ -419,7 +455,8 @@
        "Timlid is just a bureaucrat"
       ],
       "answer": 1,
-      "restricted": false
+      "restricted": false,
+      "id": "m10l5:b2"
      }
     ]
    }
@@ -433,12 +470,14 @@
     {
      "title": "Levels and What Sets Them Apart",
      "body": "**Junior Media Buyer (0–6 months)**\nLearns on the job under supervision. Performs basic tasks, maintains reports, and delivers initial positive results. Budget: $500–3,000/month.\n\nMilestones for promotion to Middle: able to independently manage 2–3 campaigns without constant supervision; generates and justifies hypotheses on their own; understands where problems lie in the metrics chain.\n\n**Middle Media Buyer (6–18 months)**\nIndependently manages several profitable campaigns. Generates their own hypotheses without supervision. Understands scaling. Monthly budget: $3,000–20,000.\n\nIndicators for promotion to Senior: knows 2–3 verticals, can scale to large volumes, begins mentoring Juniors.\n\n**Senior Media Buyer (18+ months)**\nKnows several verticals and GEOs. Scales operations. Mentors others. Reputation and results allow them to choose their teams. Volume: $20,000+/month.\n\n**Team Lead / Own Team**\nManagement skills in addition to technical skills. Responsible for the team’s overall results.",
-     "restricted": false
+     "restricted": false,
+     "id": "m10l6:t1"
     },
     {
      "title": "What Accelerates Growth",
      "body": "**Testing speed** — the most important factor. More hypotheses = more data = you find what works faster.\n\n**Error analysis** — not “it didn’t work, I’ll try something else,” but “it didn’t work, here’s why, here’s what I’m changing.”\n\n**Networking** — communicating with other product managers generates ideas, shortens the path, and opens up opportunities.\n\n**Records** — your own knowledge base. A year from now, you’ll see patterns that aren’t visible in the moment.\n\n**Stepping outside your comfort zone** — testing new verticals and approaches while building on a solid foundation.\n\n**Mentorship** — an experienced mentor or a strong team can shorten the path significantly.",
-     "restricted": false
+     "restricted": false,
+     "id": "m10l6:t2"
     }
    ],
    "l1": [
@@ -452,7 +491,8 @@
       "Timlid"
      ],
      "answer": 1,
-     "restricted": false
+     "restricted": false,
+     "id": "m10l6:a1"
     },
     {
      "type": "choice",
@@ -464,7 +504,8 @@
       "Length of service on a single team"
      ],
      "answer": 1,
-     "restricted": false
+     "restricted": false,
+     "id": "m10l6:a2"
     }
    ],
    "l2": {
@@ -482,7 +523,8 @@
        "Timlid — Ready to Lead"
       ],
       "answer": 1,
-      "restricted": false
+      "restricted": false,
+      "id": "m10l6:b1"
      },
      {
       "type": "choice",
@@ -494,7 +536,8 @@
        "Increase the number of tests to 10 per week"
       ],
       "answer": 1,
-      "restricted": false
+      "restricted": false,
+      "id": "m10l6:b2"
      }
     ]
    }
@@ -508,17 +551,20 @@
     {
      "title": "What is an autonomous buyer?",
      "body": "**Independent Media Buyer** — a media buyer who can independently handle the entire process: find an offer, create the creative, prepare the landing page, launch the campaign, and optimize it. Without relying on a designer or front-end developer for basic tasks.\n\nThese skills aren’t required to get started—but they significantly increase your value and speed of work.",
-     "restricted": false
+     "restricted": false,
+     "id": "m10l7:t1"
     },
     {
      "title": "Six Key Competencies",
      "body": "**1. Basic Design and Editing**\nCanva for banners, CapCut for video editing. Not professional-level design—just “good enough for a test.” Saves you from having to wait for a designer for every idea.\n\n**2. Copywriting**\nWrite copy for creatives and landing pages yourself. Use the AIDA framework, hooks, and the audience’s language. Aim for “clear and persuasive” rather than professional copywriter-level quality.\n\n**3. Basic Websites Using a Website Builder**\nTilda or a similar platform: create a simple landing page or pre-landing page without a programmer. 2–4 hours of training provide a sufficient foundation.\n\n**4. Basic HTML**\nBe able to open DevTools (F12 in the browser) and find the desired element:\n- Change the text or color of a button\n- Find the image URL\n- Check the pixel code\n- Find a form and check where the data is going\n\nYou don’t need to write code—you need to read it and find what you need.\n\n**5. AI and Prompting**\nUse Claude or ChatGPT for:\n- Options for ad copy and hooks\n- Writing text for a landing page or pre-landing page\n- Technical briefs for a designer\n- Analyzing competitors’ creative work\n\nBasic prompt: context (product, audience, problem) + goal (what’s needed) + format (number of options, language, style) + constraints (what’s not needed).\n\n**6. Understanding Facebook’s Algorithms**\nNot just technical settings, but also behavioral logic:\n- Why organic engagement builds trust\n- Why changing your IP address raises red flags for the algorithm\n- Why off-target leads hinder optimization\n- Why a frequency over 4 is a call to action\n\nThis allows you not only to follow the rules but also to understand why they exist.",
-     "restricted": false
+     "restricted": false,
+     "id": "m10l7:t2"
     },
     {
      "title": "A Practical Example of a Standalone Bayesian Model",
      "body": "New offer at 9:00 a.m. By 2:00 p.m.:\n- Analyze 10 top-performing ads using the Meta Ad Library (20 min)\n- Writing two versions of a hook using Claude (10 min)\n- Downloading 4 stock videos from Pexels (10 min)\n- Editing the video in CapCut (45 min)\n- Test application via the affiliate program’s landing page, DevTools check (15 min)\n- Configuring and running the test (30 min)\n\n5 hours. No team.",
-     "restricted": false
+     "restricted": false,
+     "id": "m10l7:t3"
     }
    ],
    "l1": [
@@ -532,7 +578,8 @@
       "Keitaro's Knowledge of the Tracker"
      ],
      "answer": 1,
-     "restricted": false
+     "restricted": false,
+     "id": "m10l7:a1"
     },
     {
      "type": "choice",
@@ -544,7 +591,8 @@
       "Ask the team lead"
      ],
      "answer": 1,
-     "restricted": false
+     "restricted": false,
+     "id": "m10l7:a2"
     }
    ],
    "l2": {
@@ -562,7 +610,8 @@
        "Find a team and get a job"
       ],
       "answer": 1,
-      "restricted": false
+      "restricted": false,
+      "id": "m10l7:b1"
      },
      {
       "type": "choice",
@@ -574,7 +623,8 @@
        "\"Change Your Creos\""
       ],
       "answer": 1,
-      "restricted": false
+      "restricted": false,
+      "id": "m10l7:b2"
      },
      {
       "type": "choice",
@@ -586,7 +636,8 @@
        "Find an offer with a higher payout"
       ],
       "answer": 1,
-      "restricted": false
+      "restricted": false,
+      "id": "m10l7:b3"
      },
      {
       "type": "choice",
@@ -598,11 +649,13 @@
        "Searches only on job sites"
       ],
       "answer": 1,
-      "restricted": false
+      "restricted": false,
+      "id": "m10l7:b4"
      }
     ]
    }
   }
  ],
- "summary": "After completing this module, the student will:\n\n- Understand the structure of an arbitrage team and their role within it\n- Know what the team lead expects and how to behave during the first 30 days\n- Understands KPIs and knows how to calculate them\n- Knows where to look for work and how to pass a trial\n- Sees the career path from Junior to Senior\n- Knows the six competencies of an autonomous buyer\n\n**After completing the full course, students will be able to:**\n- Find and analyze job offers\n- Set up an account and all necessary infrastructure\n- Create basic creative assets and landing pages\n- Launch a test campaign correctly\n- Interpret metrics and make data-driven decisions\n- Scale a profitable campaign\n- Join a team or go solo\n\n**Grindset — the course is complete. Now it’s time to put it into practice.**"
+ "summary": "After completing this module, the student will:\n\n- Understand the structure of an arbitrage team and their role within it\n- Know what the team lead expects and how to behave during the first 30 days\n- Understands KPIs and knows how to calculate them\n- Knows where to look for work and how to pass a trial\n- Sees the career path from Junior to Senior\n- Knows the six competencies of an autonomous buyer\n\n**After completing the full course, students will be able to:**\n- Find and analyze job offers\n- Set up an account and all necessary infrastructure\n- Create basic creative assets and landing pages\n- Launch a test campaign correctly\n- Interpret metrics and make data-driven decisions\n- Scale a profitable campaign\n- Join a team or go solo\n\n**Grindset — the course is complete. Now it’s time to put it into practice.**",
+ "summaryRestricted": []
 }
