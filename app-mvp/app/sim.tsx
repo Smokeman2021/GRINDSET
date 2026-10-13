@@ -7,6 +7,7 @@ import { GrindykSay } from '../src/components/GrindykSay';
 import { Icon } from '../src/components/Icon';
 import { breakEvenCpl, DAYS, judge, newCase, nextBudget, playDay, SimAction, SimCase, SimDay, Verdict } from '../src/data/sim';
 import { useStore } from '../src/store';
+import { playSfx } from '../src/sound';
 import { Theme, useStyles, useTheme } from '../src/theme';
 
 const money = (v: number) => `${v < 0 ? '−' : ''}$${Math.abs(v).toFixed(2)}`;
@@ -44,6 +45,7 @@ export default function Sim() {
     const v = judge(c, all);
     setVerdict(v);
     setReward(finishSim(v.stars));
+    playSfx(v.stars >= 3 ? 'crown' : v.stars >= 1 ? 'correct' : 'wrong');
     setPhase('end');
   };
 

@@ -59,6 +59,7 @@ export default function Results() {
     if (!saved.current && id) {
       saved.current = true;
       const before = useStore.getState().level;
+      const streakBefore = useStore.getState().streak;
       const unlockedBefore = useStore.getState().unlocked;
       if (isDiagnostic) {
         // діагностика не дає нагород; ачівка «золоті окуляри» за безпомилковий тест з першої спроби
@@ -70,6 +71,8 @@ export default function Results() {
       const fresh = st.unlocked.filter((a) => !unlockedBefore.includes(a));
       if (fresh.length) setNewAch(fresh);
       const after = st.level;
+      // стрік зріс (перший урок за день): окремий звук трохи після основного
+      if (st.streak > streakBefore) setTimeout(() => playSfx('streak'), 700);
       if (after > before) {
         setLeveledUp(true);
         Animated.spring(scale, { toValue: 1, friction: 4, useNativeDriver: true }).start();
@@ -241,7 +244,10 @@ export default function Results() {
       ) : (
         <Button
           title={failedCheckpoint || isMistakes ? 'Повернутись' : 'Забрати нагороду'}
-          onPress={() => router.replace('/home')}
+          onPress={() => {
+            if (!failedCheckpoint && !isMistakes && coins > 0) playSfx('coin');
+            router.replace('/home');
+          }}
         />
       )}
     </View>

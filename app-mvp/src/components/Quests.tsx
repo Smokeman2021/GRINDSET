@@ -1,3 +1,4 @@
+import { playSfx } from '../sound';
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { questsForDay } from '../data/quests';
@@ -41,7 +42,10 @@ export function Quests() {
             ) : (
               <Pressable
                 disabled={!done}
-                onPress={() => claimQuest(q.id)}
+                onPress={() => {
+                  claimQuest(q.id);
+                  playSfx('coin');
+                }}
                 style={({ pressed }) => [styles.btn, !done && styles.btnOff, pressed && { transform: [{ translateY: 2 }] }]}
               >
                 <Text style={[styles.btnTxt, !done && { color: C.muted }]}>{done ? 'Забрати' : `${have}/${q.target}`}</Text>

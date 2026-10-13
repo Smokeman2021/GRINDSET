@@ -6,12 +6,17 @@ import { Theme, useStyles, useTheme } from '../../src/theme';
 import { useStore } from '../../src/store';
 import { scheduleAll } from '../../src/notifications';
 import { useT } from '../../src/i18n';
+import { playSfx } from '../../src/sound';
+import { Icon } from '../../src/components/Icon';
 
-function TabIcon({ glyph, focused }: { glyph: string; focused: boolean }) {
+// Іконка вкладки: файл nav_<name> підключається в Icon.tsx після схвалення, до того показується емодзі
+function TabIcon({ name, glyph, focused }: { name: string; glyph: string; focused: boolean }) {
   const styles = useStyles(makeStyles);
   return (
     <View style={[styles.icon, focused && styles.iconOn]}>
-      <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.55 }}>{glyph}</Text>
+      <View style={{ opacity: focused ? 1 : 0.55 }}>
+        <Icon name={name} size={26} fallback={glyph} />
+      </View>
     </View>
   );
 }
@@ -34,6 +39,7 @@ export default function TabsLayout() {
 
   return (
     <Tabs
+      screenListeners={{ tabPress: () => playSfx('tap') }}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: C.accent,
@@ -55,23 +61,23 @@ export default function TabsLayout() {
     >
       <Tabs.Screen
         name="home"
-        options={{ title: t('tabLessons'), tabBarIcon: ({ focused }) => <TabIcon glyph="🏠" focused={focused} /> }}
+        options={{ title: t('tabLessons'), tabBarIcon: ({ focused }) => <TabIcon name="nav_home" glyph="🏠" focused={focused} /> }}
       />
       <Tabs.Screen
         name="library"
-        options={{ title: t('tabLibrary'), tabBarIcon: ({ focused }) => <TabIcon glyph="📚" focused={focused} /> }}
+        options={{ title: t('tabLibrary'), tabBarIcon: ({ focused }) => <TabIcon name="nav_library" glyph="📚" focused={focused} /> }}
       />
       <Tabs.Screen
         name="shop"
-        options={{ title: t('tabShop'), tabBarIcon: ({ focused }) => <TabIcon glyph="🛍️" focused={focused} /> }}
+        options={{ title: t('tabShop'), tabBarIcon: ({ focused }) => <TabIcon name="nav_shop" glyph="🛍️" focused={focused} /> }}
       />
       <Tabs.Screen
         name="league"
-        options={{ title: t('tabLeague'), tabBarIcon: ({ focused }) => <TabIcon glyph="🏆" focused={focused} /> }}
+        options={{ title: t('tabLeague'), tabBarIcon: ({ focused }) => <TabIcon name="nav_league" glyph="🏆" focused={focused} /> }}
       />
       <Tabs.Screen
         name="profile"
-        options={{ title: t('tabProfile'), tabBarIcon: ({ focused }) => <TabIcon glyph="👤" focused={focused} /> }}
+        options={{ title: t('tabProfile'), tabBarIcon: ({ focused }) => <TabIcon name="nav_profile" glyph="👤" focused={focused} /> }}
       />
     </Tabs>
   );

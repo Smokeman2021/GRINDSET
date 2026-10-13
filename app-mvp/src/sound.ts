@@ -33,6 +33,18 @@ export async function initAudio() {
   }
 }
 
+// Перемикач «Звуки» вимикає все: нові ефекти не грають (playSfx), а ті, що вже звучать, обриваємо
+export function stopAllSfx() {
+  for (const p of Object.values(players)) {
+    try {
+      p?.pause();
+      p?.seekTo(0);
+    } catch {
+      // ігноруємо
+    }
+  }
+}
+
 export function playSfx(name: SfxName) {
   if (!useStore.getState().soundEnabled) return;
   try {

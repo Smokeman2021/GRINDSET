@@ -9,6 +9,7 @@ import { cardShadow, Theme, useStyles, useTheme } from '../src/theme';
 import { Glow } from '../src/components/Glow';
 import { CHANGELOG, SHOW_BUILD, UI_BUILD, loadedAtLabel } from '../src/version';
 import { META_DISCLAIMER } from '../src/brand';
+import { playSfx, stopAllSfx } from '../src/sound';
 
 const GOALS: DailyGoal[] = ['casual', 'regular', 'intense'];
 
@@ -116,7 +117,13 @@ export default function Settings() {
             </View>
           )}
           <View style={styles.divider} />
-          <Row title="Звуки" sub="Коротка мелодія на правильну відповідь, помилку, корону й рівень." value={s.soundEnabled} onChange={s.setSoundEnabled} />
+          <Row title="Звуки" sub="Коротка мелодія на правильну відповідь, помилку, корону й рівень." value={s.soundEnabled}
+            onChange={(v) => {
+              s.setSoundEnabled(v);
+              if (v) playSfx('tap');
+              else stopAllSfx();
+            }}
+          />
         </View>
 
         <Text style={styles.h}>МАРШРУТ І ТЕСТИ</Text>
