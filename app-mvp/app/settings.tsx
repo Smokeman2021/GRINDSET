@@ -10,6 +10,8 @@ import { Glow } from '../src/components/Glow';
 import { CHANGELOG, SHOW_BUILD, UI_BUILD, loadedAtLabel } from '../src/version';
 import { META_DISCLAIMER } from '../src/brand';
 import { playSfx, stopAllSfx } from '../src/sound';
+import { CLOUD_MODE } from '../src/cloud/config';
+import { useCloud } from '../src/cloud/cloudStore';
 
 const GOALS: DailyGoal[] = ['casual', 'regular', 'intense'];
 
@@ -22,6 +24,8 @@ export default function Settings() {
   const s = useStore();
   const t = useT();
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const cloudUser = useCloud((c) => c.user);
+  const cloudLogout = useCloud((c) => c.logout);
 
   const Seg = ({ on, onPress, children, sub }: { on: boolean; onPress: () => void; children: string; sub?: string }) => (
     <Pressable onPress={onPress} style={[styles.seg, on && styles.segOn]}>
@@ -169,6 +173,16 @@ export default function Settings() {
 
         <Text style={styles.h}>АКАУНТ</Text>
         <View style={styles.card}>
+          {CLOUD_MODE !== 'off' && cloudUser && (
+            <>
+              <Text style={styles.rowTitle}>Ти увійшов як @{cloudUser.username}</Text>
+              <Text style={styles.sub}>Прогрес зберігається на сервері після кожного пройденого уроку. Акаунт активний лише на одному пристрої.</Text>
+              <Pressable onPress={() => void cloudLogout()} style={styles.link}>
+                <Text style={styles.linkTxt}>↩ Вийти</Text>
+              </Pressable>
+              <View style={styles.divider} />
+            </>
+          )}
           <Pressable onPress={() => (s.pausedAt ? s.resumeAccount() : s.pauseAccount())} style={styles.link}>
             <Text style={styles.linkTxt}>{s.pausedAt ? '▶️ Відновити акаунт' : '⏸ Пауза акаунта'}</Text>
           </Pressable>
