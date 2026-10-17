@@ -4,7 +4,7 @@
 
 **Статус заміни.** Іконки в застосунку замінюються лише там, де файл готовий і схвалений автором. Зараз у коді вже є картинки для 4 іконок: монета, стрік, XP, енергія (`src/components/Icon.tsx`). Решта лишається емодзі.
 
-**Пропозиції проби** (дім, монета, енергія по 3 варіанти): `app-mvp/assets/icons/proposals/`, огляд: `docs/icon-proposals/trial-home-coin-energy.png`. У застосунок не підключені.
+**Рішення автора (2026-10-17):** монета й енергія — канон, лишаються наявні. Дім: варіант C, віддзеркалений (`assets/icons/nav_home.png`, підключено у вкладку «Уроки»). Решта іконок робляться за канонічним стилем (монета, вогонь, зірка XP, енергія): згенеровано 67 файлів у `app-mvp/assets/icons/new/` (512×512, прозорі), огляд за групами: `docs/icon-proposals/sheet-*.png`. До схвалення автором у застосунок не підключені.
 
 ## Розміри
 
@@ -169,3 +169,65 @@
 | **Разом без опитування** | **~110** |
 
 Пропозиція етапів: **1)** після схвалення проби (дім, монета, енергія) зробити навігацію (5) + завдання дня (8) + магазин (11) — ~25 іконок; **2)** ліги, досягнення, характеристики; **3)** решта.
+
+## Відповідність «емодзі → файл» (для підключення після схвалення)
+
+Наявні канонічні: монета (🪙) = `coin`; вогонь (🔥) = `streak_on`; зірка XP (⭐ 🌟) = `xp_star`; енергія (⚡ ×2 у магазині, в онбордингу, у баннері) = `energy`; дім (🏠) = `nav_home` (підключено).
+
+| Емодзі | Файл у `assets/icons/new/` |
+|---|---|
+| 📚 | nav_library |
+| 🛍️ | nav_shop |
+| 🏆 | nav_league |
+| 👤 | nav_profile |
+| 📖 | book_open |
+| 🎯 | target |
+| ⏱ ⏱️ | stopwatch |
+| 🩹 | bandage |
+| 🚀 | rocket |
+| ✨ | sparkles |
+| 😎 | glasses_gold |
+| 🏁 | flag_finish |
+| 📊 | chart_bars |
+| 🏋️ | dumbbell |
+| 👑 | crown |
+| 🧪 | flask |
+| 🔁 | repeat |
+| 💡 | bulb |
+| 🛡️ | shield |
+| 🕵️ 🔍 | spy_glass |
+| 📡 | radar |
+| 🖥️ | monitor |
+| 🧱 | bricks |
+| 🎬 | clapper |
+| 🎨 | palette |
+| 🤖 | robot |
+| 💳 | card |
+| 🧮 | abacus |
+| 📈 | chart_up |
+| 🕹️ | joystick |
+| 🗺️ | map |
+| 💰 | money_bag |
+| 🌐 | globe |
+| 🏢 | building |
+| 🔋 | battery |
+| ❄️ | snowflake |
+| 🟡 🔵 🟠 🟣 | frame_gold, frame_blue, frame_fire, frame_violet |
+| ⚙️ | gear |
+| 🔒 | lock |
+| 🎓 | grad_cap |
+| 🌋 | volcano |
+| ☄️ | comet (на вигляд планета з кільцем, замінити, якщо мимо) |
+| 💯 | hundred |
+| 🥉 🥈 🥇 | medal_bronze, medal_silver, medal_gold |
+| 💠 ♦️ 💎 | gem_sapphire, gem_ruby, gem_diamond |
+| ⬆️ ⬇️ | arrow_up, arrow_down |
+| 🧊 | ice_cube |
+| 🧢 👕 👖 👟 ⌚ | cap, tshirt, pants, sneaker, watch |
+| 🌙 ☀️ | moon, sun |
+| ▶️ ⏸ | play, pause |
+| ⚠️ | warning |
+| 🗑 | trash |
+| 🌱 | sprout |
+
+Не робилися: екран опитування в онбордингу (близько 30 значків), ♂ ♀ (символи), 🦴 🧠 😎 🤩 🤔 😅 (резервні настрої), службові з розділу 11.

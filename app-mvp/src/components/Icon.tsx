@@ -8,6 +8,7 @@ const SOURCES = {
   streak: require('../../assets/icons/streak_on.png'),
   xp: require('../../assets/icons/xp_star.png'),
   energy: require('../../assets/icons/energy.png'),
+  nav_home: require('../../assets/icons/nav_home.png'), // дім: варіант C, віддзеркалений (схвалено автором)
 } as const;
 
 export type IconName = keyof typeof SOURCES;
