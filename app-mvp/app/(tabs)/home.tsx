@@ -1,0 +1,558 @@
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  Image,
+  TextInput,
+  useWindowDimensions,
+} from 'react-native';
+import Svg, { Path } from 'react-native-svg';
+import { PathNode, NodeKind } from '../../src/components/PathNode';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { Lesson } from '../../src/data/lessons';
+import { ALL_LESSONS, MODULES, PATH } from '../../src/data/modules';
+import { GOAL_XP, GOAL_LABEL, ENERGY_PER_LESSON, useStore } from '../../src/store';
+import { Theme, useStyles, useTheme } from '../../src/theme';
+import { TopBar } from '../../src/components/TopBar';
+import { Quests } from '../../src/components/Quests';
+import { BoostBanner } from '../../src/components/BoostBanner';
+import { GrindykSay } from '../../src/components/GrindykSay';
+import { pose as poseFile, PoseName } from '../../src/data/poses';
+import { homeSay, say } from '../../src/data/phrases';
+import { dueKeys } from '../../src/data/srs';
+import { Glow } from '../../src/components/Glow';
+import { cardShadow } from '../../src/theme';
+
+
+const LAST = PATH.length - 1;
+
+// Геометрія шляху: вузли лежать на плавній синусоїді (змійка зверху вниз)
+const NODE = 74;
+const QUIZ_NODE = 84;
+const STEP = 118;
+const TOP = 64; // місце під заголовок першого модуля
+const GAP = 84; // додатковий простір на переході між модулями, туди стає заголовок
+const PHASE = 0.95; // радіан на вузол: вигин приблизно кожні 3.3 вузла
+const POSE_H = 150;
+
+// Індекси на шляху, з яких починається кожен модуль
+const MODULE_START = MODULES.map((_, mi) => PATH.findIndex((p) => p.moduleIndex === mi));
+const BREAKS = MODULE_START.slice(1);
+
+// Проміжок між останнім вузлом модуля і першим вузлом наступного плавно розтягується на GAP
+const stretch = (t: number) => {
+  let extra = 0;
+  for (const b of BREAKS) {
+    if (t >= b) extra += GAP;
+    else if (t > b - 1) extra += GAP * (t - (b - 1));
+  }
+  return extra;
+};
+const yAt = (t: number) => TOP + NODE / 2 + t * STEP + stretch(t);
+
+// Вигини змійки: тут у "кишені" з протилежного боку стоять квіз і Гріндік
+type Bend = { t: number; pocketSide: -1 | 1 };
+const BENDS: Bend[] = [];
+for (let k = 0; ; k++) {
+  const t = (Math.PI / 2 + k * Math.PI) / PHASE;
+  if (t > LAST + 0.4) break;
+  BENDS.push({ t, pocketSide: k % 2 === 0 ? -1 : 1 });
+}
+
+// Кожен квіз стає в найближчий до своїх уроків вільний вигин
+const QUIZ_SLOTS = (() => {
+  const used = new Set<number>();
+  const slots: { quiz: Lesson; bend: Bend }[] = [];
+  MODULES.forEach((m) =>
+    m.quizzes.forEach((quiz) => {
+      const target = Math.max(...(quiz.requires ?? []).map((id) => PATH.findIndex((p) => p.lesson.id === id)));
+      let best = -1;
+      let bestD = Infinity;
+      // спершу шукаємо вигини, що не збігаються із заголовками модулів; якщо таких нема, беремо будь-який вільний
+      for (const avoidChips of [true, false]) {
+        BENDS.forEach((b, k) => {
+          if (avoidChips && BREAKS.some((br) => Math.abs(b.t - (br - 0.5)) < 1.0)) return;
+          const d = Math.abs(b.t - target);
+          if (!used.has(k) && d < bestD) {
+            bestD = d;
+            best = k;
+          }
+        });
+        if (best >= 0) break;
+      }
+      if (best >= 0) {
+        used.add(best);
+        slots.push({ quiz, bend: BENDS[best] });
+      }
+    })
+  );
+  return slots;
+})();
+
+export default function Home() {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { width: winW } = useWindowDimensions();
+  const { energy, xpToday, dailyGoal, completed, daysAway, strictEnergy, refreshEnergy, srs, adaptDone, adaptDismissed, dismissAdapt, quiz: quizAnswers } = useStore();
+  // Після першого уроку пропонуємо підлаштувати курс (решта питань); хто вже відповідав на старе опитування, не турбуємо
+  const offerAdapt = completed.length >= 1 && !adaptDone && !adaptDismissed && !quizAnswers.income;
+  const dueCount = dueKeys(srs).length;
+
+  useFocusEffect(
+    React.useCallback(() => {
+      refreshEnergy();
+    }, [refreshEnergy])
+  );
+
+  // Жорстка енергія: без 10 одиниць нові уроки закриті, повтор пройденого доступний
+  const open = (id: string) => {
+    if (strictEnergy && energy < ENERGY_PER_LESSON && !completed.includes(id)) {
+      setTalk(say('lowEnergy'));
+      router.navigate('/shop');
+      return;
+    }
+    router.push(`/lesson/${id}`);
+  };
+
+  const scrollRef = useRef<ScrollView>(null);
+  const [pathTop, setPathTop] = useState<number | null>(null);
+  const scrolled = useRef(false);
+
+  const firstOpen = PATH.findIndex((p) => !completed.includes(p.lesson.id));
+  const allDone = firstOpen === -1;
+  const currentIdx = allDone ? LAST : firstOpen;
+
+  const goalTarget = GOAL_XP[dailyGoal];
+  const [talk, setTalk] = useState(() =>
+    homeSay({ daysAway, energy, goalDone: xpToday >= GOAL_XP[dailyGoal], fresh: true })
+  );
+  const goalPct = Math.min(1, xpToday / goalTarget);
+
+  // геометрія під поточну ширину екрана
+  const W = Math.min(winW, 480) - 44;
+  const cx = W / 2;
+  const A = Math.min(96, (W - NODE) / 2 - 8);
+  const xAt = (t: number) => cx + A * Math.sin(t * PHASE);
+  const H = yAt(LAST) + NODE / 2 + 70;
+
+  // Шлях довгий: одразу прокручуємо до поточного уроку
+  useEffect(() => {
+    if (pathTop === null || scrolled.current) return;
+    scrolled.current = true;
+    scrollRef.current?.scrollTo({ y: Math.max(0, pathTop + yAt(currentIdx) - 260), animated: false });
+  }, [pathTop, currentIdx]);
+
+  // Геометрія квізів (кишені між вигинами): вузол, Гріндік і відгалуження від шляху
+  const quizGeo = QUIZ_SLOTS.map(({ quiz: quiz0, bend }) => {
+    const quiz = ALL_LESSONS.find((l) => l.id === quiz0.id) ?? quiz0; // актуальна мова контенту
+    const unlocked = (quiz.requires ?? []).every((id) => completed.includes(id));
+    const done = completed.includes(quiz.id);
+    const pose: PoseName = done ? 'cheer' : unlocked ? 'stand' : 'think';
+    const gw = POSE_H * poseFile(pose).ratio;
+    const yc = yAt(bend.t);
+    const pathX = xAt(bend.t);
+    const left = bend.pocketSide < 0 ? 4 : pathX + NODE / 2 + 20;
+    const right = bend.pocketSide < 0 ? pathX - NODE / 2 - 20 : W - 4;
+    const qx = bend.pocketSide < 0 ? right - QUIZ_NODE : left;
+    const gx = bend.pocketSide < 0 ? left : right - gw;
+    const qTop = yc - 12 - QUIZ_NODE / 2;
+    return { quiz, unlocked, done, pose, gw, yc, pathX, qx, gx, qTop, side: bend.pocketSide };
+  });
+
+  // Підпис поточного уроку: шукаємо місце, де він не перекриває вузли, підписи, заголовки модулів, квізи й Гріндіка
+  const chipRect = (() => {
+    if (allDone || !PATH[firstOpen]) return null;
+    const cur = PATH[firstOpen];
+    const title = `${cur.isCrown ? 'КОРОНА' : cur.lesson.code} · ${cur.lesson.title}`;
+    const w = Math.min(W - 8, 300, Math.round(title.length * 6.1 + 18));
+    const h = 17;
+    const x0 = xAt(firstOpen);
+    const y0 = yAt(firstOpen);
+    type R = { x: number; y: number; w: number; h: number };
+    const obstacles: R[] = [];
+    for (let i = Math.max(0, firstOpen - 2); i <= Math.min(LAST, firstOpen + 2); i++) {
+      obstacles.push({ x: xAt(i) - NODE / 2, y: yAt(i) - NODE / 2, w: NODE, h: NODE + 8 });
+      if (i !== firstOpen) obstacles.push({ x: xAt(i) - 40, y: yAt(i) + NODE / 2 + 11, w: 80, h: 16 });
+    }
+    quizGeo.forEach((g) => {
+      obstacles.push({ x: g.qx, y: g.qTop, w: QUIZ_NODE, h: QUIZ_NODE + 10 });
+      obstacles.push({ x: g.qx + QUIZ_NODE / 2 - 55, y: g.qTop + QUIZ_NODE + 14, w: 110, h: 32 });
+      obstacles.push({ x: g.gx, y: g.yc + 62 - POSE_H, w: g.gw, h: POSE_H });
+    });
+    MODULES.forEach((_, mi) => {
+      const yc = mi === 0 ? TOP / 2 : yAt(MODULE_START[mi] - 0.5);
+      obstacles.push({ x: cx - 135, y: yc - 20, w: 270, h: 36 });
+    });
+    const hit = (a: R, b: R) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+    const clampX = (x: number, cw: number) => Math.max(4, Math.min(W - 4 - cw, x));
+    // кандидати: над вузлом, під ним і збоку від нього (збоку ширину обрізаємо до вільного місця)
+    const cands: R[] = [];
+    const ys = [y0 + NODE / 2 + 9, y0 - NODE / 2 - 1 - h, y0 + NODE / 2 + 32];
+    for (const y of ys) for (const x of [x0 - w / 2, 4, W - 4 - w, x0 - w - 6, x0 + 6]) cands.push({ x: clampX(x, w), y, w, h });
+    const leftW = Math.min(w, x0 - NODE / 2 - 10 - 4);
+    if (leftW >= 90) cands.push({ x: x0 - NODE / 2 - 10 - leftW, y: y0 - h / 2, w: leftW, h });
+    const rightW = Math.min(w, W - 4 - (x0 + NODE / 2 + 10));
+    if (rightW >= 90) cands.push({ x: x0 + NODE / 2 + 10, y: y0 - h / 2, w: rightW, h });
+    let best: R | null = null;
+    let bestScore = Infinity;
+    for (const r of cands) {
+      const score = obstacles.reduce((sum, o) => sum + hit(r, o), 0);
+      if (score < bestScore) {
+        bestScore = score;
+        best = r;
+      }
+      if (score === 0) return { ...r, title };
+    }
+    return best ? { ...best, title } : null;
+  })();
+
+  const pathD = (toT: number) => {
+    let d = '';
+    for (let t = 0; t <= toT + 1e-6; t += 0.05) {
+      d += `${d ? 'L' : 'M'}${xAt(t).toFixed(1)} ${yAt(t).toFixed(1)} `;
+    }
+    return d;
+  };
+
+  return (
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <Glow />
+      <TopBar />
+
+      <ScrollView ref={scrollRef} contentContainerStyle={{ padding: 22, paddingBottom: insets.bottom + 30 }}>
+        <View style={styles.goalRow}>
+          <View style={styles.goalHead}>
+            <Text style={styles.goalLabel}>Ціль дня · {GOAL_LABEL[dailyGoal]}</Text>
+            <Text style={styles.goalNum}>
+              {Math.min(xpToday, goalTarget)}/{goalTarget} XP
+            </Text>
+          </View>
+          <View style={styles.goalBar}>
+            <View style={[styles.goalFill, { width: `${goalPct * 100}%` }]} />
+          </View>
+        </View>
+
+        <BoostBanner />
+
+        <Quests />
+
+        {offerAdapt && (
+          <View style={[styles.practice, { borderColor: C.blue, borderBottomColor: C.blueEdge, flexDirection: 'column', alignItems: 'stretch' }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <Text style={{ fontSize: 26 }}>🎯</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.practiceTitle}>Підлаштувати курс під тебе?</Text>
+                <Text style={styles.practiceSub}>Кілька питань про досвід і цілі. Я підкажу, що пропустити, а на чому зосередитись.</Text>
+              </View>
+            </View>
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+              <Pressable onPress={() => router.push('/adapt')} style={styles.offerBtn}>
+                <Text style={styles.offerBtnTxt}>Підлаштувати</Text>
+              </Pressable>
+              <Pressable onPress={dismissAdapt} style={styles.offerLater}>
+                <Text style={styles.offerLaterTxt}>Не зараз</Text>
+              </Pressable>
+            </View>
+          </View>
+        )}
+
+        <Pressable onPress={() => router.push('/sim')} style={({ pressed }) => [styles.practice, { borderColor: C.gold, borderBottomColor: C.goldEdge }, pressed && { transform: [{ translateY: 2 }] }]}>
+          <Text style={{ fontSize: 26 }}>📊</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.practiceTitle}>Симулятор кампанії</Text>
+            <Text style={styles.practiceSub}>5 днів однієї зв'язки. Керуй бюджетом за правилами курсу</Text>
+          </View>
+        </Pressable>
+
+        {completed.length >= 2 && (
+          <Pressable onPress={() => router.push('/lesson/practice')} style={({ pressed }) => [styles.practice, pressed && { transform: [{ translateY: 2 }] }]}>
+            <Text style={{ fontSize: 26 }}>🏋️</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.practiceTitle}>Швидке тренування</Text>
+              <Text style={styles.practiceSub}>
+                {dueCount > 0 ? `Пора повторити: ${dueCount} · ` : ''}8 питань із пройденого · без енергії · ½ нагороди
+              </Text>
+            </View>
+          </Pressable>
+        )}
+
+        <View style={{ marginTop: 16, marginBottom: 6 }}>
+          <GrindykSay
+            text={talk.text}
+            pose={talk.pose}
+            height={120}
+            onPress={() =>
+              setTalk(homeSay({ daysAway: 0, energy, goalDone: xpToday >= goalTarget, fresh: false }))
+            }
+          />
+        </View>
+
+        <View style={{ width: W, height: H, alignSelf: 'center' }} onLayout={(e) => setPathTop(e.nativeEvent.layout.y)}>
+          {/* течія: русло + пройдена частина */}
+          <Svg width={W} height={H} style={StyleSheet.absoluteFill}>
+            <Path d={pathD(LAST)} stroke={C.pathBed} strokeWidth={28} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            <Path d={pathD(LAST)} stroke={C.pathDots} strokeWidth={4} strokeDasharray="2 12" strokeLinecap="round" fill="none" />
+            {quizGeo.map((g) => {
+              const ex = g.side < 0 ? g.qx + QUIZ_NODE - 6 : g.qx + 6;
+              const ey = g.qTop + QUIZ_NODE / 2;
+              const d = `M${g.pathX.toFixed(1)} ${g.yc.toFixed(1)} Q${((g.pathX + ex) / 2).toFixed(1)} ${g.yc.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)}`;
+              return (
+                <React.Fragment key={`br-${g.quiz.id}`}>
+                  <Path d={d} stroke={C.pathBed} strokeWidth={16} strokeLinecap="round" fill="none" />
+                  <Path d={d} stroke={g.done ? C.accent : g.unlocked ? C.blue : C.pathDots} strokeWidth={g.done || g.unlocked ? 6 : 4} strokeDasharray={g.done || g.unlocked ? undefined : '2 12'} strokeLinecap="round" fill="none" />
+                </React.Fragment>
+              );
+            })}
+            {currentIdx > 0 && (
+              <>
+                <Path d={pathD(currentIdx)} stroke={C.accent} strokeOpacity={C.name === 'night' ? 0.22 : 0.16} strokeWidth={24} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                <Path d={pathD(currentIdx)} stroke={C.accent} strokeWidth={11} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                <Path d={pathD(currentIdx)} stroke="#ffffff" strokeOpacity={0.35} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              </>
+            )}
+          </Svg>
+
+          {/* заголовки модулів: перший угорі, решта на розтягнутих переходах між модулями */}
+          {MODULES.map((m, mi) => {
+            const yc = mi === 0 ? TOP / 2 : yAt(MODULE_START[mi] - 0.5);
+            const lockedMod = !allDone && firstOpen < MODULE_START[mi];
+            return (
+              <View key={m.id} style={[styles.modHead, { top: yc - 20, width: W }, lockedMod && { opacity: 0.55 }]}>
+                <Text style={[styles.modChip, { maxWidth: W - 8 }]}>{m.title}</Text>
+              </View>
+            );
+          })}
+
+          {/* кишені між вигинами: квіз + Гріндік у різних позах */}
+          {quizGeo.map((g) => (
+            <React.Fragment key={g.quiz.id}>
+              <Image
+                source={poseFile(g.pose).src}
+                style={{ position: 'absolute', left: g.gx, top: g.yc + 62 - POSE_H, width: g.gw, height: POSE_H }}
+                resizeMode="contain"
+              />
+              <View style={{ position: 'absolute', left: g.qx, top: g.qTop }}>
+                <PathNode
+                  kind={(g.done ? 'quizDone' : g.unlocked ? 'quizOpen' : 'quizLocked') as NodeKind}
+                  size={QUIZ_NODE}
+                  disabled={!g.unlocked}
+                  onPress={() => open(g.quiz.id)}
+                />
+              </View>
+              <Text style={[styles.quizLabel, { left: g.qx + QUIZ_NODE / 2 - 55, top: g.qTop + QUIZ_NODE + 14 }]} numberOfLines={2}>
+                {g.quiz.title}
+                {'\n'}⏱ на час · бонус
+              </Text>
+            </React.Fragment>
+          ))}
+
+          {/* вузли уроків на течії */}
+          {PATH.map(({ lesson: l, isCrown }, i) => {
+            const done = completed.includes(l.id);
+            const current = !allDone && i === firstOpen;
+            const locked = !done && !current;
+            const x = xAt(i);
+            const y = yAt(i);
+            return (
+              <React.Fragment key={l.id}>
+                <View style={{ position: 'absolute', left: x - NODE / 2, top: y - NODE / 2 }}>
+                  <PathNode
+                    kind={(isCrown ? 'crown' : done ? 'done' : current ? 'current' : 'locked') as NodeKind}
+                    size={NODE}
+                    disabled={locked}
+                    onPress={() => open(l.id)}
+                  />
+                </View>
+                {!(i === firstOpen && chipRect) && (
+                  <View style={[styles.codeWrap, { left: x - 40, top: y + NODE / 2 + 11 }]}>
+                    <Text style={styles.code}>{isCrown ? 'КОРОНА' : l.code}</Text>
+                  </View>
+                )}
+              </React.Fragment>
+            );
+          })}
+
+          {/* підпис поточного уроку: верхній шар, місце підібране так, щоб нічого не перекривати */}
+          {chipRect && (
+            <Text pointerEvents="none" numberOfLines={1} style={[styles.chip, { left: chipRect.x, top: chipRect.y, width: chipRect.w }]}>
+              {chipRect.title}
+            </Text>
+          )}
+        </View>
+
+        {allDone && (
+          <View style={styles.doneBox}>
+            <Text style={styles.doneTxt}>🏁 Усі доступні модулі пройдено. Нові — скоро. Красава.</Text>
+          </View>
+        )}
+      </ScrollView>
+    </View>
+  );
+}
+
+const makeStyles = (C: Theme) => StyleSheet.create({
+  practice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 12,
+    backgroundColor: C.panel,
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 2,
+    borderBottomWidth: 4,
+    borderColor: C.blue,
+    borderBottomColor: C.blueEdge,
+    ...cardShadow(C, 'sm'),
+  },
+  practiceTitle: { color: C.txt, fontWeight: '800', fontSize: 15 },
+  practiceSub: { color: C.muted, fontSize: 12, marginTop: 2 },
+  topbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    borderBottomColor: C.line,
+    borderBottomWidth: 1,
+  },
+  course: { color: C.muted, fontWeight: '700', fontSize: 12, marginRight: 'auto' },
+  stat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: C.panel,
+    borderRadius: 12,
+    paddingVertical: 5,
+    paddingHorizontal: 9,
+    borderBottomWidth: 3,
+    borderBottomColor: C.edge,
+  },
+  hero: { alignItems: 'center', marginVertical: 14 },
+  avatar: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: C.panel2,
+    borderWidth: 3,
+    borderColor: C.accent,
+    borderBottomWidth: 6,
+    borderBottomColor: C.accentEdge,
+  },
+  avatarImg: { width: '100%', height: '100%' },
+  avatarInitial: { color: C.accentTxt, fontSize: 42, fontWeight: '900' },
+  avatarBadge: {
+    position: 'absolute',
+    right: -2,
+    bottom: 2,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: C.accent,
+    borderBottomWidth: 4,
+    borderBottomColor: C.accentEdge,
+  },
+  avatarBadgeTxt: { color: C.onAccent, fontSize: 18, fontWeight: '900', marginTop: -2 },
+  name: { color: C.txt, fontWeight: '800', fontSize: 18, marginTop: 8 },
+  nameEdit: { color: C.muted, fontSize: 13, fontWeight: '600' },
+  nameInput: {
+    color: C.txt,
+    fontWeight: '800',
+    fontSize: 18,
+    marginTop: 8,
+    minWidth: 140,
+    textAlign: 'center',
+    borderBottomWidth: 2,
+    borderBottomColor: C.accent,
+    paddingVertical: 2,
+  },
+  lvl: { color: C.goldTxt, fontSize: 13, fontWeight: '700', marginTop: 2 },
+  goalRow: { marginBottom: 14 },
+  goalHead: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
+  goalLabel: { color: C.muted, fontSize: 12, fontWeight: '700' },
+  goalNum: { color: C.blueTxt, fontSize: 12, fontWeight: '800' },
+  goalBar: { height: 14, backgroundColor: C.track, borderRadius: 8, overflow: 'hidden' },
+  goalFill: { height: '100%', backgroundColor: C.blue, borderRadius: 8 },
+  freezeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: C.panel,
+    borderRadius: 14,
+    paddingVertical: 11,
+    paddingHorizontal: 14,
+    marginBottom: 16,
+    borderBottomWidth: 4,
+    borderBottomColor: C.edge,
+  },
+  freezeTxt: { color: C.txt, fontSize: 13, fontWeight: '700' },
+  buyRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  freezeBuy: { color: C.accentTxt, fontSize: 12, fontWeight: '800' },
+  freezeBuyOff: { color: C.muted },
+  modHead: { position: 'absolute', left: 0, alignItems: 'center' },
+  modChip: {
+    color: C.accentTxt,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    textAlign: 'center',
+    backgroundColor: C.chip,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: C.accentTint,
+  },
+  offerBtn: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 12, backgroundColor: C.blue, borderBottomWidth: 4, borderBottomColor: C.blueEdge },
+  offerBtnTxt: { color: '#fff', fontWeight: '900', fontSize: 14 },
+  offerLater: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 12, backgroundColor: C.panel2, borderWidth: 2, borderColor: C.line },
+  offerLaterTxt: { color: C.muted, fontWeight: '800', fontSize: 14 },
+  codeWrap: { position: 'absolute', width: 80, alignItems: 'center' },
+  code: {
+    color: C.muted,
+    fontSize: 11,
+    fontWeight: '800',
+    backgroundColor: C.bg,
+    borderRadius: 6,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    overflow: 'hidden',
+  },
+  chip: {
+    position: 'absolute',
+    textAlign: 'center',
+    color: C.txt,
+    fontSize: 11,
+    fontWeight: '700',
+    backgroundColor: C.panel,
+    borderRadius: 9,
+    overflow: 'hidden',
+    paddingVertical: 1,
+    paddingHorizontal: 8,
+    lineHeight: 15,
+  },
+  quizLabel: { position: 'absolute', width: 110, textAlign: 'center', color: C.muted, fontSize: 11, fontWeight: '700' },
+  doneBox: {
+    backgroundColor: C.panel,
+    borderColor: C.gold,
+    borderWidth: 2,
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 16,
+    borderBottomWidth: 5,
+    borderBottomColor: C.goldEdge,
+  },
+  doneTxt: { color: C.txt, fontSize: 15, textAlign: 'center' },
+});
