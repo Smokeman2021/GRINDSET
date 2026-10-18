@@ -1,20 +1,20 @@
-// Збирає ОДИН файл supabase/functions/telegram-auth/index.ts (його вставляють у Supabase → Edge Functions) із двох частин:
-//  - app-mvp/src/cloud/shared/telegramAuth.ts (чиста логіка, яку перевіряють автотести і яку використовує режим-імітація),
-//  - supabase/functions/telegram-auth/handler.template.ts (мережева частина).
+// Збирає ОДИН файл supabase/functions/invite-login/index.ts (його вставляють у Supabase → Edge Functions) із двох частин:
+//  - app-mvp/src/cloud/shared/access.ts (чиста логіка, яку перевіряють автотести і яку використовує режим-імітація),
+//  - supabase/functions/invite-login/handler.template.ts (мережева частина).
 // Запуск: node scripts/build-edge-function.mjs      Перевірка актуальності: node scripts/build-edge-function.mjs --check
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const shared = fs.readFileSync(path.join(root, 'app-mvp', 'src', 'cloud', 'shared', 'telegramAuth.ts'), 'utf8').replace(/\r\n/g, '\n');
-const handler = fs.readFileSync(path.join(root, 'supabase', 'functions', 'telegram-auth', 'handler.template.ts'), 'utf8').replace(/\r\n/g, '\n');
-const out = path.join(root, 'supabase', 'functions', 'telegram-auth', 'index.ts');
+const shared = fs.readFileSync(path.join(root, 'app-mvp', 'src', 'cloud', 'shared', 'access.ts'), 'utf8').replace(/\r\n/g, '\n');
+const handler = fs.readFileSync(path.join(root, 'supabase', 'functions', 'invite-login', 'handler.template.ts'), 'utf8').replace(/\r\n/g, '\n');
+const out = path.join(root, 'supabase', 'functions', 'invite-login', 'index.ts');
 
 const text =
   '// ЗГЕНЕРОВАНО скриптом scripts/build-edge-function.mjs: не редагуй вручну.\n' +
-  '// Правки логіки: app-mvp/src/cloud/shared/telegramAuth.ts; мережева частина: handler.template.ts. Потім запусти скрипт.\n' +
-  '// Як розгорнути: Supabase → Edge Functions → Create function (назва telegram-auth) → вставити весь вміст цього файлу → Deploy.\n' +
+  '// Правки логіки: app-mvp/src/cloud/shared/access.ts; мережева частина: handler.template.ts. Потім запусти скрипт.\n' +
+  '// Як розгорнути: Supabase → Edge Functions → Deploy a new function → Via Editor (назва invite-login) → вставити весь вміст цього файлу → Deploy.\n' +
   '// Вимкни «Verify JWT» для цієї функції (її викликають до входу).\n\n' +
   shared.trimEnd() +
   '\n\n' +

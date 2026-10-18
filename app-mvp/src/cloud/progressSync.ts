@@ -1,7 +1,7 @@
 // Синхронізація прогресу гравця: увесь стан одним JSON. Зберігаємо на сервері при кожному завершенні уроку (з коротким відкладенням),
-// при вході вирішуємо, чию версію брати (shared/telegramAuth.chooseProgress). Нарахування (коїни, XP) лишаються на клієнті.
+// при вході вирішуємо, чию версію брати (shared/access.chooseProgress). Нарахування (коїни, XP) лишаються на клієнті.
 import { useStore } from '../store';
-import { chooseProgress } from './shared/telegramAuth';
+import { chooseProgress } from './shared/access';
 import { localKv } from './storage';
 import type { CloudBackend, CloudUser } from './types';
 

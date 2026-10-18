@@ -1,21 +1,14 @@
-// Справжній бекенд: Supabase (Auth + Postgres + Edge Function telegram-auth). Схема й функції: supabase/migrations/0001_closed_test.sql.
-// УВАГА: наскрізно (з реальним Supabase і Telegram) цей файл ще не перевірявся; перевіряємо разом після того, як піднято бота й проєкт.
+// Справжній бекенд: Supabase (Auth + Postgres + Edge Function invite-login). Схема й функції: supabase/migrations/0001_closed_test.sql і 0002_invite_codes.sql.
+// УВАГА: наскрізно (з реальним Supabase) цей файл ще не перевірявся; перевіряємо разом після того, як піднято проєкт.
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { TelegramPayload } from './shared/telegramAuth';
-import type { CloudBackend, CloudUser, LoginFailure, LoginResult, ServerProgress, SessionCheck } from './types';
+import type { CloudBackend, CloudUser, LoginFailure, LoginInput, LoginResult, ServerProgress, SessionCheck } from './types';
 
 const SID_KEY = 'grindset-cloud-sid';
 
-type MeRow = { id: string; telegram_id: number | null; username: string; display_name: string | null; is_admin: boolean; session_ok: boolean };
+type MeRow = { id: string; username: string; display_name: string | null; is_admin: boolean; session_ok: boolean };
 
-const toUser = (m: MeRow): CloudUser => ({
-  id: m.id,
-  telegramId: m.telegram_id ?? 0,
-  username: m.username,
-  name: m.display_name || m.username,
-  isAdmin: m.is_admin,
-});
+const toUser = (m: MeRow): CloudUser => ({ id: m.id, username: m.username, name: m.display_name || m.username, isAdmin: m.is_admin });
 
 export class SupabaseBackend implements CloudBackend {
   mode = 'supabase' as const;
@@ -50,19 +43,21 @@ export class SupabaseBackend implements CloudBackend {
     return m ? toUser(m) : null;
   }
 
-  async login(payload: TelegramPayload): Promise<LoginResult> {
-    let json: { ok?: boolean; reason?: LoginFailure; token_hash?: string; sid?: string } | null = null;
+  async login(input: LoginInput): Promise<LoginResult> {
+    let json: { ok?: boolean; reason?: LoginFailure; attemptsLeft?: number; lockedSeconds?: number; token_hash?: string; sid?: string } | null = null;
     try {
-      const res = await fetch(`${this.url}/functions/v1/telegram-auth`, {
+      const res = await fetch(`${this.url}/functions/v1/invite-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', apikey: this.anon, Authorization: `Bearer ${this.anon}` },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(input),
       });
       json = await res.json().catch(() => null);
     } catch {
       return { ok: false, reason: 'error' };
     }
-    if (!json?.ok || !json.token_hash || !json.sid) return { ok: false, reason: json?.reason ?? 'error' };
+    if (!json?.ok || !json.token_hash || !json.sid) {
+      return { ok: false, reason: json?.reason ?? 'error', attemptsLeft: json?.attemptsLeft, lockedSeconds: json?.lockedSeconds };
+    }
     this.sid = json.sid;
     await AsyncStorage.setItem(SID_KEY, json.sid);
     const { error } = await this.client.auth.verifyOtp({ token_hash: json.token_hash, type: 'magiclink' });

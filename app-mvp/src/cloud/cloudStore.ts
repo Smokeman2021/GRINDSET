@@ -3,11 +3,10 @@ import { create } from 'zustand';
 import { getBackend } from './backend';
 import { CLOUD_MODE } from './config';
 import { startProgressSync, stopProgressSync } from './progressSync';
-import type { TelegramPayload } from './shared/telegramAuth';
-import type { CloudMode, CloudUser, LoginFailure } from './types';
+import type { CloudMode, CloudUser, LoginFailure, LoginInput } from './types';
 
 // off — хмара вимкнена (застосунок без входу); loading — перевіряємо сеанс; signedOut — потрібен вхід;
-// denied — користувача нема в списку / заблоковано; replaced — вхід виконано з іншого пристрою; signedIn — усе добре
+// denied — доступ вимкнено (заблоковано); replaced — вхід виконано з іншого пристрою; signedIn — усе добре
 export type CloudStatus = 'off' | 'loading' | 'signedOut' | 'denied' | 'replaced' | 'signedIn';
 
 type CloudState = {
@@ -15,14 +14,15 @@ type CloudState = {
   status: CloudStatus;
   user: CloudUser | null;
   reason: LoginFailure | null;
+  detail: { attemptsLeft?: number; lockedSeconds?: number } | null;
   init: () => Promise<void>;
-  login: (payload: TelegramPayload) => Promise<void>;
+  login: (input: LoginInput) => Promise<void>;
   logout: () => Promise<void>;
   verify: () => Promise<void>;
   retry: () => void;
 };
 
-const DENIED: LoginFailure[] = ['invite_only', 'blocked', 'id_mismatch', 'no_username'];
+const DENIED: LoginFailure[] = ['blocked'];
 
 export const useCloud = create<CloudState>((set, get) => {
   const markReplaced = async () => {
@@ -42,6 +42,7 @@ export const useCloud = create<CloudState>((set, get) => {
     status: CLOUD_MODE === 'off' ? 'off' : 'loading',
     user: null,
     reason: null,
+    detail: null,
 
     async init() {
       const backend = getBackend();
@@ -58,13 +59,18 @@ export const useCloud = create<CloudState>((set, get) => {
       }
     },
 
-    async login(payload) {
+    async login(input) {
       const backend = getBackend();
       if (!backend) return;
-      set({ status: 'loading', reason: null });
-      const res = await backend.login(payload);
+      set({ status: 'loading', reason: null, detail: null });
+      const res = await backend.login(input);
       if (res.ok) return enter(res.user);
-      set({ status: DENIED.includes(res.reason) ? 'denied' : 'signedOut', reason: res.reason, user: null });
+      set({
+        status: DENIED.includes(res.reason) ? 'denied' : 'signedOut',
+        reason: res.reason,
+        detail: { attemptsLeft: res.attemptsLeft, lockedSeconds: res.lockedSeconds },
+        user: null,
+      });
     },
 
     async logout() {
@@ -90,7 +96,7 @@ export const useCloud = create<CloudState>((set, get) => {
     },
 
     retry() {
-      set({ status: 'signedOut', reason: null });
+      set({ status: 'signedOut', reason: null, detail: null });
     },
   };
 });
