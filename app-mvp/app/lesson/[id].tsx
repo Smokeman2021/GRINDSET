@@ -16,6 +16,7 @@ import { playSfx } from '../../src/sound';
 import { boostLeftMs } from '../../src/notifications';
 import { scaleCoins } from '../../src/economy';
 import { Markdown } from '../../src/components/Markdown';
+import { OptionFx, Pop } from '../../src/components/Anim';
 import { Watermark } from '../../src/components/Watermark';
 import { FeedbackSheet } from '../../src/components/FeedbackSheet';
 import { CLOUD_MODE } from '../../src/cloud/config';
@@ -26,6 +27,27 @@ const SECONDS_L1 = 20;
 const SECONDS_L2 = 30;
 const QUIZ_BASE_COINS = 40;
 const QUIZ_BASE_XP = 30;
+
+// Смуга таймера квізу: свій стан і свій інтервал, щоб відлік не перемальовував весь екран уроку
+function TimerRow({ leftRef, limit, answered }: { leftRef: React.MutableRefObject<number>; limit: number; answered: boolean }) {
+  const C = useTheme();
+  const styles = useStyles(makeStyles);
+  const [left, setLeft] = useState(limit);
+  useEffect(() => {
+    if (answered) return;
+    const t = setInterval(() => setLeft(leftRef.current), 200);
+    return () => clearInterval(t);
+  }, [answered, leftRef]);
+  const urgent = left <= 5 && !answered;
+  return (
+    <View style={styles.timerRow}>
+      <Text style={[styles.timerTxt, urgent && { color: C.redTxt }]}>⏱ {Math.ceil(left)} с</Text>
+      <View style={styles.timerBar}>
+        <View style={[styles.timerFill, { width: `${Math.min(100, (left / limit) * 100)}%`, backgroundColor: urgent ? C.red : C.blue }]} />
+      </View>
+    </View>
+  );
+}
 
 export default function LessonScreen() {
   const C = useTheme();
@@ -57,8 +79,9 @@ export default function LessonScreen() {
 
   const steps: Step[] = useMemo(() => {
     if (!lesson) return [];
-    return isQuiz ? lesson.steps.map((s) => (s.type === 'teach' ? s : shuffleQuestion(s))) : lesson.steps;
-  }, [lesson, isQuiz]);
+    // Варіанти перемішуються при КОЖНОМУ проходженні будь-якого уроку (також у контрольних квізах і скрині золота)
+    return lesson.steps.map((s) => (s.type === 'teach' || s.type === 'reflect' ? s : shuffleQuestion(s)));
+  }, [lesson]);
 
   const [idx, setIdx] = useState(0);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -69,7 +92,6 @@ export default function LessonScreen() {
   const [maxBonus, setMaxBonus] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [errors, setErrors] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(0);
   const [timedOut, setTimedOut] = useState(false);
   const [speedPts, setSpeedPts] = useState(0);
   const [shieldHit, setShieldHit] = useState(false);
@@ -80,17 +102,15 @@ export default function LessonScreen() {
 
   // Квіз іде на час: 20 с на питання, 30 с на сценарну задачу
   const cur = steps[idx];
-  const limit = isQuiz && cur && cur.type !== 'teach' ? (cur.layer === 2 ? SECONDS_L2 : SECONDS_L1) : 0;
+  const limit = isQuiz && cur && cur.type !== 'teach' && cur.type !== 'reflect' ? (cur.layer === 2 ? SECONDS_L2 : SECONDS_L1) : 0;
 
   useEffect(() => {
     if (!limit || answered) return;
     const deadline = Date.now() + limit * 1000;
     leftRef.current = limit;
-    setTimeLeft(limit);
     const timer = setInterval(() => {
       const left = Math.max(0, (deadline - Date.now()) / 1000);
-      leftRef.current = left;
-      setTimeLeft(left);
+      leftRef.current = left; // відлік показує окремий TimerRow зі своїм станом: увесь урок не перемальовується 5 разів на секунду
       if (left <= 0) {
         clearInterval(timer);
         setSelected(-1);
@@ -123,9 +143,10 @@ export default function LessonScreen() {
   const step = steps[idx];
   const total = steps.length;
   const isTeach = step.type === 'teach';
+  const isReflect = step.type === 'reflect';
   const isChoiceLike = step.type === 'choice' || step.type === 'fill';
-  const isCorrect = step.type === 'teach' ? false : isChoiceLike ? selected === step.answer : extCorrect === true;
-  const canContinue = isTeach || answered;
+  const isCorrect = step.type === 'teach' || step.type === 'reflect' ? false : isChoiceLike ? selected === step.answer : extCorrect === true;
+  const canContinue = isTeach || isReflect || answered;
   const needsCheck = isChoiceLike && !answered;
 
   function refFor(i: number) {
@@ -167,6 +188,7 @@ export default function LessonScreen() {
 
   // Вибір варіанта лише підсвічує його; зарахування відбувається після кнопки «Перевірити»
   function onPick(k: number) {
+    if (step.type === 'reflect') return setSelected(k);
     if (answered || (step.type !== 'choice' && step.type !== 'fill')) return;
     setSelected(k);
   }
@@ -311,24 +333,7 @@ export default function LessonScreen() {
         </Text>
       )}
 
-      {limit > 0 && (
-        <View style={styles.timerRow}>
-          <Text style={[styles.timerTxt, timeLeft <= 5 && !answered && { color: C.redTxt }]}>
-            ⏱ {Math.ceil(timeLeft)} с
-          </Text>
-          <View style={styles.timerBar}>
-            <View
-              style={[
-                styles.timerFill,
-                {
-                  width: `${Math.min(100, (timeLeft / limit) * 100)}%`,
-                  backgroundColor: timeLeft <= 5 && !answered ? C.red : C.blue,
-                },
-              ]}
-            />
-          </View>
-        </View>
-      )}
+      {limit > 0 && <TimerRow key={idx} leftRef={leftRef} limit={limit} answered={answered} />}
 
       <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
         {isTeach ? (
@@ -367,7 +372,18 @@ export default function LessonScreen() {
               <Text style={styles.q}>{step.q}</Text>
             </View>
 
-            {step.type !== 'fill' && step.scenario && (
+            {step.type === 'reflect' && (
+              <>
+                <Text style={styles.reflectTag}>РЕФЛЕКСІЯ · правильної відповіді нема</Text>
+                {step.hint ? (
+                  <View style={styles.reflectHint}>
+                    <Text style={styles.reflectHintTxt}>💭 {step.hint}</Text>
+                  </View>
+                ) : null}
+              </>
+            )}
+
+            {step.type !== 'reflect' && step.type !== 'fill' && step.scenario && (
               <View style={styles.scenario}>
                 <Markdown text={step.scenario} small />
               </View>
@@ -388,6 +404,13 @@ export default function LessonScreen() {
             )}
 
             <View style={{ marginTop: 12 }}>
+              {step.type === 'reflect' &&
+                step.options.map((o, k) => (
+                  <Pressable key={k} onPress={() => onPick(k)} style={({ pressed }) => [styles.opt, k === selected && styles.optPicked, pressed && styles.optPressed]}>
+                    <Text style={styles.optTxt}>{o}</Text>
+                  </Pressable>
+                ))}
+              {step.type === 'reflect' && selected !== null && step.note ? <Text style={styles.reflectNote}>{step.note}</Text> : null}
               {(step.type === 'choice' || step.type === 'fill') &&
                 step.options.map((o, k) => {
                   const showCorrect = answered && k === step.answer;
@@ -395,8 +418,8 @@ export default function LessonScreen() {
                   const picked = !answered && k === selected;
                   if (k === hidden) return null;
                   return (
+                    <OptionFx key={k} state={showCorrect ? 'correct' : showWrong ? 'wrong' : picked ? 'picked' : 'idle'}>
                     <Pressable
-                      key={k}
                       disabled={answered}
                       onPress={() => onPick(k)}
                       style={({ pressed }) => [
@@ -409,6 +432,7 @@ export default function LessonScreen() {
                     >
                       <Text style={styles.optTxt}>{o}</Text>
                     </Pressable>
+                    </OptionFx>
                   );
                 })}
               {step.type === 'multi' && (
@@ -434,7 +458,8 @@ export default function LessonScreen() {
         )}
       </ScrollView>
 
-      {!isTeach && answered && (
+      {!isTeach && !isReflect && answered && (
+        <Pop from="up" key={`fb-${idx}`}>
         <View style={[styles.fb, isCorrect ? styles.fbOk : styles.fbNo]}>
           <Reaction key={`r-${idx}`} kind={reactionKind(timedOut ? 'timeout' : isCorrect ? 'good' : 'bad', combo)} size={58} />
           <View style={{ flex: 1 }}>
@@ -446,6 +471,7 @@ export default function LessonScreen() {
             <Quip kind={timedOut ? 'timeout' : isCorrect ? (combo >= 5 ? 'combo5' : combo >= 3 ? 'combo3' : 'correct') : 'wrong'} />
           </View>
         </View>
+        </Pop>
       )}
 
       <View style={{ paddingTop: 12, paddingBottom: insets.bottom + 12 }}>
@@ -484,6 +510,10 @@ const makeStyles = (C: Theme) => StyleSheet.create({
   cardTitle: { color: C.txt, fontWeight: '800', fontSize: 15 },
   cardTxt: { color: C.muted, fontSize: 13, lineHeight: 19, marginTop: 2 },
   quip: { color: C.muted, fontSize: 13, fontStyle: 'italic', marginTop: 6 },
+  reflectTag: { color: C.muted, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginTop: 6 },
+  reflectHint: { marginTop: 10, borderLeftWidth: 4, borderLeftColor: C.blue, backgroundColor: C.panel2, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 12 },
+  reflectHintTxt: { color: C.muted, fontSize: 14, fontStyle: 'italic', lineHeight: 20 },
+  reflectNote: { color: C.muted, fontSize: 13, lineHeight: 19, marginTop: 8 },
   report: { fontSize: 18, opacity: 0.75 },
   comboBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 3, minWidth: 56 },
   timerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 6 },

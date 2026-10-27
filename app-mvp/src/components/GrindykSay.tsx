@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useIsFocused } from 'expo-router';
 import { Animated, Easing, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { pose, PoseName } from '../data/poses';
 import { cardShadow, Theme, useStyles } from '../theme';
@@ -23,7 +24,9 @@ export function GrindykSay({
   const pop = useRef(new Animated.Value(0)).current;
   const p = pose(poseName);
 
+  const focused = useIsFocused(); // «дихання» зупиняється, поки екран закритий іншим (лаг тапів)
   useEffect(() => {
+    if (!focused) return;
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(bob, { toValue: 1, duration: 1400, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
@@ -32,7 +35,7 @@ export function GrindykSay({
     );
     loop.start();
     return () => loop.stop();
-  }, [bob]);
+  }, [bob, focused]);
 
   useEffect(() => {
     pop.setValue(0);

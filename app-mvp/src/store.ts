@@ -29,7 +29,7 @@ type State = {
   hydrated: boolean;
   onboarded: boolean;
   lang: Lang; // мова інтерфейсу; контент уроків поки завжди українською
-  theme: 'night' | 'day'; // нічний (темний) або денний (світлий) інтерфейс
+  theme: 'night' | 'day' | 'auto'; // нічний (темний), денний (світлий) або за темою пристрою
   playerName: string;
   playerPhoto: string | null; // фото гравця (uri / data-uri); поки null — плейсхолдер з ініціалом
   archetype: ArchetypeId | null; // обраний архетип персонажа-аватара (повний зріст, еволюціонує по модулях)
@@ -122,7 +122,7 @@ type State = {
   allocStat: (id: StatId) => void;
   setEquip: (slot: EquipSlot, itemId: string | null) => void;
   setLang: (lang: Lang) => void;
-  setTheme: (theme: 'night' | 'day') => void;
+  setTheme: (theme: 'night' | 'day' | 'auto') => void;
   setSoundEnabled: (v: boolean) => void;
   setDailyGoal: (goal: DailyGoal) => void;
   setStrictEnergy: (v: boolean) => void;
@@ -285,7 +285,7 @@ function bump(p: Partial<Record<Metric, number>>, m: Metric, by: number, mode: '
 const FRESH = {
   onboarded: false,
   lang: 'uk' as Lang,
-  theme: 'night' as 'night' | 'day',
+  theme: 'night' as 'night' | 'day' | 'auto',
   playerName: '',
   playerPhoto: null,
   archetype: null as ArchetypeId | null,

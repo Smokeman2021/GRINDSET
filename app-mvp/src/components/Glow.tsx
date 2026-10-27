@@ -6,7 +6,8 @@ import { useTheme } from '../theme';
 // М'яке акцентне світіння під верхом екрана (глибина з макету A/C). Не займає дотиків.
 export function Glow({ height = 280 }: { height?: number }) {
   const C = useTheme();
-  const { width } = useWindowDimensions();
+  const { width: winW } = useWindowDimensions();
+  const width = Math.min(winW, 600); // колонка на вебі не ширша за 600: світіння не повинно «виливатись» за її межі на десктопі
   const peak = C.name === 'night' ? 0.28 : 0.14;
   return (
     <Svg width={width} height={height} style={{ position: 'absolute', top: 0, left: 0 }} pointerEvents="none">

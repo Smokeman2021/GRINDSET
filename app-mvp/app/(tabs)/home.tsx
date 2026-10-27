@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import {
   View,
   Text,
@@ -18,7 +19,8 @@ import { ALL_LESSONS, MODULES, PATH } from '../../src/data/modules';
 import { GOAL_XP, GOAL_LABEL, ENERGY_PER_LESSON, useStore } from '../../src/store';
 import { Theme, useStyles, useTheme } from '../../src/theme';
 import { TopBar } from '../../src/components/TopBar';
-import { Quests } from '../../src/components/Quests';
+import { Quests, todayStr } from '../../src/components/Quests';
+import { questsForDay } from '../../src/data/quests';
 import { BoostBanner } from '../../src/components/BoostBanner';
 import { GrindykSay } from '../../src/components/GrindykSay';
 import { pose as poseFile, PoseName } from '../../src/data/poses';
@@ -133,6 +135,13 @@ export default function Home() {
     homeSay({ daysAway, energy, goalDone: xpToday >= GOAL_XP[dailyGoal], fresh: true })
   );
   const goalPct = Math.min(1, xpToday / goalTarget);
+  const [questsOpen, setQuestsOpen] = useState(false);
+  const { questsDate, questProgress, questsClaimed } = useStore(useShallow((s) => ({ questsDate: s.questsDate, questProgress: s.questProgress, questsClaimed: s.questsClaimed })));
+  const claimable = (() => {
+    const today = todayStr();
+    const fresh = questsDate === today;
+    return questsForDay(today).filter((q) => (fresh ? (questProgress[q.metric] ?? 0) >= q.target && !questsClaimed.includes(q.id) : false)).length;
+  })();
 
   // геометрія під поточну ширину екрана
   const W = Math.min(winW, 480) - 44;
@@ -225,22 +234,39 @@ export default function Home() {
       <Glow />
       <TopBar />
 
-      <ScrollView ref={scrollRef} contentContainerStyle={{ padding: 22, paddingBottom: insets.bottom + 30 }}>
-        <View style={styles.goalRow}>
-          <View style={styles.goalHead}>
-            <Text style={styles.goalLabel}>Ціль дня · {GOAL_LABEL[dailyGoal]}</Text>
-            <Text style={styles.goalNum}>
-              {Math.min(xpToday, goalTarget)}/{goalTarget} XP
-            </Text>
-          </View>
-          <View style={styles.goalBar}>
-            <View style={[styles.goalFill, { width: `${goalPct * 100}%` }]} />
-          </View>
+      {/* Закріплена смуга: ціль дня й швидкі входи завжди перед очима, не гортаються разом зі шляхом */}
+      <View style={styles.pinned}>
+        <View style={styles.pinGoal}>
+          <Text style={styles.goalLabel}>Ціль дня · {GOAL_LABEL[dailyGoal]}</Text>
+          <Text style={styles.goalNum}>
+            {Math.min(xpToday, goalTarget)}/{goalTarget} XP
+          </Text>
         </View>
+        <View style={styles.goalBar}>
+          <View style={[styles.goalFill, { width: `${goalPct * 100}%` }]} />
+        </View>
+        <View style={styles.chips}>
+          <Pressable onPress={() => setQuestsOpen((o) => !o)} style={[styles.dailyChip, questsOpen && styles.dailyChipOn, claimable > 0 && { borderColor: C.accent }]}>
+            <Text style={styles.dailyChipTxt}>🌟 Завдання{claimable > 0 ? ` · ${claimable}` : ''} {questsOpen ? '▴' : '▾'}</Text>
+          </Pressable>
+          <Pressable onPress={() => router.push('/sim')} style={styles.dailyChip}>
+            <Text style={styles.dailyChipTxt}>📊 Симулятор</Text>
+          </Pressable>
+          {completed.length >= 2 && (
+            <Pressable onPress={() => router.push('/lesson/practice')} style={styles.dailyChip}>
+              <Text style={styles.dailyChipTxt}>🏋️ Тренування{dueCount > 0 ? ` · ${dueCount}` : ''}</Text>
+            </Pressable>
+          )}
+        </View>
+        {questsOpen && (
+          <ScrollView style={{ maxHeight: 300, marginTop: 8 }} nestedScrollEnabled>
+            <Quests />
+          </ScrollView>
+        )}
+      </View>
 
+      <ScrollView ref={scrollRef} contentContainerStyle={{ padding: 22, paddingBottom: insets.bottom + 30 }}>
         <BoostBanner />
-
-        <Quests />
 
         {offerAdapt && (
           <View style={[styles.practice, { borderColor: C.blue, borderBottomColor: C.blueEdge, flexDirection: 'column', alignItems: 'stretch' }]}>
@@ -260,26 +286,6 @@ export default function Home() {
               </Pressable>
             </View>
           </View>
-        )}
-
-        <Pressable onPress={() => router.push('/sim')} style={({ pressed }) => [styles.practice, { borderColor: C.gold, borderBottomColor: C.goldEdge }, pressed && { transform: [{ translateY: 2 }] }]}>
-          <Text style={{ fontSize: 26 }}>📊</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.practiceTitle}>Симулятор кампанії</Text>
-            <Text style={styles.practiceSub}>5 днів однієї зв'язки. Керуй бюджетом за правилами курсу</Text>
-          </View>
-        </Pressable>
-
-        {completed.length >= 2 && (
-          <Pressable onPress={() => router.push('/lesson/practice')} style={({ pressed }) => [styles.practice, pressed && { transform: [{ translateY: 2 }] }]}>
-            <Text style={{ fontSize: 26 }}>🏋️</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.practiceTitle}>Швидке тренування</Text>
-              <Text style={styles.practiceSub}>
-                {dueCount > 0 ? `Пора повторити: ${dueCount} · ` : ''}8 питань із пройденого · без енергії · ½ нагороди
-              </Text>
-            </View>
-          </Pressable>
         )}
 
         <View style={{ marginTop: 16, marginBottom: 6 }}>
@@ -478,6 +484,12 @@ const makeStyles = (C: Theme) => StyleSheet.create({
     paddingVertical: 2,
   },
   lvl: { color: C.goldTxt, fontSize: 13, fontWeight: '700', marginTop: 2 },
+  pinned: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 10, borderBottomColor: C.line, borderBottomWidth: 1, backgroundColor: C.bg },
+  pinGoal: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: 6 },
+  dailyChip: { paddingVertical: 5, paddingHorizontal: 7, borderRadius: 12, borderWidth: 2, borderBottomWidth: 3, borderColor: C.line, backgroundColor: C.panel },
+  dailyChipOn: { backgroundColor: C.chip },
+  dailyChipTxt: { color: C.txt, fontWeight: '800', fontSize: 11 },
   goalRow: { marginBottom: 14 },
   goalHead: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
   goalLabel: { color: C.muted, fontSize: 12, fontWeight: '700' },

@@ -11,6 +11,7 @@ import { BM_ADSMANAGER } from '../../src/data/bm/adsmanager';
 import { Markdown } from '../../src/components/Markdown';
 import { ScreenHotspot, hotspotFeedback } from '../../src/components/ScreenHotspot';
 import { Calculators } from '../../src/components/Calculators';
+import { Advisor } from '../../src/components/Advisor';
 import { INCLUDE_RESTRICTED } from '../../src/data/restricted';
 import { SHOW_MY_NUMBERS } from '../../src/flags';
 import { say } from '../../src/data/phrases';
@@ -28,8 +29,8 @@ export default function Library() {
   const [talk, setTalk] = useState(() => say('library'));
   const cats = useMemo(
     () =>
-      [{ id: 'Калькулятори', icon: '🧮' }, { id: 'Рекламний кабінет', icon: '🖥️' }, { id: 'Словник', icon: '📖' }, ...CATEGORIES].filter(
-        (c) => c.id === 'Калькулятори' || c.id === 'Рекламний кабінет' || c.id === 'Словник' || CARDS.some((k) => k.category === c.id && (INCLUDE_RESTRICTED || !k.risky))
+      [{ id: 'Калькулятори', icon: '🧮' }, { id: 'Порадник', icon: '🧭' }, { id: 'Рекламний кабінет', icon: '🖥️' }, { id: 'Словник', icon: '📖' }, ...CATEGORIES].filter(
+        (c) => c.id === 'Калькулятори' || c.id === 'Порадник' || c.id === 'Рекламний кабінет' || c.id === 'Словник' || CARDS.some((k) => k.category === c.id && (INCLUDE_RESTRICTED || !k.risky))
       ),
     []
   );
@@ -37,6 +38,7 @@ export default function Library() {
   const [cat, setCat] = useState<string>(fromLink ?? cats[0]?.id ?? '');
   const [open, setOpen] = useState<string | null>(null);
   const [bmPicked, setBmPicked] = useState<string | null>(null);
+  const [tourOpen, setTourOpen] = useState(false);
 
   React.useEffect(() => {
     if (fromLink) setCat(fromLink);
@@ -73,11 +75,10 @@ export default function Library() {
 
         {cat === 'Калькулятори' && <Calculators />}
 
+        {cat === 'Порадник' && <Advisor />}
+
         {cat === 'Рекламний кабінет' && (
           <>
-            <Text style={styles.tourIntro}>
-              Реальні екрани рекламного кабінету: точний вигляд, кольори й поведінка, зняті з живого кабінету.
-            </Text>
             <Pressable onPress={() => router.push('/adsim')} style={styles.simBtn}>
               <Text style={{ fontSize: 24 }}>🕹️</Text>
               <View style={{ flex: 1 }}>
@@ -86,8 +87,10 @@ export default function Library() {
               </View>
             </Pressable>
 
+            {/* Одна картка замість двох: справжній скріншот із завданням + вхід у повну карту */}
             <View style={styles.bmCard}>
-              <Text style={styles.bmTag}>НОВЕ · СПРАВЖНІЙ СКРІНШОТ</Text>
+              <Text style={styles.simBtnTitle}>🗺️ Карта кабінету</Text>
+              <Text style={[styles.simBtnSub, { marginTop: 2, marginBottom: 10 }]}>Реальна карта рекламного кабінету. Навчися орієнтуватися</Text>
               <Text style={styles.simBtnSub}>{BM_ADSMANAGER[0].talk}</Text>
               <Text style={[styles.simBtnTitle, { marginTop: 8, marginBottom: 8 }]}>{BM_ADSMANAGER[0].task}</Text>
               <ScreenHotspot screen={BM_ADSMANAGER[0]} picked={bmPicked} onPick={setBmPicked} />
@@ -97,32 +100,33 @@ export default function Library() {
                   <Text style={styles.bmResetTxt}>Спробувати ще раз</Text>
                 </Pressable>
               )}
+              <Pressable onPress={() => router.push('/bm')} style={styles.bmOpenAll}>
+                <Text style={styles.bmOpenAllTxt}>Відкрити всю карту →</Text>
+              </Pressable>
             </View>
 
-            <Pressable onPress={() => router.push('/bm')} style={styles.simBtn}>
-              <Text style={{ fontSize: 24 }}>🗺️</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.simBtnTitle}>Карта кабінету</Text>
-                <Text style={styles.simBtnSub}>Усі зняті екрани одразу — переходь по кнопках так само, як у живому кабінеті</Text>
-              </View>
+            {/* Довгий список розборів екранів згорнуто в один акордеон */}
+            <Pressable onPress={() => setTourOpen((o) => !o)} style={styles.accHead}>
+              <Text style={styles.simBtnTitle}>📚 Розбір екранів кабінету · {ADS_MANAGER_TOUR.length}</Text>
+              <Text style={styles.arrow}>{tourOpen ? '▲' : '▼'}</Text>
             </Pressable>
-
-            {ADS_MANAGER_TOUR.map((s) => {
-              const isOpen = open === `ads-${s.id}`;
-              return (
-                <Pressable key={s.id} onPress={() => setOpen(isOpen ? null : `ads-${s.id}`)} style={styles.termRow}>
-                  <View style={styles.head}>
-                    <Text style={styles.termTitle}>{s.title}</Text>
-                    <Text style={styles.arrow}>{isOpen ? '▲' : '▼'}</Text>
-                  </View>
-                  {isOpen && (
-                    <View style={{ marginTop: 8 }}>
-                      <Markdown text={s.body} small />
+            {tourOpen &&
+              ADS_MANAGER_TOUR.map((s) => {
+                const isOpen = open === `ads-${s.id}`;
+                return (
+                  <Pressable key={s.id} onPress={() => setOpen(isOpen ? null : `ads-${s.id}`)} style={styles.accRow}>
+                    <View style={styles.head}>
+                      <Text style={styles.accRowTitle}>{s.title}</Text>
+                      <Text style={styles.arrow}>{isOpen ? '▲' : '▼'}</Text>
                     </View>
-                  )}
-                </Pressable>
-              );
-            })}
+                    {isOpen && (
+                      <View style={{ marginTop: 8 }}>
+                        <Markdown text={s.body} small />
+                      </View>
+                    )}
+                  </Pressable>
+                );
+              })}
           </>
         )}
 
@@ -186,6 +190,11 @@ export default function Library() {
 }
 
 const makeStyles = (C: Theme) => StyleSheet.create({
+  bmOpenAll: { marginTop: 12, alignSelf: 'flex-start', paddingVertical: 9, paddingHorizontal: 14, borderRadius: 12, borderWidth: 2, borderBottomWidth: 4, borderColor: C.line, backgroundColor: C.panel2 },
+  bmOpenAllTxt: { color: C.accentTxt, fontWeight: '800', fontSize: 13 },
+  accHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: C.panel, borderRadius: 14, borderWidth: 2, borderBottomWidth: 4, borderColor: C.line, paddingVertical: 12, paddingHorizontal: 14, marginBottom: 8 },
+  accRow: { backgroundColor: C.panel2, borderRadius: 10, paddingVertical: 9, paddingHorizontal: 12, marginBottom: 4, marginLeft: 8 },
+  accRowTitle: { color: C.txt, fontWeight: '700', fontSize: 13, flex: 1, paddingRight: 8 },
   tourIntro: { color: C.muted, fontSize: 13, lineHeight: 19, marginBottom: 12 },
   simBtn: {
     flexDirection: 'row',

@@ -59,9 +59,9 @@ export default function Settings() {
         <View style={styles.card}>
           <Text style={styles.label}>{t('theme')}</Text>
           <View style={styles.segRow}>
-            {(['night', 'day'] as const).map((n) => (
+            {(['night', 'day', 'auto'] as const).map((n) => (
               <Seg key={n} on={s.theme === n} onPress={() => s.setTheme(n)}>
-                {t(n === 'night' ? 'themeNight' : 'themeDay')}
+                {n === 'auto' ? 'Авто' : t(n === 'night' ? 'themeNight' : 'themeDay')}
               </Seg>
             ))}
           </View>

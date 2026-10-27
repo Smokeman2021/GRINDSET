@@ -74,35 +74,7 @@ function Breakeven() {
   );
 }
 
-// 2. Метрики з сирих даних
-function Metrics() {
-  const styles = useStyles(makeStyles);
-  const [spend, setSpend] = useState('50');
-  const [impr, setImpr] = useState('20000');
-  const [clicks, setClicks] = useState('300');
-  const [leads, setLeads] = useState('12');
-  const sp = num(spend);
-  const im = num(impr);
-  const cl = num(clicks);
-  const ld = num(leads);
-  return (
-    <View style={styles.card}>
-      <Text style={styles.title}>Метрики кампанії</Text>
-      <Text style={styles.hint}>Введи дані з кабінету. Порахую CPM, CTR, CPC, CR і CPA.</Text>
-      <Field label="Витрати" value={spend} onChange={setSpend} suffix="$" />
-      <Field label="Покази" value={impr} onChange={setImpr} />
-      <Field label="Кліки" value={clicks} onChange={setClicks} />
-      <Field label="Ліди" value={leads} onChange={setLeads} />
-      <Result label="CPM" value={money((sp / im) * 1000)} />
-      <Result label="CTR" value={pct((cl / im) * 100)} />
-      <Result label="CPC" value={money(sp / cl)} />
-      <Result label="CR (клік → лід)" value={pct((ld / cl) * 100)} />
-      <Result label="CPA" value={money(sp / ld)} />
-    </View>
-  );
-}
-
-// 3. Правило гранічної вартості ліда (модуль 08)
+// 2. Правило гранічної вартості ліда (модуль 08)
 function Threshold() {
   const styles = useStyles(makeStyles);
   const [first, setFirst] = useState('3');
@@ -127,7 +99,6 @@ export function Calculators() {
   return (
     <View>
       <Breakeven />
-      <Metrics />
       <Threshold />
     </View>
   );

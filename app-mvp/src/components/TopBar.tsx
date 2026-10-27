@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useShallow } from 'zustand/react/shallow';
 import { useStore } from '../store';
 import { cardShadow, Theme, useStyles, useTheme } from '../theme';
 import { Icon, IconName } from './Icon';
@@ -14,7 +15,8 @@ export function TopBar({ title = COURSE_NAME }: { title?: string }) {
   const styles = useStyles(makeStyles);
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { streak, xp, coins, energy } = useStore();
+  // вузький підпис на стан: панель є на кожній вкладці й не повинна перемальовуватись від чужих змін стору
+  const { streak, xp, coins, energy } = useStore(useShallow((s) => ({ streak: s.streak, xp: s.xp, coins: s.coins, energy: s.energy })));
   const { width } = useWindowDimensions();
   const compact = width < 400; // 360 px: усе в один рядок, без перенесення
   return (

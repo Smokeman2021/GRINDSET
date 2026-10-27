@@ -29,8 +29,19 @@ const PROTECTED_ROUTES = [
   'numbers/[id]',
 ];
 
+// Веб: фон сторінки й колір адресного рядка = фон поточної теми, щоб ніде не світилась біла смуга (за межами колонки на десктопі, під адресним рядком)
+function useWebChrome(bg: string) {
+  React.useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    document.documentElement.style.backgroundColor = bg;
+    document.body.style.backgroundColor = bg;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', bg);
+  }, [bg]);
+}
+
 export default function RootLayout() {
   const C = useTheme();
+  useWebChrome(C.bg);
   const status = useCloud((s) => s.status);
   const gateOn = CLOUD_MODE !== 'off';
   const signedIn = !gateOn || status === 'signedIn';

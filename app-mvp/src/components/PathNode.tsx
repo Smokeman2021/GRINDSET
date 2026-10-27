@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
+import { useIsFocused } from 'expo-router';
 import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { Theme, rgba, useTheme } from '../theme';
 
@@ -91,23 +92,41 @@ export function PathNode({
   const locked = kind === 'locked' || kind === 'quizLocked';
   const lift = pressed && !locked ? depth * 0.7 : 0;
   const pulse = useRef(new Animated.Value(0)).current;
-
+  // Завершення вузла: коли «поточний» стає «пройденим», він коротко підстрибує
+  const pop = useRef(new Animated.Value(1)).current;
+  const prevKind = useRef(kind);
   useEffect(() => {
-    if (kind !== 'current' && kind !== 'quizOpen') return;
+    const was = prevKind.current;
+    prevKind.current = kind;
+    if ((was === 'current' && kind === 'done') || (was === 'quizOpen' && kind === 'quizDone')) {
+      Animated.sequence([
+        Animated.timing(pop, { toValue: 1.18, duration: 130, useNativeDriver: true }),
+        Animated.spring(pop, { toValue: 1, friction: 3, useNativeDriver: true }),
+      ]).start();
+    }
+  }, [kind, pop]);
+
+  // Пульс крутиться лише коли екран перед очима: під відкритим уроком Home лишається змонтованим і без цього жер би головний потік (лаг тапів)
+  const focused = useIsFocused();
+  useEffect(() => {
+    if (!focused || (kind !== 'current' && kind !== 'quizOpen')) return;
     const loop = Animated.loop(
       Animated.timing(pulse, { toValue: 1, duration: 1700, easing: Easing.out(Easing.quad), useNativeDriver: true })
     );
     loop.start();
     return () => loop.stop();
-  }, [kind, pulse]);
+  }, [kind, pulse, focused]);
 
   const top = locked ? lighten(p.base, 0.1) : lighten(p.base, 0.22);
   const bottom = locked ? p.base : darken(p.base, 0.06);
   const id = `n${kind}${size}`;
   const iconSize = size * 0.46;
   const haloSize = size * 1.9;
+  // Поле навколо полотна: кільце активного вузла й нічне світіння виходять за коло, без запасу SVG їх обрізає
+  const PAD = 8;
 
   return (
+    <Animated.View style={{ transform: [{ scale: pop }] }}>
     <Pressable
       onPress={onPress}
       disabled={disabled}
@@ -137,7 +156,7 @@ export function PathNode({
           </Svg>
         </Animated.View>
       )}
-      <Svg width={size} height={size + depth} style={StyleSheet.absoluteFill}>
+      <Svg width={size + PAD * 2} height={size + depth + PAD * 2} style={{ position: 'absolute', left: -PAD, top: -PAD, overflow: 'visible' }}>
         <Defs>
           <LinearGradient id={id + 'g'} x1="0" y1="0" x2="0" y2="1">
             <Stop offset="0" stopColor={top} />
@@ -156,6 +175,7 @@ export function PathNode({
             <Stop offset="1" stopColor="#000000" stopOpacity={0} />
           </RadialGradient>
         </Defs>
+        <G transform={`translate(${PAD} ${PAD})`}>
         {/* тінь на землі */}
         <Ellipse cx={size / 2} cy={size + depth * 0.55} rx={size * 0.5} ry={depth * 1.1} fill={`url(#${id}d)`} />
         {/* нижня грань (товщина кнопки) */}
@@ -175,7 +195,9 @@ export function PathNode({
         {night && !locked && (
           <Circle cx={size / 2} cy={size / 2} r={size / 2 + 1} fill="none" stroke={rgba(p.glow, 0.35)} strokeWidth={1} />
         )}
+        </G>
       </Svg>
     </Pressable>
+    </Animated.View>
   );
 }

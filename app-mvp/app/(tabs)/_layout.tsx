@@ -56,7 +56,7 @@ export default function TabsLayout() {
               paddingBottom: insets.bottom + 4,
               paddingTop: 6,
             },
-        sceneStyle: web ? { backgroundColor: C.bg, width: '100%', maxWidth: 600, marginHorizontal: 'auto' } : { backgroundColor: C.bg },
+        sceneStyle: web ? { backgroundColor: C.bg, width: '100%', maxWidth: sidebar ? 680 : 600, marginHorizontal: 'auto' } : { backgroundColor: C.bg },
       }}
     >
       <Tabs.Screen

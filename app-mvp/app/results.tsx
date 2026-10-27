@@ -15,6 +15,7 @@ import { MODULES } from '../src/data/modules';
 import { MemeCard } from '../src/components/MemeCard';
 import { MEMES } from '../src/data/memes';
 import { playSfx } from '../src/sound';
+import { Pop } from '../src/components/Anim';
 import { Watermark } from '../src/components/Watermark';
 
 export default function Results() {
@@ -149,7 +150,9 @@ export default function Results() {
         <View style={{ width: '100%', marginBottom: 6 }}>
           <GrindykSay text={talk.text} pose={talk.pose} height={120} />
         </View>
-        <Text style={styles.h1}>{h1}</Text>
+        <Pop>
+          <Text style={styles.h1}>{h1}</Text>
+        </Pop>
         <Text style={styles.muted}>{sub}</Text>
 
         {leveledUp && (
@@ -163,6 +166,7 @@ export default function Results() {
         )}
 
         {perfect && !failedCheckpoint && !isPractice && (
+          <Pop delay={120} style={{ alignSelf: 'stretch' }}>
           <View style={styles.ach}>
             <Text style={{ fontSize: 36 }}>🎯</Text>
             <View style={{ flex: 1 }}>
@@ -170,18 +174,21 @@ export default function Results() {
               <Text style={styles.achSub}>Жодної помилки: комбо-бонус на максимум.</Text>
             </View>
           </View>
+          </Pop>
         )}
 
         {newAch.map((aid) => {
           const a = ACHIEVEMENTS.find((x) => x.id === aid);
           return a ? (
-            <View key={aid} style={styles.ach}>
+            <Pop key={aid} delay={220} style={{ alignSelf: 'stretch' }}>
+            <View style={styles.ach}>
               <Text style={{ fontSize: 34 }}>{a.icon}</Text>
               <View style={{ flex: 1 }}>
                 <Text style={styles.achTitle}>Досягнення: {a.title}</Text>
                 <Text style={styles.achSub}>{a.desc}</Text>
               </View>
             </View>
+            </Pop>
           ) : null;
         })}
 

@@ -2,11 +2,12 @@ import { playSfx } from '../sound';
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { questsForDay } from '../data/quests';
+import { useShallow } from 'zustand/react/shallow';
 import { useStore } from '../store';
 import { Theme, useStyles, useTheme } from '../theme';
 import { Icon } from './Icon';
 
-function todayStr(): string {
+export function todayStr(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
@@ -14,7 +15,7 @@ function todayStr(): string {
 export function Quests() {
   const C = useTheme();
   const styles = useStyles(makeStyles);
-  const { questsDate, questProgress, questsClaimed, claimQuest } = useStore();
+  const { questsDate, questProgress, questsClaimed, claimQuest } = useStore(useShallow((s) => ({ questsDate: s.questsDate, questProgress: s.questProgress, questsClaimed: s.questsClaimed, claimQuest: s.claimQuest })));
   const today = todayStr();
   const fresh = questsDate === today;
   const progress = fresh ? questProgress : {};
