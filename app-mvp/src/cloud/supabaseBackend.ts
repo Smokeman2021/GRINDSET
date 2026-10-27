@@ -2,7 +2,8 @@
 // УВАГА: наскрізно (з реальним Supabase) цей файл ще не перевірявся; перевіряємо разом після того, як піднято проєкт.
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { AccuracyRow, CloudBackend, CloudUser, LoginFailure, LoginInput, LoginResult, ServerProgress, SessionCheck } from './types';
+import { UI_BUILD } from '../version';
+import type { AccuracyRow, CloudBackend, CloudUser, FeedbackInput, FeedbackRow, LoginFailure, LoginInput, LoginResult, ServerProgress, SessionCheck, TesterRow } from './types';
 
 const SID_KEY = 'grindset-cloud-sid';
 
@@ -110,5 +111,65 @@ export class SupabaseBackend implements CloudBackend {
       answers: Number(r.answers),
       isMe: !!r.is_me,
     }));
+  }
+
+  // Відгук: автора й нік підставляє тригер feedback_fill на сервері (migrations/0004), тож їх тут не передаємо
+  async sendFeedback(input: FeedbackInput): Promise<void> {
+    const { error } = await this.client.from('feedback').insert({
+      kind: input.kind,
+      body: input.body,
+      screen: input.screen ?? null,
+      lesson_id: input.lessonId ?? null,
+      step_idx: input.stepIdx ?? null,
+      build: UI_BUILD,
+    });
+    if (error) this.fail(error);
+  }
+
+  // Далі лише для адміна: читання відгуків дозволяє RLS (feedback_admin_read), решта це SECURITY DEFINER-функції 0004 / 0002
+  async adminFeedback(): Promise<FeedbackRow[]> {
+    const { data, error } = await this.client.from('feedback').select('*').order('created_at', { ascending: false }).limit(500);
+    if (error) this.fail(error);
+    return (data ?? []).map((r: Record<string, unknown>) => ({
+      id: Number(r.id),
+      username: String(r.username ?? ''),
+      kind: r.kind === 'idea' ? 'idea' : 'bug',
+      screen: String(r.screen ?? ''),
+      lessonId: String(r.lesson_id ?? ''),
+      stepIdx: r.step_idx == null ? null : Number(r.step_idx),
+      body: String(r.body ?? ''),
+      build: r.build == null ? null : Number(r.build),
+      createdAt: Date.parse(String(r.created_at)),
+    }));
+  }
+
+  async adminTesters(): Promise<TesterRow[]> {
+    const { data, error } = await this.client.rpc('admin_testers');
+    if (error) this.fail(error);
+    return ((data ?? []) as Record<string, unknown>[]).map((r) => ({
+      id: String(r.id),
+      username: String(r.username),
+      name: String(r.display_name || r.username),
+      status: r.status as TesterRow['status'],
+      isAdmin: !!r.is_admin,
+      lastLoginAt: r.last_login_ms == null ? null : Number(r.last_login_ms),
+      inviteIssuedAt: r.invite_issued_ms == null ? null : Number(r.invite_issued_ms),
+    }));
+  }
+
+  async adminAddTester(username: string, name: string): Promise<void> {
+    const { error } = await this.client.rpc('admin_add_tester', { p_username: username, p_name: name });
+    if (error) this.fail(error);
+  }
+
+  async adminSetStatus(id: string, status: 'active' | 'blocked'): Promise<void> {
+    const { error } = await this.client.rpc('admin_set_status', { p_id: id, p_status: status });
+    if (error) this.fail(error);
+  }
+
+  async adminIssueInvite(username: string): Promise<string> {
+    const { data, error } = await this.client.rpc('issue_invite', { p_username: username });
+    if (error) this.fail(error);
+    return String(data);
   }
 }

@@ -15,6 +15,7 @@ import { MODULES } from '../src/data/modules';
 import { MemeCard } from '../src/components/MemeCard';
 import { MEMES } from '../src/data/memes';
 import { playSfx } from '../src/sound';
+import { Watermark } from '../src/components/Watermark';
 
 export default function Results() {
   const C = useTheme();
@@ -250,6 +251,7 @@ export default function Results() {
           }}
         />
       )}
+      <Watermark />
     </View>
   );
 }
@@ -276,8 +278,9 @@ function DiagnosticResult({ correct, errors, newAch }: { correct: number; errors
   };
 
   return (
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
     <ScrollView
-      style={{ flex: 1, backgroundColor: C.bg }}
+      style={{ flex: 1 }}
       contentContainerStyle={{ padding: 22, paddingTop: insets.top + 20, paddingBottom: insets.bottom + 24, gap: 14 }}
     >
       <GrindykSay text={talk.text} pose={talk.pose} height={120} />
@@ -312,6 +315,8 @@ function DiagnosticResult({ correct, errors, newAch }: { correct: number; errors
         </>
       )}
     </ScrollView>
+    <Watermark />
+    </View>
   );
 }
 

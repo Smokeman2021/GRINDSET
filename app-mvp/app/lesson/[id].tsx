@@ -16,6 +16,9 @@ import { playSfx } from '../../src/sound';
 import { boostLeftMs } from '../../src/notifications';
 import { scaleCoins } from '../../src/economy';
 import { Markdown } from '../../src/components/Markdown';
+import { Watermark } from '../../src/components/Watermark';
+import { FeedbackSheet } from '../../src/components/FeedbackSheet';
+import { CLOUD_MODE } from '../../src/cloud/config';
 import { BundleStep, MatchStep, MultiStep, NumericStep, OrderStep, StoryStep } from '../../src/components/steps';
 
 const SECONDS_L1 = 20;
@@ -57,6 +60,7 @@ export default function LessonScreen() {
   }, [lesson, isQuiz]);
 
   const [idx, setIdx] = useState(0);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
   const [extCorrect, setExtCorrect] = useState<boolean | null>(null); // результат завдань з власним інтерфейсом
   const [answered, setAnswered] = useState(false);
@@ -265,6 +269,11 @@ export default function LessonScreen() {
           ))}
         </View>
         <View style={styles.comboBox}>
+          {CLOUD_MODE !== 'off' && (
+            <Pressable onPress={() => setFeedbackOpen(true)} hitSlop={8} accessibilityLabel="Повідомити про помилку або запропонувати">
+              <Text style={styles.report}>🐞</Text>
+            </Pressable>
+          )}
           {combo > 0 && (
             <>
               <Icon name="streak" size={22} />
@@ -434,6 +443,8 @@ export default function LessonScreen() {
           disabled={needsCheck ? selected === null : !canContinue}
         />
       </View>
+      <FeedbackSheet visible={feedbackOpen} onClose={() => setFeedbackOpen(false)} context={{ screen: 'lesson', lessonId: id, stepIdx: idx }} />
+      <Watermark />
     </View>
   );
 }
@@ -461,6 +472,7 @@ const makeStyles = (C: Theme) => StyleSheet.create({
   cardTitle: { color: C.txt, fontWeight: '800', fontSize: 15 },
   cardTxt: { color: C.muted, fontSize: 13, lineHeight: 19, marginTop: 2 },
   quip: { color: C.muted, fontSize: 13, fontStyle: 'italic', marginTop: 6 },
+  report: { fontSize: 18, opacity: 0.75 },
   comboBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 3, minWidth: 56 },
   timerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 6 },
   timerTxt: { color: C.blueTxt, fontSize: 13, fontWeight: '800', minWidth: 52 },

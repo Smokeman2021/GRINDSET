@@ -1,16 +1,17 @@
 // Режим-імітація (EXPO_PUBLIC_CLOUD=mock): «сервер» живе в localStorage браузера й спільний для всіх вкладок, а сеанс клієнта зберігається
 // в sessionStorage, тож дві вкладки поводяться як два пристрої. Перевірка коду з лімітом спроб і один активний сеанс виконуються
 // тією самою логікою (shared/access.ts), що й на справжньому сервері. У збірці зі справжнім Supabase цей код не викликається.
-import { InviteRow, accuracyBoard, checkInvite, formatInviteCode, hashInvite, newSid, normalizeInviteCode, normalizeUsername, sessionState } from './shared/access';
-import type { AccuracyRow, CloudBackend, CloudUser, LoginInput, LoginResult, ServerProgress, SessionCheck } from './types';
+import { InviteRow, accuracyBoard, checkInvite, formatInviteCode, generateInviteCode, hashInvite, newSid, normalizeInviteCode, normalizeUsername, sessionState } from './shared/access';
+import { UI_BUILD } from '../version';
+import type { AccuracyRow, CloudBackend, CloudUser, FeedbackInput, FeedbackRow, LoginInput, LoginResult, ServerProgress, SessionCheck, TesterRow } from './types';
 import { sessionKv } from './storage';
 
 const DB_KEY = 'grindset-mock-server-v2';
 const SID_KEY = 'grindset-mock-sid';
 const UID_KEY = 'grindset-mock-uid';
 
-type Row = InviteRow & { display_name: string; is_admin: boolean; active_sid: string | null };
-type Db = { allowed: Row[]; progress: Record<string, { state: Record<string, unknown>; updated_at: number }> };
+type Row = InviteRow & { display_name: string; is_admin: boolean; active_sid: string | null; last_login_at?: number | null; invite_issued_at?: number | null };
+type Db = { allowed: Row[]; progress: Record<string, { state: Record<string, unknown>; updated_at: number }>; feedback?: FeedbackRow[] };
 
 // Тестові облікові записи імітації та їхні коди (лише для розробки; справжні коди видає автор через SQL issue_invite)
 export const MOCK_ACCOUNTS: { username: string; name: string; code: string; status: Row['status']; admin?: boolean }[] = [
@@ -94,6 +95,7 @@ export class MockBackend implements CloudBackend {
     const sid = newSid();
     row.active_sid = sid; // новий вхід замінює старий сеанс
     row.status = 'active'; // перший вхід: invited → active (як на сервері)
+    row.last_login_at = Date.now();
     writeDb(db);
     sessionKv.set(SID_KEY, sid);
     sessionKv.set(UID_KEY, row.id);
@@ -155,6 +157,84 @@ export class MockBackend implements CloudBackend {
         return { name: r.display_name || r.username, status: r.status, isAdmin: r.is_admin, correct: Number(st.answersCorrect) || 0, total: Number(st.answersTotal) || 0, isMe: r.id === me.id };
       })
     );
+  }
+
+  async sendFeedback(input: FeedbackInput): Promise<void> {
+    const me = await this.mustBeActive();
+    const db = await readDb();
+    const list = (db.feedback ??= []);
+    list.push({
+      id: list.length + 1,
+      username: me.username,
+      kind: input.kind,
+      screen: input.screen ?? '',
+      lessonId: input.lessonId ?? '',
+      stepIdx: input.stepIdx ?? null,
+      body: input.body.trim().slice(0, 2000),
+      build: UI_BUILD,
+      createdAt: Date.now(),
+    });
+    writeDb(db);
+  }
+
+  private async mustBeAdmin(): Promise<Row> {
+    const me = await this.mustBeActive();
+    if (!me.is_admin) throw new Error('forbidden');
+    return me;
+  }
+
+  async adminFeedback(): Promise<FeedbackRow[]> {
+    await this.mustBeAdmin();
+    return [...((await readDb()).feedback ?? [])].sort((a, b) => b.createdAt - a.createdAt);
+  }
+
+  async adminTesters(): Promise<TesterRow[]> {
+    await this.mustBeAdmin();
+    return (await readDb()).allowed.map((r) => ({
+      id: r.id,
+      username: r.username,
+      name: r.display_name || r.username,
+      status: r.status,
+      isAdmin: r.is_admin,
+      lastLoginAt: r.last_login_at ?? null,
+      inviteIssuedAt: r.invite_issued_at ?? null,
+    }));
+  }
+
+  async adminAddTester(username: string, name: string): Promise<void> {
+    await this.mustBeAdmin();
+    const uname = normalizeUsername(username);
+    if (!/^[a-z0-9_]{3,32}$/.test(uname)) throw new Error('bad_username');
+    const db = await readDb();
+    if (db.allowed.some((r) => r.username === uname)) throw new Error('already_exists');
+    db.allowed.push({ id: `mock-${uname}`, username: uname, display_name: name.trim(), status: 'invited', is_admin: false, invite_salt: null, invite_hash: null, failed_attempts: 0, locked_until: null, active_sid: null });
+    writeDb(db);
+  }
+
+  async adminSetStatus(id: string, status: 'active' | 'blocked'): Promise<void> {
+    const me = await this.mustBeAdmin();
+    if (id === me.id) throw new Error('cannot_change_self');
+    const db = await readDb();
+    const row = db.allowed.find((r) => r.id === id);
+    if (!row) throw new Error('user_not_found');
+    row.status = status;
+    if (status === 'blocked') row.active_sid = null;
+    writeDb(db);
+  }
+
+  async adminIssueInvite(username: string): Promise<string> {
+    await this.mustBeAdmin();
+    const db = await readDb();
+    const row = db.allowed.find((r) => r.username === normalizeUsername(username));
+    if (!row) throw new Error('user_not_found');
+    const code = generateInviteCode();
+    row.invite_salt = `salt-${Math.random().toString(36).slice(2)}`;
+    row.invite_hash = await hashInvite(row.invite_salt, normalizeInviteCode(code));
+    row.invite_issued_at = Date.now();
+    row.failed_attempts = 0;
+    row.locked_until = null;
+    writeDb(db);
+    return code;
   }
 }
 

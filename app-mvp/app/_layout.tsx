@@ -19,6 +19,7 @@ const PROTECTED_ROUTES = [
   'results',
   'settings',
   'accuracy',
+  'admin',
   'plan',
   'adapt',
   'adsim',

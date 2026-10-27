@@ -23,6 +23,9 @@ import { statsOf, useStore } from '../../src/store';
 import { cardShadow, Theme, useStyles, useTheme } from '../../src/theme';
 import { Glow } from '../../src/components/Glow';
 import { SHOW_BUILD, UI_BUILD, loadedAtLabel } from '../../src/version';
+import { CLOUD_MODE } from '../../src/cloud/config';
+import { useCloud } from '../../src/cloud/cloudStore';
+import { FeedbackSheet } from '../../src/components/FeedbackSheet';
 
 function lessonTitle(id: string): string {
   if (id === 'mistakes') return 'Надолуження помилок';
@@ -38,6 +41,8 @@ export default function Profile() {
   const styles = useStyles(makeStyles);
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const cloudAdmin = useCloud((c) => c.user?.isAdmin ?? false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const s = useStore();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
@@ -244,6 +249,29 @@ export default function Profile() {
             <Text style={styles.hXp}>+{h.xp} XP</Text>
           </View>
         ))}
+
+        {CLOUD_MODE !== 'off' && (
+          <>
+            <Text style={styles.h}>ЗВОРОТНИЙ ЗВ’ЯЗОК</Text>
+            <Pressable onPress={() => setFeedbackOpen(true)} style={styles.fbCard}>
+              <Text style={{ fontSize: 28 }}>🐞</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.fbTitle}>Повідомити про помилку / запропонувати</Text>
+                <Text style={styles.fbSub}>Знайшов баг чи маєш ідею: напиши автору прямо звідси.</Text>
+              </View>
+            </Pressable>
+            {cloudAdmin && (
+              <Pressable onPress={() => router.push('/admin')} style={[styles.fbCard, { marginTop: 8 }]}>
+                <Text style={{ fontSize: 28 }}>🛠</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.fbTitle}>Адмінка тестерів</Text>
+                  <Text style={styles.fbSub}>Відгуки, тестери, видача кодів, експорт у CSV.</Text>
+                </View>
+              </Pressable>
+            )}
+            <FeedbackSheet visible={feedbackOpen} onClose={() => setFeedbackOpen(false)} context={{ screen: 'profile' }} />
+          </>
+        )}
       </ScrollView>
     </View>
   );
@@ -364,6 +392,9 @@ const makeStyles = (C: Theme) => StyleSheet.create({
     borderBottomWidth: 4,
     borderColor: C.red,
   },
+  fbCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.panel, borderRadius: 16, borderWidth: 2, borderBottomWidth: 5, borderColor: C.line, padding: 14 },
+  fbTitle: { color: C.txt, fontWeight: '800', fontSize: 15 },
+  fbSub: { color: C.muted, fontSize: 12, marginTop: 2 },
   mTitle: { color: C.txt, fontWeight: '800', fontSize: 15 },
   mSub: { color: C.muted, fontSize: 12, marginTop: 2, lineHeight: 17 },
   achGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
