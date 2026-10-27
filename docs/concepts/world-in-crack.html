@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Світ у щілині: два концепти на апрув</title>
+<style>
+  :root { --bg:#0d0f14; --panel:#161a22; --line:#262c38; --txt:#eef2f7; --muted:#8c97a8; --accent:#36e27a; --gold:#ffc83d; --red:#ff5a5a; --blue:#4aa8ff; }
+  @media (prefers-color-scheme: light) { :root { --bg:#f3f6fb; --panel:#fff; --line:#d9e0ea; --txt:#10151d; --muted:#586174; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt); font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; padding:20px 16px 60px; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  h2 { font-size:17px; margin:28px 0 6px; }
+  p, li { color:var(--muted); }
+  .row { display:flex; flex-wrap:wrap; gap:20px; margin-top:14px; }
+  .card { background:var(--panel); border:2px solid var(--line); border-bottom-width:5px; border-radius:18px; padding:14px; flex:1 1 360px; max-width:520px; }
+  .card svg { width:100%; height:auto; display:block; border-radius:14px; background:#0b0d12; }
+  .tag { display:inline-block; font-weight:800; font-size:12px; letter-spacing:1px; color:var(--accent); }
+  table { border-collapse:collapse; width:100%; margin-top:8px; }
+  td, th { text-align:left; border-top:1px solid var(--line); padding:8px 6px; vertical-align:top; font-size:14px; }
+  th { color:var(--muted); font-weight:700; }
+  td:first-child { font-weight:700; white-space:nowrap; }
+  .ask { border:2px solid var(--accent); border-radius:14px; padding:12px 14px; margin-top:20px; color:var(--txt); }
+</style>
+</head>
+<body>
+<h1>Світ у щілині: два концепти</h1>
+<p>Це схематичні макети за твоїм описом (скетчів я не бачив, надішли їх, і я підженуся). Їхня задача: вибрати напрямок до того, як я малюватиму фінал. Гріндік у макетах умовний (силует), фінальні пози візьму з канону.</p>
+
+<div class="row">
+  <div class="card">
+    <span class="tag">КОНЦЕПТ А</span>
+    <h2 style="margin-top:4px">Щілина в екрані</h2>
+    <svg viewBox="0 0 360 640" role="img" aria-label="Концепт А: світ усередині щілини в екрані телефона">
+      <defs>
+        <linearGradient id="skyA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0e3b2a"/><stop offset="1" stop-color="#071a14"/></linearGradient>
+        <linearGradient id="road" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2f3a"/><stop offset="1" stop-color="#171a21"/></linearGradient>
+        <pattern id="dots" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.1" fill="#36e27a" opacity=".28"/></pattern>
+        <clipPath id="crackA"><polygon points="196,40 238,40 214,150 262,220 226,330 276,420 232,520 258,610 198,610 214,520 176,430 220,330 172,230 214,150"/></clipPath>
+        <filter id="glowA" x="-30%" y="-10%" width="160%" height="120%"><feGaussianBlur stdDeviation="6"/></filter>
+      </defs>
+      <!-- «поверхня» екрана з інтерфейсом -->
+      <rect width="360" height="640" fill="#10141b"/>
+      <g opacity=".55">
+        <rect x="16" y="16" width="120" height="14" rx="7" fill="#262c38"/><rect x="236" y="16" width="108" height="14" rx="7" fill="#262c38"/>
+        <rect x="16" y="560" width="328" height="56" rx="16" fill="#161a22"/>
+      </g>
+      <!-- світіння щілини -->
+      <polygon points="196,40 238,40 214,150 262,220 226,330 276,420 232,520 258,610 198,610 214,520 176,430 220,330 172,230 214,150" fill="#36e27a" opacity=".55" filter="url(#glowA)"/>
+      <!-- світ усередині -->
+      <g clip-path="url(#crackA)">
+        <rect width="360" height="640" fill="url(#skyA)"/>
+        <rect width="360" height="640" fill="url(#dots)"/>
+        <path d="M205 600 C 190 520, 250 470, 224 400 S 190 300, 226 230 S 230 120, 218 40" stroke="url(#road)" stroke-width="34" fill="none" stroke-linecap="round"/>
+        <path d="M205 600 C 190 520, 250 470, 224 400 S 190 300, 226 230 S 230 120, 218 40" stroke="#36e27a" stroke-width="3" stroke-dasharray="3 12" fill="none" stroke-linecap="round"/>
+        <circle cx="226" cy="230" r="15" fill="#36e27a"/><circle cx="224" cy="400" r="15" fill="#36e27a"/><circle cx="214" cy="520" r="15" fill="#2c3340"/>
+      </g>
+      <!-- сколи по краях щілини -->
+      <g stroke="#36e27a" stroke-width="2" fill="none" opacity=".9" stroke-linejoin="miter">
+        <polyline points="196,40 214,150 172,230 220,330 176,430 214,520 198,610"/>
+        <polyline points="238,40 214,150 262,220 226,330 276,420 232,520 258,610"/>
+        <path d="M172 230 L140 214 M172 230 L150 250 M262 220 L296 204 M276 420 L312 430 M176 430 L142 446" opacity=".6"/>
+      </g>
+      <!-- заголовок модуля «висить» у просторі й ламає четверту стіну -->
+      <g transform="rotate(-7 120 150)">
+        <rect x="14" y="108" width="268" height="86" fill="#ffc83d"/>
+        <rect x="20" y="114" width="268" height="86" fill="none" stroke="#10141b" stroke-width="3"/>
+        <text x="30" y="150" font-size="22" font-weight="900" font-family="Impact,Arial Black,sans-serif" fill="#10141b" letter-spacing="1">МОДУЛЬ 03</text>
+        <text x="30" y="186" font-size="30" font-weight="900" font-family="Impact,Arial Black,sans-serif" fill="#10141b" letter-spacing="1">ЗВ’ЯЗКА</text>
+      </g>
+      <!-- Гріндік вилазить зі щілини -->
+      <g transform="translate(250 262)">
+        <ellipse cx="0" cy="60" rx="26" ry="6" fill="#000" opacity=".4"/>
+        <rect x="-18" y="8" width="36" height="52" rx="14" fill="#2fbf68"/><circle cx="0" cy="0" r="17" fill="#e7c9a5"/>
+        <rect x="-14" y="-6" width="28" height="9" rx="4" fill="#10141b"/>
+        <path d="M-26 22 q-14 -10 -10 -26" stroke="#e7c9a5" stroke-width="7" stroke-linecap="round" fill="none"/>
+      </g>
+      <g transform="translate(40 470)" font-family="system-ui,sans-serif">
+        <rect width="150" height="54" rx="14" fill="#161a22" stroke="#262c38" stroke-width="2"/>
+        <text x="12" y="23" font-size="12" font-weight="800" fill="#eef2f7">Тримай зв’язку, красава</text>
+        <text x="12" y="41" font-size="11" fill="#8c97a8">наступний урок 3.2 ›</text>
+      </g>
+    </svg>
+    <p><b>Суть:</b> шлях уроків це дорога у <i>щілині</i> зламаного екрана; екран «вдає», що це інтерфейс, а світ під ним справжній. Заголовок модуля на жовтій наклейці-стікері висить зверху, вилазить за край щілини й перекриває звичайний UI (четверта стіна). Гріндік сидить на краю щілини, звідти ж коментує.</p>
+    <ul>
+      <li><b>Об’єм:</b> край щілини має товщину й тінь; дорога йде в глиб кадру, вузли ближче більші.</li>
+      <li><b>Стиль:</b> комікс (контур, напівтон-крапки, різкі кути), палітра нинішня: темний фон + зелений акцент + жовтий для заголовків.</li>
+      <li><b>Модуль → характер щілини:</b> кожен модуль «ламає» екран по-своєму (03 тріщина, 04 порваний рядок коду, 05 діра в таблиці кабінету…).</li>
+      <li><b>Ризик/вартість:</b> середня. Тріщину малюю векторно (SVG), анімація світіння дешева. Найдорожче: окремий фон під кожен модуль.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <span class="tag">КОНЦЕПТ Б</span>
+    <h2 style="margin-top:4px">Відірваний край сторінки</h2>
+    <svg viewBox="0 0 360 640" role="img" aria-label="Концепт Б: край інтерфейсу відірваний, під ним світ">
+      <defs>
+        <linearGradient id="skyB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1a1f2e"/><stop offset="1" stop-color="#0a2a22"/></linearGradient>
+        <pattern id="halftone" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.3" fill="#4aa8ff" opacity=".22"/></pattern>
+      </defs>
+      <rect width="360" height="640" fill="url(#skyB)"/>
+      <rect width="360" height="640" fill="url(#halftone)"/>
+      <!-- світ -->
+      <path d="M40 600 C 120 540, 60 470, 150 420 S 280 330, 210 260 S 120 190, 200 130" stroke="#232938" stroke-width="40" fill="none" stroke-linecap="round"/>
+      <path d="M40 600 C 120 540, 60 470, 150 420 S 280 330, 210 260 S 120 190, 200 130" stroke="#36e27a" stroke-width="3" stroke-dasharray="3 12" fill="none" stroke-linecap="round"/>
+      <circle cx="150" cy="420" r="18" fill="#36e27a"/><circle cx="210" cy="260" r="18" fill="#36e27a"/><circle cx="200" cy="130" r="18" fill="#ffc83d"/>
+      <!-- верхній «аркуш» інтерфейсу відірваний по діагоналі -->
+      <polygon points="0,0 360,0 360,110 300,128 262,100 222,140 170,112 120,150 72,118 0,150" fill="#161a22"/>
+      <polyline points="0,150 72,118 120,150 170,112 222,140 262,100 300,128 360,110" stroke="#eef2f7" stroke-width="3" fill="none" stroke-linejoin="miter"/>
+      <polygon points="0,150 72,118 120,150 170,112 222,140 262,100 300,128 360,110 360,124 296,144 260,116 222,154 170,126 120,164 72,134 0,164" fill="#000" opacity=".35"/>
+      <rect x="16" y="16" width="120" height="14" rx="7" fill="#262c38"/><rect x="236" y="16" width="108" height="14" rx="7" fill="#262c38"/>
+      <!-- заголовок виглядає з-за відірваного краю, трохи не вміщується в кадр -->
+      <g transform="rotate(4 180 80)">
+        <text x="-6" y="92" font-size="58" font-weight="900" font-family="Impact,Arial Black,sans-serif" fill="#ffc83d" stroke="#10141b" stroke-width="3" paint-order="stroke" letter-spacing="1">МОДУЛЬ 04</text>
+        <text x="40" y="132" font-size="20" font-weight="900" font-family="Impact,Arial Black,sans-serif" fill="#eef2f7" letter-spacing="2">ОФЕРИ Й МЕРЕЖІ</text>
+      </g>
+      <!-- Гріндік підглядає з-за відірваного краю -->
+      <g transform="translate(286 150)">
+        <circle cx="0" cy="0" r="17" fill="#e7c9a5"/><rect x="-14" y="-6" width="28" height="9" rx="4" fill="#10141b"/>
+        <path d="M-17 4 q-10 -8 -3 -22" stroke="#e7c9a5" stroke-width="7" stroke-linecap="round" fill="none"/>
+      </g>
+      <g transform="translate(26 280)" font-family="system-ui,sans-serif">
+        <rect width="136" height="46" rx="14" fill="#161a22" stroke="#262c38" stroke-width="2"/>
+        <text x="12" y="20" font-size="12" font-weight="800" fill="#eef2f7">Ціль перша: апрув</text>
+        <text x="12" y="36" font-size="11" fill="#8c97a8">урок 4.2 · 8 хв</text>
+      </g>
+    </svg>
+    <p><b>Суть:</b> інтерфейс це «папір», який відірвано зверху; під ним видно світ уроків. Заголовок модуля виглядає з-за відірваного краю й частково виходить за межі кадру. Різка, але стримана типографіка: товстий контур, без градієнтів на літерах.</p>
+    <ul>
+      <li><b>Об’єм:</b> відірваний шар кидає тінь на світ; прокручуєш вниз і «папір» відлітає.</li>
+      <li><b>Модуль → що «відірвано»:</b> верх, бік, кут; кожен новий модуль відкриває новий шматок світу.</li>
+      <li><b>Ризик/вартість:</b> нижча, ніж А: це шар і маска, а не окрема тріщина на кожен модуль. Менше «вау», більше читабельності на малих екранах.</li>
+    </ul>
+  </div>
+</div>
+
+<h2>Порівняння</h2>
+<table>
+  <tr><th></th><th>А · Щілина в екрані</th><th>Б · Відірваний край</th></tr>
+  <tr><td>Враження</td><td>Сильніше «вау», фантастичний світ усередині телефона</td><td>Простіше, швидше читається, помітний комікс-жарт</td></tr>
+  <tr><td>Четверта стіна</td><td>Заголовок і Гріндік вилазять із щілини на інтерфейс</td><td>Заголовок і Гріндік виглядають з-за відірваного краю</td></tr>
+  <tr><td>Читабельність на 360 px</td><td>Колонка щілини вузька: вузли розміщувати доведеться по ширині щілини</td><td>Шлях займає всю ширину</td></tr>
+  <tr><td>Вартість</td><td>Середня (унікальна «тріщина» на кожен модуль)</td><td>Нижча (спільний шар, різні вирізи)</td></tr>
+  <tr><td>Моя порада</td><td>Якщо хочеш «вау» і готовий платити за виробництво</td><td><b>Почати з Б</b>, а ефект А додати як фірмовий момент на фіналі модуля (скриня золота «ламає» екран)</td></tr>
+</table>
+
+<h2>Гріндік-маскот живий: набір станів</h2>
+<p>Дихання (легке стиснення й підйом) уже є; усе нижче додаю як окремі пози/короткі петлі. Ставимо ставку на <i>кілька частих і дешевих</i> станів, а рідкісні роблю «подіями».</p>
+<table>
+  <tr><th>Стан</th><th>Коли показується</th><th>Дія Гріндіка</th></tr>
+  <tr><td>Дихає (idle)</td><td>завжди між подіями</td><td>легке дихання, раз на ~8 с кліпає, іноді поправляє капюшон</td></tr>
+  <tr><td>Махає</td><td>відкриття застосунку, повернення після перерви</td><td>махає рукою, репліка-привітання</td></tr>
+  <tr><td>Їсть бургер</td><td>ввечері, після 3+ уроків за день</td><td>жує, крихти; «заслужив»</td></tr>
+  <tr><td>Перевіряє статку</td><td>при вході на екран карти кабінету й у Порадник</td><td>дивиться в телефон, хмуриться: «що там по CPL?»</td></tr>
+  <tr><td>Таксі</td><td>між модулями (перехід на новий модуль)</td><td>сідає в жовте таксі, їде в наступну «щілину»</td></tr>
+  <tr><td>Думає</td><td>під час вибору відповіді в квізі на час</td><td>рука біля підборіддя; піт при <5 с на таймері</td></tr>
+  <tr><td>Радіє</td><td>правильна відповідь, серія</td><td>кулак, «красава»; при серії 5+ підпалює капюшон</td></tr>
+  <tr><td>Вимкнув (oops)</td><td>помилка</td><td>фейспалм; підколка з банку фраз</td></tr>
+  <tr><td>Кидає монету в скриню</td><td>завершення модуля, відкриття скрині золота</td><td>кидає монету в скриню, скриня «ламає» екран, репліка «Красава. Тримай зв’язку»</td></tr>
+  <tr><td>Спить</td><td>нічний режим, 0 енергії</td><td>сопе в капюшоні, «Zzz»</td></tr>
+  <tr><td>Пасхалки</td><td>рідко, випадково</td><td>тап ×7 по Гріндіку: танцює; 3-го числа місяця: «зарплата». Список розширюємо за твоїми ідеями</td></tr>
+</table>
+
+<div class="ask">
+  <b>Що мені потрібно від тебе:</b>
+  <ol>
+    <li>Який концепт: А, Б чи «Б, а А лише на фіналі модуля»?</li>
+    <li>Скетчі «світ у щілині», які ти малював: надішли, підженуся під них.</li>
+    <li>Який шрифт заголовків ближчий: «газетний Impact» (як на макеті) чи рукописний «маркер»?</li>
+  </ol>
+  Після відповіді зроблю один екран (шлях модуля 03) як прототип, і лише тоді тягнутиму на решту. На це 1–2 кроки, без передчасного фіналу.
+</div>
+</body>
+</html>

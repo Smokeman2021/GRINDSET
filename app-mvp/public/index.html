@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="uk" style="background-color:#0d0f14">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- viewport-fit=cover: суцільний фон до країв екрана (під «чубчик» і адресний рядок); безпечні відступи дає SafeAreaProvider -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0d0f14" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>GRINDSET</title>
+    <style id="expo-reset">
+      /* Суцільний темний фон на всю висоту й ширину: без білої рамки навколо колонки на десктопі й під адресним рядком.
+         Колір під поточну тему далі виставляє застосунок (_layout.tsx, useWebChrome). */
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background-color: #0d0f14;
+      }
+      body {
+        overflow: hidden;
+        min-height: 100vh;
+        min-height: 100dvh;
+      }
+      #root {
+        display: flex;
+        height: 100vh;
+        height: 100dvh;
+        flex: 1;
+      }
+    </style>
+  </head>
+
+  <body>
+    <noscript>Потрібен увімкнений JavaScript.</noscript>
+    <div id="root"></div>
+  </body>
+</html>
