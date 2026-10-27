@@ -23,6 +23,9 @@ export type FeedbackKind = 'bug' | 'idea';
 export type FeedbackInput = { kind: FeedbackKind; body: string; screen?: string; lessonId?: string; stepIdx?: number };
 export type FeedbackRow = { id: number; username: string; kind: FeedbackKind; screen: string; lessonId: string; stepIdx: number | null; body: string; build: number | null; createdAt: number };
 
+// Подія мініаналітики (див. shared/analytics.ts)
+export type EventRow = { id: number; username: string; name: string; props: Record<string, unknown> | null; build: number | null; createdAt: number };
+
 // Рядок списку тестерів для екрана /admin (без хеша коду)
 export type TesterRow = { id: string; username: string; name: string; status: 'invited' | 'active' | 'blocked'; isAdmin: boolean; lastLoginAt: number | null; inviteIssuedAt: number | null };
 
@@ -38,10 +41,12 @@ export interface CloudBackend {
   loadProgress(): Promise<ServerProgress | null>;
   saveProgress(state: Record<string, unknown>): Promise<{ updatedAt: number }>; // кидає Error('replaced'), якщо сеанс замінено
   accuracyBoard(): Promise<AccuracyRow[]>; // рейтинг точності реальних гравців; кидає Error('replaced'), якщо сеанс замінено
+  trackEvent(name: string, props?: Record<string, unknown>): Promise<void>; // мовчки ігнорує помилки: аналітика не повинна ламати урок
   sendFeedback(input: FeedbackInput): Promise<void>; // кидає Error('replaced'), якщо сеанс замінено
   // Лише для адміна (на сервері перевіряє is_admin_user; для не-адміна кидають Error('forbidden'))
   adminFeedback(): Promise<FeedbackRow[]>;
   adminTesters(): Promise<TesterRow[]>;
+  adminEvents(): Promise<EventRow[]>; // останні 5000 подій
   adminAddTester(username: string, name: string): Promise<void>; // Error('already_exists' | 'bad_username')
   adminSetStatus(id: string, status: 'active' | 'blocked'): Promise<void>; // 'blocked' одразу вибиває тестера з сеансу
   adminIssueInvite(username: string): Promise<string>; // новий код (показується один раз), старий скасовується

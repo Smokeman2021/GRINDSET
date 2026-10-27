@@ -34,7 +34,10 @@ export const useCloud = create<CloudState>((set, get) => {
   const enter = (user: CloudUser) => {
     set({ status: 'signedIn', user, reason: null });
     const backend = getBackend();
-    if (backend) void startProgressSync(backend, user, markReplaced);
+    if (backend) {
+      void startProgressSync(backend, user, markReplaced);
+      void backend.trackEvent('session_start'); // вхід або повернення в застосунок з наявним сеансом
+    }
   };
 
   return {

@@ -19,6 +19,7 @@ import { Markdown } from '../../src/components/Markdown';
 import { Watermark } from '../../src/components/Watermark';
 import { FeedbackSheet } from '../../src/components/FeedbackSheet';
 import { CLOUD_MODE } from '../../src/cloud/config';
+import { track } from '../../src/cloud/analytics';
 import { BundleStep, MatchStep, MultiStep, NumericStep, OrderStep, StoryStep } from '../../src/components/steps';
 
 const SECONDS_L1 = 20;
@@ -104,6 +105,11 @@ export default function LessonScreen() {
     return () => clearInterval(timer);
   }, [idx, limit, answered]);
 
+  const lessonKey = lesson?.id;
+  useEffect(() => {
+    if (lessonKey) track('lesson_start', { lesson: lessonKey });
+  }, [lessonKey]);
+
   if (!lesson) {
     return (
       <View style={[styles.screen, { paddingTop: insets.top + 40 }]}>
@@ -181,6 +187,7 @@ export default function LessonScreen() {
   function onContinue() {
     if (idx + 1 >= total) {
       recordAnswers(resultsRef.current, { rated: !isDiagnostic });
+      track('lesson_complete', { lesson: lsn.id, correct, errors });
       if (!isDiagnostic && id !== MISTAKES_ID && id !== PRACTICE_ID) spendEnergy(ENERGY_PER_LESSON);
 
       const accuracy = correct + errors > 0 ? correct / (correct + errors) : 1;
@@ -253,7 +260,12 @@ export default function LessonScreen() {
   return (
     <View style={[styles.screen, { paddingTop: insets.top + 8 }]}>
       <View style={styles.head}>
-        <Pressable onPress={() => router.replace('/home')}>
+        <Pressable
+          onPress={() => {
+            track('lesson_exit', { lesson: lsn.id, step: idx, total });
+            router.replace('/home');
+          }}
+        >
           <Text style={styles.x}>✕</Text>
         </Pressable>
         <View style={styles.pbar}>

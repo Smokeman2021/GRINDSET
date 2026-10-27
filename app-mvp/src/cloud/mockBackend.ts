@@ -3,7 +3,7 @@
 // тією самою логікою (shared/access.ts), що й на справжньому сервері. У збірці зі справжнім Supabase цей код не викликається.
 import { InviteRow, accuracyBoard, checkInvite, formatInviteCode, generateInviteCode, hashInvite, newSid, normalizeInviteCode, normalizeUsername, sessionState } from './shared/access';
 import { UI_BUILD } from '../version';
-import type { AccuracyRow, CloudBackend, CloudUser, FeedbackInput, FeedbackRow, LoginInput, LoginResult, ServerProgress, SessionCheck, TesterRow } from './types';
+import type { AccuracyRow, CloudBackend, CloudUser, FeedbackInput, EventRow, FeedbackRow, LoginInput, LoginResult, ServerProgress, SessionCheck, TesterRow } from './types';
 import { sessionKv } from './storage';
 
 const DB_KEY = 'grindset-mock-server-v2';
@@ -11,7 +11,7 @@ const SID_KEY = 'grindset-mock-sid';
 const UID_KEY = 'grindset-mock-uid';
 
 type Row = InviteRow & { display_name: string; is_admin: boolean; active_sid: string | null; last_login_at?: number | null; invite_issued_at?: number | null };
-type Db = { allowed: Row[]; progress: Record<string, { state: Record<string, unknown>; updated_at: number }>; feedback?: FeedbackRow[] };
+type Db = { allowed: Row[]; progress: Record<string, { state: Record<string, unknown>; updated_at: number }>; feedback?: FeedbackRow[]; events?: EventRow[] };
 
 // Тестові облікові записи імітації та їхні коди (лише для розробки; справжні коди видає автор через SQL issue_invite)
 export const MOCK_ACCOUNTS: { username: string; name: string; code: string; status: Row['status']; admin?: boolean }[] = [
@@ -175,6 +175,24 @@ export class MockBackend implements CloudBackend {
       createdAt: Date.now(),
     });
     writeDb(db);
+  }
+
+  async trackEvent(name: string, props?: Record<string, unknown>): Promise<void> {
+    try {
+      const me = await this.mustBeActive();
+      const db = await readDb();
+      const list = (db.events ??= []);
+      list.push({ id: list.length + 1, username: me.username, name, props: props ?? null, build: UI_BUILD, createdAt: Date.now() });
+      if (list.length > 5000) list.splice(0, list.length - 5000);
+      writeDb(db);
+    } catch {
+      // аналітика не повинна ламати застосунок
+    }
+  }
+
+  async adminEvents(): Promise<EventRow[]> {
+    await this.mustBeAdmin();
+    return [...((await readDb()).events ?? [])].sort((a, b) => b.createdAt - a.createdAt);
   }
 
   private async mustBeAdmin(): Promise<Row> {

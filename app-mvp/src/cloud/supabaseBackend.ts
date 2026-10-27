@@ -3,7 +3,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UI_BUILD } from '../version';
-import type { AccuracyRow, CloudBackend, CloudUser, FeedbackInput, FeedbackRow, LoginFailure, LoginInput, LoginResult, ServerProgress, SessionCheck, TesterRow } from './types';
+import type { AccuracyRow, CloudBackend, CloudUser, FeedbackInput, EventRow, FeedbackRow, LoginFailure, LoginInput, LoginResult, ServerProgress, SessionCheck, TesterRow } from './types';
 
 const SID_KEY = 'grindset-cloud-sid';
 
@@ -138,6 +138,28 @@ export class SupabaseBackend implements CloudBackend {
       lessonId: String(r.lesson_id ?? ''),
       stepIdx: r.step_idx == null ? null : Number(r.step_idx),
       body: String(r.body ?? ''),
+      build: r.build == null ? null : Number(r.build),
+      createdAt: Date.parse(String(r.created_at)),
+    }));
+  }
+
+  // Автора й нік події підставляє тригер events_fill (migrations/0005); помилки глушимо: аналітика не повинна ламати урок
+  async trackEvent(name: string, props?: Record<string, unknown>): Promise<void> {
+    try {
+      await this.client.from('events').insert({ name, props: props ?? null, build: UI_BUILD });
+    } catch {
+      // без мережі подію просто втрачаємо
+    }
+  }
+
+  async adminEvents(): Promise<EventRow[]> {
+    const { data, error } = await this.client.from('events').select('*').order('created_at', { ascending: false }).limit(5000);
+    if (error) this.fail(error);
+    return (data ?? []).map((r: Record<string, unknown>) => ({
+      id: Number(r.id),
+      username: String(r.username ?? ''),
+      name: String(r.name),
+      props: (r.props as Record<string, unknown> | null) ?? null,
       build: r.build == null ? null : Number(r.build),
       createdAt: Date.parse(String(r.created_at)),
     }));

@@ -9,8 +9,9 @@ import { Glow } from '../src/components/Glow';
 import { getBackend } from '../src/cloud/backend';
 import { useCloud } from '../src/cloud/cloudStore';
 import { toCsv } from '../src/cloud/shared/csv';
+import { summarizeEvents } from '../src/cloud/shared/analytics';
 import { copyText, saveCsv } from '../src/cloud/exportFile';
-import type { FeedbackRow, TesterRow } from '../src/cloud/types';
+import type { EventRow, FeedbackRow, TesterRow } from '../src/cloud/types';
 
 const fmt = (ms: number | null) => (ms ? new Date(ms).toLocaleString('uk-UA', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—');
 const STATUS_LABEL: Record<TesterRow['status'], string> = { invited: 'запрошений', active: 'активний', blocked: 'заблокований' };
@@ -28,9 +29,10 @@ export default function Admin() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const me = useCloud((c) => c.user);
-  const [tab, setTab] = useState<'feedback' | 'testers'>('feedback');
+  const [tab, setTab] = useState<'feedback' | 'testers' | 'events'>('feedback');
   const [feedback, setFeedback] = useState<FeedbackRow[] | null>(null);
   const [testers, setTesters] = useState<TesterRow[] | null>(null);
+  const [events, setEvents] = useState<EventRow[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [issued, setIssued] = useState<{ username: string; code: string } | null>(null);
@@ -51,9 +53,10 @@ export default function Admin() {
     setLoading(true);
     setMsg(null);
     try {
-      const [f, t] = await Promise.all([backend.adminFeedback(), backend.adminTesters()]);
+      const [f, t, e] = await Promise.all([backend.adminFeedback(), backend.adminTesters(), backend.adminEvents()]);
       setFeedback(f);
       setTesters(t);
+      setEvents(e);
     } catch (e) {
       fail(e);
     } finally {
@@ -119,6 +122,17 @@ export default function Admin() {
       )
     );
 
+  const stats = React.useMemo(() => summarizeEvents(events ?? []), [events]);
+
+  const exportEvents = () =>
+    saveCsv(
+      'grindset-events.csv',
+      toCsv(
+        ['id', 'час', 'нік', 'подія', 'урок', 'крок', 'всього кроків', 'збірка'],
+        (events ?? []).map((e) => [e.id, new Date(e.createdAt).toISOString(), e.username, e.name, String(e.props?.lesson ?? ''), e.props?.step as number | undefined, e.props?.total as number | undefined, e.build])
+      )
+    );
+
   const body = !me?.isAdmin ? (
     <View style={styles.box}>
       <Text style={styles.boxTxt}>Цей екран лише для адміна.</Text>
@@ -131,6 +145,9 @@ export default function Admin() {
         </Pressable>
         <Pressable onPress={() => setTab('testers')} style={[styles.tab, tab === 'testers' && styles.tabOn]}>
           <Text style={[styles.tabTxt, tab === 'testers' && { color: C.onAccent }]}>Тестери{testers ? ` · ${testers.length}` : ''}</Text>
+        </Pressable>
+        <Pressable onPress={() => setTab('events')} style={[styles.tab, tab === 'events' && styles.tabOn]}>
+          <Text style={[styles.tabTxt, tab === 'events' && { color: C.onAccent }]}>Події</Text>
         </Pressable>
       </View>
 
@@ -181,6 +198,38 @@ export default function Admin() {
               </Text>
               <Text selectable style={styles.fbBody}>
                 {f.body}
+              </Text>
+            </View>
+          ))}
+        </>
+      )}
+
+      {tab === 'events' && (
+        <>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Усього</Text>
+            <Text style={styles.sub}>
+              Подій: {stats.events} · тестерів з подіями: {stats.users} · відкриттів застосунку: {stats.sessions}
+            </Text>
+            {(events?.length ?? 0) >= 5000 && <Text style={styles.sub}>Показано останні 5000 подій.</Text>}
+          </View>
+          <Pressable onPress={() => void exportEvents()} disabled={!events?.length} style={[styles.export, !events?.length && { opacity: 0.5 }]}>
+            <Text style={styles.smallTxt}>⬇ Вивантажити події (CSV)</Text>
+          </Pressable>
+          {stats.lessons.length === 0 && (
+            <View style={styles.box}>
+              <Text style={styles.boxTxt}>Подій з уроків поки нема.</Text>
+            </View>
+          )}
+          {stats.lessons.map((l) => (
+            <View key={l.lesson} style={styles.card}>
+              <View style={styles.cardHead}>
+                <Text style={styles.cardTitle}>Урок {l.lesson}</Text>
+                <Text style={[styles.chip, { color: C.accentTxt }]}>{l.completion == null ? '—' : `${l.completion}% дійшли до кінця`}</Text>
+              </View>
+              <Text style={styles.sub}>
+                почали {l.starts} · завершили {l.completes} · вийшли {l.exits}
+                {l.avgExitStep != null ? ` · у середньому на кроці ${l.avgExitStep}` : ''}
               </Text>
             </View>
           ))}
