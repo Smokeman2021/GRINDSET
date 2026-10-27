@@ -126,3 +126,22 @@ export function chooseProgress(opts: {
   if (localUpdatedAt == null) return localCompleted > serverCompleted ? 'push' : 'pull'; // пристрій ще не синхронізувався: перемагає більший прогрес
   return serverUpdatedAt > localUpdatedAt ? 'pull' : 'push';
 }
+
+// ───────── Рейтинг точності ─────────
+// Правила дзеркалять SQL-функцію leaderboard_accuracy (supabase/migrations/0003_accuracy_leaderboard.sql):
+// лише status = active, без адмінів, мінімум MIN_RATED_ANSWERS відповідей; вище точність, при рівності вище більше відповідей.
+export const MIN_RATED_ANSWERS = 30;
+
+export type BoardInput = { name: string; status: string; isAdmin: boolean; correct: number; total: number; isMe?: boolean };
+export type BoardRow = { name: string; accuracy: number; answers: number; isMe: boolean };
+
+export function accuracyBoard(entries: BoardInput[]): BoardRow[] {
+  return entries
+    .filter((e) => e.status === 'active' && !e.isAdmin && e.total >= MIN_RATED_ANSWERS)
+    .map((e) => {
+      const correct = Math.max(0, Math.min(e.correct, e.total));
+      return { name: e.name, accuracy: Math.round((correct / e.total) * 1000) / 10, answers: e.total, isMe: !!e.isMe };
+    })
+    .sort((a, b) => b.accuracy - a.accuracy || b.answers - a.answers || a.name.localeCompare(b.name))
+    .slice(0, 100);
+}

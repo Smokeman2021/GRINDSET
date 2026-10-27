@@ -1,8 +1,8 @@
 // Режим-імітація (EXPO_PUBLIC_CLOUD=mock): «сервер» живе в localStorage браузера й спільний для всіх вкладок, а сеанс клієнта зберігається
 // в sessionStorage, тож дві вкладки поводяться як два пристрої. Перевірка коду з лімітом спроб і один активний сеанс виконуються
 // тією самою логікою (shared/access.ts), що й на справжньому сервері. У збірці зі справжнім Supabase цей код не викликається.
-import { InviteRow, checkInvite, formatInviteCode, hashInvite, newSid, normalizeInviteCode, normalizeUsername, sessionState } from './shared/access';
-import type { CloudBackend, CloudUser, LoginInput, LoginResult, ServerProgress, SessionCheck } from './types';
+import { InviteRow, accuracyBoard, checkInvite, formatInviteCode, hashInvite, newSid, normalizeInviteCode, normalizeUsername, sessionState } from './shared/access';
+import type { AccuracyRow, CloudBackend, CloudUser, LoginInput, LoginResult, ServerProgress, SessionCheck } from './types';
 import { sessionKv } from './storage';
 
 const DB_KEY = 'grindset-mock-server-v2';
@@ -93,6 +93,7 @@ export class MockBackend implements CloudBackend {
     }
     const sid = newSid();
     row.active_sid = sid; // новий вхід замінює старий сеанс
+    row.status = 'active'; // перший вхід: invited → active (як на сервері)
     writeDb(db);
     sessionKv.set(SID_KEY, sid);
     sessionKv.set(UID_KEY, row.id);
@@ -143,6 +144,17 @@ export class MockBackend implements CloudBackend {
     db.progress[row.id] = { state, updated_at: updatedAt };
     writeDb(db);
     return { updatedAt };
+  }
+
+  async accuracyBoard(): Promise<AccuracyRow[]> {
+    const me = await this.mustBeActive();
+    const db = await readDb();
+    return accuracyBoard(
+      db.allowed.map((r) => {
+        const st = db.progress[r.id]?.state ?? {};
+        return { name: r.display_name || r.username, status: r.status, isAdmin: r.is_admin, correct: Number(st.answersCorrect) || 0, total: Number(st.answersTotal) || 0, isMe: r.id === me.id };
+      })
+    );
   }
 }
 

@@ -15,6 +15,9 @@ export type LoginResult = { ok: true; user: CloudUser } | { ok: false; reason: L
 
 export type SessionCheck = 'ok' | 'replaced' | 'signed_out';
 
+// Рядок рейтингу точності: лише публічне (імʼя, відсоток, кількість відповідей, позначка «це я»)
+export type AccuracyRow = { name: string; accuracy: number; answers: number; isMe: boolean };
+
 export type ServerProgress = { state: Record<string, unknown>; updatedAt: number };
 
 // Один інтерфейс для імітації (локальної) і справжнього Supabase: решта застосунку про різницю не знає
@@ -26,4 +29,5 @@ export interface CloudBackend {
   checkSession(): Promise<SessionCheck>;
   loadProgress(): Promise<ServerProgress | null>;
   saveProgress(state: Record<string, unknown>): Promise<{ updatedAt: number }>; // кидає Error('replaced'), якщо сеанс замінено
+  accuracyBoard(): Promise<AccuracyRow[]>; // рейтинг точності реальних гравців; кидає Error('replaced'), якщо сеанс замінено
 }

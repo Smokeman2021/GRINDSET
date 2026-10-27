@@ -169,7 +169,7 @@ export default function Home() {
   const chipRect = (() => {
     if (allDone || !PATH[firstOpen]) return null;
     const cur = PATH[firstOpen];
-    const title = `${cur.isCrown ? 'КОРОНА' : cur.lesson.code} · ${cur.lesson.title}`;
+    const title = `${cur.isCrown ? 'СКРИНЯ ЗОЛОТА' : cur.lesson.code} · ${cur.lesson.title}`;
     const w = Math.min(W - 8, 300, Math.round(title.length * 6.1 + 18));
     const h = 17;
     const x0 = xAt(firstOpen);
@@ -371,7 +371,7 @@ export default function Home() {
                 </View>
                 {!(i === firstOpen && chipRect) && (
                   <View style={[styles.codeWrap, { left: x - 40, top: y + NODE / 2 + 11 }]}>
-                    <Text style={styles.code}>{isCrown ? 'КОРОНА' : l.code}</Text>
+                    <Text style={styles.code}>{isCrown ? 'СКРИНЯ ЗОЛОТА' : l.code}</Text>
                   </View>
                 )}
               </React.Fragment>

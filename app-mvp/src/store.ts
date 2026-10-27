@@ -9,6 +9,7 @@ import { reviewed, srsKey, SrsMap } from './data/srs';
 import type { Campaign, Entry } from './data/advice';
 import { outcomeFor, rankOf, standings, weekStartStr, LeagueOutcome } from './data/league';
 import type { ArchetypeId } from './data/avatars';
+import { scaleCoins } from './economy';
 import { FRESH_STATS, POINTS_PER_LEVEL, StatAlloc, StatId, STAT_MAX } from './data/stats';
 import type { EquipSlot } from './data/equipment';
 import type { Lang } from './i18n/strings';
@@ -40,7 +41,7 @@ type State = {
   energyAt: number; // мс: від якого моменту рахуємо відновлення енергії
   lastBonusDate: string | null; // дата останнього щоденного бонусу енергії
   strictEnergy: boolean; // true: без енергії нові уроки закриті
-  soundEnabled: boolean; // короткі ігрові звуки (правильно/помилка/корона/монета)
+  soundEnabled: boolean; // короткі ігрові звуки (правильно/помилка/скриня золота/монета)
   notifEnabled: boolean; // нагадування (зранку, ввечері, X2 посеред дня)
   notifMorning: string;
   notifEvening: string;
@@ -72,6 +73,9 @@ type State = {
   // статистика
   totalCorrect: number;
   totalErrors: number;
+  // Рейтинг точності: ВСІ відповіді в уроках і квізах (включно з проваленою скринею золота), без діагностики
+  answersTotal: number;
+  answersCorrect: number;
   perfectLessons: number;
   totalCoinsEarned: number;
   purchases: number;
@@ -131,7 +135,7 @@ type State = {
     xpEarned: number,
     extra?: { correct: number; errors: number; doubled?: boolean; practiceOnly?: boolean; maxCombo?: number; isQuiz?: boolean }
   ) => void;
-  recordAnswers: (results: AnswerResult[]) => void;
+  recordAnswers: (results: AnswerResult[], opts?: { rated?: boolean }) => void;
   claimQuest: (id: string) => void;
   finishSim: (stars: number) => { coins: number; xp: number };
   finishAdsSim: (stars: number) => { coins: number; xp: number };
@@ -319,6 +323,8 @@ const FRESH = {
   stats: { ...FRESH_STATS },
   totalCorrect: 0,
   totalErrors: 0,
+  answersTotal: 0,
+  answersCorrect: 0,
   perfectLessons: 0,
   totalCoinsEarned: 0,
   purchases: 0,
@@ -481,7 +487,7 @@ export const useStore = create<State>()(
         }),
 
       // Підсумок відповідей уроку: помилки потрапляють у «надолуження», правильні відповіді їх прибирають
-      recordAnswers: (results) =>
+      recordAnswers: (results, opts) =>
         set((s) => {
           let mistakes = s.mistakes;
           let fixed = 0;
@@ -500,7 +506,12 @@ export const useStore = create<State>()(
           }
           const q0 = questsRoll(s);
           const qp = fixed ? bump(q0.questProgress ?? s.questProgress, 'fixed', fixed) : q0.questProgress ?? s.questProgress;
-          return withAchievements(s, { ...q0, srs, questProgress: qp, mistakes: mistakes.slice(0, 80), mistakesFixed: s.mistakesFixed + fixed });
+          return withAchievements(s, { ...q0, srs, questProgress: qp, mistakes: mistakes.slice(0, 80),
+            mistakesFixed: s.mistakesFixed + fixed,
+            ...(opts?.rated === false
+              ? {}
+              : { answersTotal: s.answersTotal + results.length, answersCorrect: s.answersCorrect + results.filter((r) => r.ok).length }),
+          });
         }),
 
       addCampaign: (c) => {
@@ -543,7 +554,7 @@ export const useStore = create<State>()(
         const today = todayStr();
         const runs = s.simDate === today ? s.simRuns : 0;
         const k = runs === 0 ? 1 : 0.3;
-        const coins = Math.round([0, 15, 30, 50][stars] * k);
+        const coins = scaleCoins([0, 15, 30, 50][stars] * k);
         const xp = Math.round([3, 8, 14, 20][stars] * k);
         set((st) => {
           const week = rolloverWeek(st);
@@ -575,7 +586,7 @@ export const useStore = create<State>()(
         const today = todayStr();
         const runs = s.adsSimDate === today ? s.adsSimRuns : 0;
         const k = runs === 0 ? 1 : 0.3;
-        const coins = Math.round([0, 15, 30, 50][stars] * k);
+        const coins = scaleCoins([0, 15, 30, 50][stars] * k);
         const xp = Math.round([3, 8, 14, 20][stars] * k);
         set((st) => {
           const week = rolloverWeek(st);

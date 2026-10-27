@@ -1,4 +1,5 @@
 // Щоденні завдання: щодня 3 випадкові (але однакові для всього дня), нагорода в коїнах.
+import { scaleCoins } from '../economy';
 export type Metric = 'xp' | 'lessons' | 'combo' | 'perfect' | 'quiz' | 'fixed';
 
 export type QuestDef = {
@@ -39,5 +40,6 @@ export function questsForDay(date: string): QuestDef[] {
     picked.push(q);
     if (picked.length === 3) break;
   }
-  return picked;
+  // нагорода в коїнах проходить через загальний множник економіки (і для показу, і для нарахування)
+  return picked.map((q) => ({ ...q, reward: scaleCoins(q.reward) }));
 }

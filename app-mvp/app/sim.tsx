@@ -45,7 +45,7 @@ export default function Sim() {
     const v = judge(c, all);
     setVerdict(v);
     setReward(finishSim(v.stars));
-    playSfx(v.stars >= 3 ? 'crown' : v.stars >= 1 ? 'correct' : 'wrong');
+    playSfx(v.stars >= 3 ? 'chest' : v.stars >= 1 ? 'correct' : 'wrong');
     setPhase('end');
   };
 

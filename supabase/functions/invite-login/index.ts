@@ -132,6 +132,25 @@ export function chooseProgress(opts: {
   return serverUpdatedAt > localUpdatedAt ? 'pull' : 'push';
 }
 
+// ───────── Рейтинг точності ─────────
+// Правила дзеркалять SQL-функцію leaderboard_accuracy (supabase/migrations/0003_accuracy_leaderboard.sql):
+// лише status = active, без адмінів, мінімум MIN_RATED_ANSWERS відповідей; вище точність, при рівності вище більше відповідей.
+export const MIN_RATED_ANSWERS = 30;
+
+export type BoardInput = { name: string; status: string; isAdmin: boolean; correct: number; total: number; isMe?: boolean };
+export type BoardRow = { name: string; accuracy: number; answers: number; isMe: boolean };
+
+export function accuracyBoard(entries: BoardInput[]): BoardRow[] {
+  return entries
+    .filter((e) => e.status === 'active' && !e.isAdmin && e.total >= MIN_RATED_ANSWERS)
+    .map((e) => {
+      const correct = Math.max(0, Math.min(e.correct, e.total));
+      return { name: e.name, accuracy: Math.round((correct / e.total) * 1000) / 10, answers: e.total, isMe: !!e.isMe };
+    })
+    .sort((a, b) => b.accuracy - a.accuracy || b.answers - a.answers || a.name.localeCompare(b.name))
+    .slice(0, 100);
+}
+
 // ───────── Обробник Edge Function (Deno). Чиста логіка вище підставляється скриптом scripts/build-edge-function.mjs ─────────
 // Секрети: окремих не потрібно. SUPABASE_URL і SUPABASE_SERVICE_ROLE_KEY Supabase додає у функцію сам.
 // Verify JWT для функції ВИМКНЕНО (її викликають до входу): захист це персональний код, ліміт спроб на нік (5 → блок на 15 хв)
@@ -194,7 +213,7 @@ async function handle(req: Request): Promise<Response> {
 
     // 5. Новий активний сеанс
     const sid = newSid();
-    const upd = await admin.from('allowed_users').update({ active_sid: sid, last_login_at: new Date().toISOString(), auth_user_id: authId }).eq('id', r.id);
+    const upd = await admin.from('allowed_users').update({ active_sid: sid, last_login_at: new Date().toISOString(), auth_user_id: authId, status: 'active' }) // перший вхід: invited → active (blocked сюди не доходить).eq('id', r.id);
     if (upd.error) return reply({ ok: false, reason: 'error' }, 500);
 
     return reply({ ok: true, token_hash: hashed, sid });

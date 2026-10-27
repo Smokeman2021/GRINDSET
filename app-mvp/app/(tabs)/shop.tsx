@@ -53,7 +53,7 @@ export default function Shop() {
     }
     const res = buyItem(id);
     // куплено — монета; не вистачає коїнів — помилка; повний запас / вже є — короткий тап
-    playSfx(res === 'ok' ? 'coin' : res === 'poor' ? 'wrong' : 'tap');
+    playSfx(res === 'ok' ? 'purchase' : res === 'poor' ? 'wrong' : 'tap');
     setTalk(shopSay(res as ShopMsg));
   };
 

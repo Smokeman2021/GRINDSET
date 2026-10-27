@@ -187,7 +187,7 @@ export default function Profile() {
           <StatBox label="Стрік" value={`${s.streak} 🔥`} />
           <StatBox label="Ідеальних" value={String(s.perfectLessons)} />
           <StatBox label="Коїнів за час" value={String(s.totalCoinsEarned)} />
-          <StatBox label="Корон" value={`${stats.crowns} 👑`} />
+          <StatBox label="Скринь золота" value={`${stats.crowns} 💰`} />
           <StatBox label="Засвоєно міцно" value={String(masteredCount(s.srs))} />
         </View>
 

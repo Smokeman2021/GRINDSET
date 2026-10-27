@@ -14,6 +14,7 @@ import { Icon } from '../../src/components/Icon';
 import { Reaction, reactionKind } from '../../src/components/Reaction';
 import { playSfx } from '../../src/sound';
 import { boostLeftMs } from '../../src/notifications';
+import { scaleCoins } from '../../src/economy';
 import { Markdown } from '../../src/components/Markdown';
 import { BundleStep, MatchStep, MultiStep, NumericStep, OrderStep, StoryStep } from '../../src/components/steps';
 
@@ -175,7 +176,7 @@ export default function LessonScreen() {
 
   function onContinue() {
     if (idx + 1 >= total) {
-      recordAnswers(resultsRef.current);
+      recordAnswers(resultsRef.current, { rated: !isDiagnostic });
       if (!isDiagnostic && id !== MISTAKES_ID && id !== PRACTICE_ID) spendEnergy(ENERGY_PER_LESSON);
 
       const accuracy = correct + errors > 0 ? correct / (correct + errors) : 1;
@@ -205,6 +206,8 @@ export default function LessonScreen() {
         coins = 0;
         xp = 0;
       }
+      // Коїни нараховуються вдвічі повільніше (множник у src/economy.ts); XP не чіпаємо
+      coins = scaleCoins(coins);
 
       router.replace({
         pathname: '/results',
@@ -274,7 +277,7 @@ export default function LessonScreen() {
       {(isCheckpoint || alreadyDone || isQuiz || isDiagnostic) && (
         <Text style={[styles.mode, isCheckpoint && { color: C.goldTxt }]}>
           {isCheckpoint
-            ? '👑 ТЕСТ НА КОРОНУ · потрібно 80%'
+            ? '💰 ТЕСТ НА СКРИНЮ ЗОЛОТА · потрібно 80%'
             : isDiagnostic
             ? '🧪 ДІАГНОСТИКА · без нагород, лише рівень'
             : id === MISTAKES_ID

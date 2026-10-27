@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { TopBar } from '../../src/components/TopBar';
 import { GrindykSay } from '../../src/components/GrindykSay';
 import { DEMOTE_BOTTOM, LEAGUE_SIZE, PROMOTE_TOP, rankOf, standings, TIERS, weekFraction } from '../../src/data/league';
@@ -10,6 +10,7 @@ import { say, PhraseKind } from '../../src/data/phrases';
 import { useT } from '../../src/i18n';
 import { Theme, useStyles, useTheme } from '../../src/theme';
 import { Glow } from '../../src/components/Glow';
+import { CLOUD_MODE } from '../../src/cloud/config';
 
 export default function League() {
   const C = useTheme();
@@ -17,6 +18,7 @@ export default function League() {
   const insets = useSafeAreaInsets();
   const { tier, weekId, weekXp, playerName, lastWeek, checkStreak } = useStore();
   const tr = useT();
+  const router = useRouter();
   const [tick, setTick] = useState(0);
 
   useFocusEffect(
@@ -50,6 +52,16 @@ export default function League() {
       <Glow />
       <TopBar title={tr('titleLeague')} />
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 30 }}>
+        {CLOUD_MODE !== 'off' && (
+          <Pressable onPress={() => router.push('/accuracy')} style={styles.accCard}>
+            <Text style={styles.accIcon}>🎯</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.accTitle}>Рейтинг точності</Text>
+              <Text style={styles.accSub}>Хто відповідає точніше: змагання реальних тестерів</Text>
+            </View>
+            <Text style={styles.accGo}>›</Text>
+          </Pressable>
+        )}
         <View style={[styles.hero, { borderColor: t.color }]}>
           <Text style={styles.heroIcon}>{t.icon}</Text>
           <Text style={[styles.heroTier, { color: t.color }]}>Ліга «{t.name}»</Text>
@@ -105,6 +117,11 @@ export default function League() {
 }
 
 const makeStyles = (C: Theme) => StyleSheet.create({
+  accCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.panel, borderRadius: 16, borderWidth: 2, borderBottomWidth: 5, borderColor: C.accent, padding: 14, marginBottom: 14 },
+  accIcon: { fontSize: 30 },
+  accTitle: { color: C.txt, fontWeight: '900', fontSize: 16 },
+  accSub: { color: C.muted, fontSize: 12, marginTop: 2 },
+  accGo: { color: C.accentTxt, fontSize: 26, fontWeight: '900' },
   hero: {
     alignItems: 'center',
     backgroundColor: C.panel,

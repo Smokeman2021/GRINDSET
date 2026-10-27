@@ -60,7 +60,7 @@ async function handle(req: Request): Promise<Response> {
 
     // 5. Новий активний сеанс
     const sid = newSid();
-    const upd = await admin.from('allowed_users').update({ active_sid: sid, last_login_at: new Date().toISOString(), auth_user_id: authId }).eq('id', r.id);
+    const upd = await admin.from('allowed_users').update({ active_sid: sid, last_login_at: new Date().toISOString(), auth_user_id: authId, status: 'active' }) // перший вхід: invited → active (blocked сюди не доходить).eq('id', r.id);
     if (upd.error) return reply({ ok: false, reason: 'error' }, 500);
 
     return reply({ ok: true, token_hash: hashed, sid });

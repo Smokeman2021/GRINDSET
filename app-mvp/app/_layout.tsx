@@ -18,6 +18,7 @@ const PROTECTED_ROUTES = [
   'lesson/[id]',
   'results',
   'settings',
+  'accuracy',
   'plan',
   'adapt',
   'adsim',

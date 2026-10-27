@@ -2,7 +2,7 @@
 // УВАГА: наскрізно (з реальним Supabase) цей файл ще не перевірявся; перевіряємо разом після того, як піднято проєкт.
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { CloudBackend, CloudUser, LoginFailure, LoginInput, LoginResult, ServerProgress, SessionCheck } from './types';
+import type { AccuracyRow, CloudBackend, CloudUser, LoginFailure, LoginInput, LoginResult, ServerProgress, SessionCheck } from './types';
 
 const SID_KEY = 'grindset-cloud-sid';
 
@@ -98,5 +98,17 @@ export class SupabaseBackend implements CloudBackend {
     const { data, error } = await this.client.rpc('save_progress', { p_state: state });
     if (error) this.fail(error);
     return { updatedAt: Number(data) };
+  }
+
+  // Рейтинг точності: SECURITY DEFINER-функція leaderboard_accuracy() віддає лише імʼя, %, кількість відповідей і позначку «це я»
+  async accuracyBoard(): Promise<AccuracyRow[]> {
+    const { data, error } = await this.client.rpc('leaderboard_accuracy');
+    if (error) this.fail(error);
+    return ((data ?? []) as { name: string; accuracy: number | string; answers: number; is_me: boolean }[]).map((r) => ({
+      name: r.name,
+      accuracy: Number(r.accuracy),
+      answers: Number(r.answers),
+      isMe: !!r.is_me,
+    }));
   }
 }

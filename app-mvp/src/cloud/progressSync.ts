@@ -104,7 +104,8 @@ export async function startProgressSync(backend: CloudBackend, user: CloudUser, 
     }
   }
   unsub = useStore.subscribe((s, prev) => {
-    if (s.completed.length > prev.completed.length) schedule();
+    // після завершеного уроку і після будь-яких нових відповідей (точність у рейтингу береться з прогресу)
+    if (s.completed.length > prev.completed.length || s.answersTotal > prev.answersTotal) schedule();
   });
 }
 

@@ -73,7 +73,7 @@ export default function AdsSim() {
       const stars = mistakes === 0 ? 3 : mistakes <= 2 ? 2 : 1;
       setReward(finishAdsSim(stars));
       setPhase('end');
-      playSfx('crown');
+      playSfx('chest');
       return;
     }
     setStepIdx((i) => i + 1);

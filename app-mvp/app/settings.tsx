@@ -121,7 +121,7 @@ export default function Settings() {
             </View>
           )}
           <View style={styles.divider} />
-          <Row title="Звуки" sub="Коротка мелодія на правильну відповідь, помилку, корону й рівень." value={s.soundEnabled}
+          <Row title="Звуки" sub="Коротка мелодія на правильну відповідь, помилку, скриню золота й рівень." value={s.soundEnabled}
             onChange={(v) => {
               s.setSoundEnabled(v);
               if (v) playSfx('tap');

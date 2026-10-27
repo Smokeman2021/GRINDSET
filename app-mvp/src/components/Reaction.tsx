@@ -25,7 +25,7 @@ function pickPose(kind: ReactionKind): PoseName {
   return name;
 }
 
-// combo>=3 — вогник, combo>=6 — корона: та сама механіка, що вже рахує комбо в уроці
+// combo>=3 — вогник, combo>=6 — скриня золота: та сама механіка, що вже рахує комбо в уроці
 export function reactionKind(base: 'good' | 'bad' | 'timeout', combo: number): ReactionKind {
   if (base !== 'good') return base;
   if (combo >= 6) return 'mega';

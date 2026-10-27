@@ -527,15 +527,15 @@ export const LESSONS: Lesson[] = [
   },
   {
     id: 'checkpoint',
-    code: '👑',
-    title: 'Тест на корону',
+    code: '💰',
+    title: 'Тест на скриню золота',
     minutes: 6,
     kind: 'checkpoint',
     passThreshold: 0.8,
     steps: [
       {
         type: 'teach',
-        title: 'Тест на корону',
+        title: 'Тест на скриню золота',
         body:
           'Фінальна перевірка Модуля 01. Потрібно щонайменше 80% правильних відповідей. Не пройдеш — не страшно, спробуєш ще раз, коли будеш готовий.',
       },
@@ -712,7 +712,7 @@ export function buildCrown(opts: {
   for (let i = 0; i < pool.length && picked.length < target; i += stepSize) picked.push(pool[i]);
   return {
     id: opts.id,
-    code: '👑',
+    code: '💰',
     title: opts.title,
     minutes: 8,
     kind: 'checkpoint',

@@ -31,7 +31,7 @@ export type Module = {
   id: string;
   title: string;
   lessons: Lesson[];
-  checkpoint: Lesson; // корона в кінці модуля
+  checkpoint: Lesson; // скриня золота в кінці модуля
   quizzes: Lesson[]; // бонусні квізи на час
 };
 
@@ -75,7 +75,7 @@ export const MODULES: Module[] = build('uk');
 
 export const ALL_LESSONS: Lesson[] = [];
 
-// Один безперервний шлях: уроки модуля, корона, далі наступний модуль
+// Один безперервний шлях: уроки модуля, скриня золота, далі наступний модуль
 export type PathItem = { lesson: Lesson; moduleIndex: number; isCrown: boolean };
 
 export const PATH: PathItem[] = [];
@@ -111,7 +111,7 @@ export function isQuizId(id: string): boolean {
   return MODULES.some((m) => m.quizzes.some((q) => q.id === id));
 }
 
-// скільки коронок модулів вже пройдено — визначає стадію еволюції аватара
+// скільки скринь золота модулів вже пройдено — визначає стадію еволюції аватара
 export function crownsCompleted(completed: string[]): number {
   return MODULES.filter((m) => completed.includes(m.checkpoint.id)).length;
 }

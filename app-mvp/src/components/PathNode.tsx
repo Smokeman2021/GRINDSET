@@ -46,7 +46,13 @@ function Icon({ kind, size, color, shade }: { kind: NodeKind; size: number; colo
       case 'current':
         return <Path d="M8.6 5.8v12.4a.8.8 0 0 0 1.2.7l9.4-6.2a.8.8 0 0 0 0-1.4L9.8 5.1a.8.8 0 0 0-1.2.7z" fill={c} transform={`translate(0 ${dy})`} />;
       case 'crown':
-        return <Path d="M4 17.5l-1-9 5 3.5L12 5.5l4 6.5 5-3.5-1 9z M5 19.5h14" stroke={c} strokeWidth={1.8} strokeLinejoin="round" strokeLinecap="round" fill={c} transform={`translate(0 ${dy})`} />;
+        return (
+          <G transform={`translate(0 ${dy})`}>
+            <Path d="M4 11V9a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2z" fill={c} />
+            <Rect x={4} y={12.4} width={16} height={7.6} rx={2} fill={c} />
+            <Rect x={10.4} y={9.8} width={3.2} height={4.6} rx={1} fill={c} stroke={shade} strokeWidth={0.8} />
+          </G>
+        );
       case 'quizOpen':
         return <Path d="M12 3.6l2.4 5.1 5.6.7-4.1 3.9 1 5.5L12 16.1 7.1 18.8l1-5.5L4 9.4l5.6-.7z" fill={c} transform={`translate(0 ${dy})`} />;
       default:

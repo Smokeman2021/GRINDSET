@@ -78,9 +78,9 @@ export default function Results() {
         Animated.spring(scale, { toValue: 1, friction: 4, useNativeDriver: true }).start();
         playSfx('levelup');
       } else if (isCheckpoint && passed) {
-        playSfx('crown');
+        playSfx('chest');
       } else if (!isDiagnostic && passed) {
-        playSfx('correct');
+        playSfx('lesson');
       }
     }
   }, [id, coins, xp, passed, completeLesson, scale, correct, errors, doubled, isDiagnostic, isMistakes, isCheckpoint]);
@@ -114,9 +114,9 @@ export default function Results() {
   const talk = useMemo(() => say(talkKind), [talkKind]);
 
   const h1 = failedCheckpoint
-    ? 'Ще не корона'
+    ? 'Скриню золота не відкрито'
     : isCheckpoint
-    ? '👑 Корона твоя!'
+    ? '💰 Скриня золота твоя!'
     : perfect
     ? 'Ідеально!'
     : isPractice
@@ -128,7 +128,7 @@ export default function Results() {
   const sub = failedCheckpoint
     ? `Потрібно 80%, у тебе ${accuracy}%. Буває. Повтори уроки і повертайся.`
     : isCheckpoint
-    ? 'Модуль закрито на корону. Це фундамент — далі цікавіше.'
+    ? 'Модуль закрито, скриня золота відкрита. Це фундамент — далі цікавіше.'
     : perfect
     ? 'Жодної помилки. Ростеш, красава.'
     : lowAccuracy

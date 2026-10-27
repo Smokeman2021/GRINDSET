@@ -1,11 +1,13 @@
-// Короткі ігрові звуки (синтезовані хвилі, без семплів). Вимикаються перемикачем «Звуки» в профілі.
+// Ігрові звуки: низькі, плавні, технологічні, з легким святковим відтінком. Синтез: scripts/gen-sounds.mjs (без семплів). Вимикаються перемикачем «Звуки» в профілі.
 import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from 'expo-audio';
 import { useStore } from './store';
 
 const SOURCES = {
   correct: require('../assets/sounds/correct.wav'),
   wrong: require('../assets/sounds/wrong.wav'),
-  crown: require('../assets/sounds/crown.wav'),
+  chest: require('../assets/sounds/chest.wav'),
+  lesson: require('../assets/sounds/lesson.wav'),
+  purchase: require('../assets/sounds/purchase.wav'),
   coin: require('../assets/sounds/coin.wav'),
   levelup: require('../assets/sounds/levelup.wav'),
   tap: require('../assets/sounds/tap.wav'),

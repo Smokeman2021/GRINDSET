@@ -30,7 +30,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'perfect', icon: '🎯', title: 'Чистий прохід', desc: 'Урок без жодної помилки', test: (s) => s.perfectLessons >= 1 },
   { id: 'perfect5', icon: '💯', title: 'Перфекціоніст', desc: '5 уроків без помилок', test: (s) => s.perfectLessons >= 5 },
   { id: 'glasses', icon: '😎', title: 'Золоті окуляри', desc: 'Діагностичний тест без помилок з першої спроби', test: (s) => s.goldenGlasses },
-  { id: 'crown', icon: '👑', title: 'Корона', desc: 'Закрий модуль тестом на корону', test: (s) => s.crowns >= 1 },
+  { id: 'crown', icon: '💰', title: 'Скриня золота', desc: 'Закрий модуль тестом на скриню золота', test: (s) => s.crowns >= 1 },
   { id: 'quiz', icon: '⏱️', title: 'Швидкі руки', desc: 'Пройди квіз на час', test: (s) => s.quizzes >= 1 },
   { id: 'coins500', icon: '🪙', title: 'Перші 500', desc: 'Заробити 500 коїнів за весь час', test: (s) => s.totalCoinsEarned >= 500 },
   { id: 'shop', icon: '🛍️', title: 'Перша покупка', desc: 'Купи щось у магазині', test: (s) => s.purchases >= 1 },
