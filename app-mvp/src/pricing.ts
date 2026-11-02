@@ -6,7 +6,8 @@ export const PAYWALL_ENABLED = false;
 export const PRICING = {
   oneTimeUsd: 59, // разова покупка курсу
   subscriptionUsdPerMonth: 9.99, // підписка
-  proUsd: 49, // Pro (одиницю тарифу: разово чи за період: уточнити перед запуском оплати)
+  proUsd: 49, // Pro: на пів року (підтверджено автором 2026-11-02)
+  proPeriodMonths: 6,
 } as const;
 
 export type Feature = 'course' | 'pro_tools' | 'leaderboard';
