@@ -27,6 +27,8 @@ import { CLOUD_MODE } from '../../src/cloud/config';
 import { useCloud } from '../../src/cloud/cloudStore';
 import { FeedbackSheet } from '../../src/components/FeedbackSheet';
 import { CharacterView } from '../../src/components/CharacterView';
+import { SHOW_LEGACY_AVATARS } from '../../src/flags';
+import { StageGlow } from '../../src/art/StageGlow';
 
 function lessonTitle(id: string): string {
   if (id === 'mistakes') return 'Надолуження помилок';
@@ -89,8 +91,13 @@ export default function Profile() {
           <Pressable onPress={() => router.push('/settings')} style={styles.gear} hitSlop={10}>
             <Text style={styles.gearTxt}>⚙️</Text>
           </Pressable>
-          <Pressable onPress={pickPhoto}>
-            <Avatar photo={s.playerPhoto} name={s.playerName} frame={s.frame} size={104} />
+          {/* Великий аватар: ПРОЗОРА фігура обраного образу стоїть на м'якій радіально-зеленій сцені (тап: конструктор) */}
+          <Pressable onPress={() => router.push('/character')} style={styles.stage}>
+            <StageGlow size={380} bottom={-10} />
+            <CharacterView config={s.character} height={300} />
+          </Pressable>
+          <Pressable onPress={pickPhoto} style={styles.photoBtn}>
+            <Avatar photo={s.playerPhoto} name={s.playerName} frame={s.frame} size={52} />
             <View style={styles.badge}>
               <Text style={styles.badgeTxt}>{s.playerPhoto ? '✎' : '+'}</Text>
             </View>
@@ -130,6 +137,8 @@ export default function Profile() {
 
         <GrindykSay text={talk.text} pose={talk.pose} height={100} onPress={() => setTalk(say('profile'))} />
 
+        {SHOW_LEGACY_AVATARS && (
+          <>
         <Text style={styles.h}>ПЕРСОНАЖ · СТАДІЯ {stage}/10</Text>
         <ArchetypePicker
           value={pendingArch ?? s.archetype}
@@ -150,6 +159,8 @@ export default function Profile() {
             />
             <Button title="Лишити як є" ghost onPress={() => setPendingArch(null)} />
           </View>
+        )}
+          </>
         )}
 
         <Text style={styles.h}>
@@ -299,6 +310,10 @@ function StatBox({ label, value }: { label: string; value: string }) {
 
 const makeStyles = (C: Theme) => StyleSheet.create({
   hero: { alignItems: 'center', marginBottom: 6 },
+  stage: { alignItems: 'center', justifyContent: 'flex-end', width: '100%', height: 320, marginTop: 4 },
+  stageGlow: { position: 'absolute', bottom: 0, width: 330, height: 330, borderRadius: 165, backgroundColor: 'rgba(54,226,122,0.12)' },
+  stageGlowCore: { position: 'absolute', bottom: 40, width: 210, height: 210, borderRadius: 105, backgroundColor: 'rgba(54,226,122,0.18)' },
+  photoBtn: { position: 'absolute', left: 0, top: 4, zIndex: 2 },
   gear: { position: 'absolute', right: 0, top: 0, zIndex: 2, width: 42, height: 42, borderRadius: 21, backgroundColor: C.panel, borderWidth: 2, borderColor: C.line, alignItems: 'center', justifyContent: 'center', ...cardShadow(C, 'sm') },
   gearTxt: { fontSize: 20 },
   build: { position: 'absolute', left: 0, top: 4, zIndex: 2, backgroundColor: C.panel, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: C.line },

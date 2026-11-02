@@ -7,6 +7,7 @@ import { useTheme } from '../src/theme';
 import { initAudio } from '../src/sound';
 import { CLOUD_MODE } from '../src/cloud/config';
 import { useCloud, useCloudBoot } from '../src/cloud/cloudStore';
+import { useWebVersionGuard } from '../src/webVersion';
 import { initTelegram, isTelegram, syncTelegramColors, useTelegramInsets, useTgBackButton } from '../src/telegram/webapp';
 import { usePathname, useRouter } from 'expo-router';
 
@@ -63,6 +64,7 @@ function TelegramBridge({ bg }: { bg: string }) {
 export default function RootLayout() {
   const C = useTheme();
   useWebChrome(C.bg);
+  useWebVersionGuard(); // нова збірка на сервері → скинути кеш і перезавантажити (Telegram агресивно кешує)
   const tgInsets = useTelegramInsets();
   const status = useCloud((s) => s.status);
   const gateOn = CLOUD_MODE !== 'off';

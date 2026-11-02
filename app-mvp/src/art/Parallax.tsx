@@ -41,6 +41,7 @@ export function ParallaxScene({
   height,
   enabled = true,
   anchorLayer = 0,
+  focus,
   renderAnchored,
   children,
   style,
@@ -50,6 +51,7 @@ export function ParallaxScene({
   height: number;
   enabled?: boolean;
   anchorLayer?: number; // у якому шарі «приклеєні» об'єкти (ореол цілі): вони рухаються разом з ним
+  focus?: { x: number; at: number }; // кадрування: частку x ширини зображення поставити на частку at ширини екрана (ландшафтна плита на портретному екрані)
   renderAnchored?: (w: number, h: number) => React.ReactNode;
   children?: React.ReactNode; // фіксований overlay (заголовки, погода)
   style?: StyleProp<ViewStyle>;
@@ -77,7 +79,7 @@ export function ParallaxScene({
               position: 'absolute',
               width: imgW,
               height: imgH,
-              left: (width - imgW) / 2,
+              left: focus ? Math.min(-maxShiftX * l.depth, Math.max(width - imgW + maxShiftX * l.depth, width * focus.at - focus.x * imgW)) : (width - imgW) / 2,
               top: (height - imgH) / 2,
               transform: [{ translateX: ax }, { translateY: ay }],
             }}

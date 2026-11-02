@@ -41,12 +41,20 @@ export type CharacterConfig = {
   layers: Partial<Record<Slot, ArtKey>>;
 };
 
-export const DEFAULT_CHARACTER: CharacterConfig = { base: 'm_avg', look: 'character/presets/preset_1', layers: {} };
+export const DEFAULT_CHARACTER: CharacterConfig = { base: 'm_avg', look: 'cutout/presets/preset_1', layers: {} };
 
-export const baseKey = (b: BaseId): ArtKey => `character/archetypes/${b}` as ArtKey;
-export const presetKeys = (): ArtKey[] => artKeys('character/presets/');
-export const lookKeys = (): ArtKey[] => artKeys('character/wardrobe/look_');
-export const colorKeys = (): ArtKey[] => artKeys('character/wardrobe/color_');
+// Усі фігури беремо з ПРОЗОРИХ cutout (assets/art-v2/cutout): вони «стоять» на UI, а не лежать у рамці
+export const baseKey = (b: BaseId): ArtKey => `cutout/archetypes/${b}` as ArtKey;
+export const presetKeys = (): ArtKey[] => artKeys('cutout/presets/').sort();
+export const lookKeys = (): ArtKey[] => artKeys('cutout/wardrobe/look_').sort();
+
+// Старі збережені конфіги посилались на непрозорі файли character/…: переносимо на прозорі cutout/… (якщо такий є)
+const migrateKey = (k: unknown): string | null => {
+  if (typeof k !== 'string') return null;
+  if (hasArt(k)) return k;
+  const m = k.replace(/^character\//, 'cutout/');
+  return hasArt(m) ? m : null;
+};
 export const layerOptions = (slot: Slot): ArtKey[] => artKeys(`character/layers/${slot}/`);
 
 // Скільки слотів уже має пошарові файли (0 = працює лише fallback на цілісні луки)
@@ -68,11 +76,12 @@ export function sanitizeCharacter(v: unknown): CharacterConfig | null {
   const o = v as Partial<CharacterConfig> | null;
   if (!o || typeof o !== 'object') return null;
   const base = (BASES as readonly string[]).includes(o.base as string) ? (o.base as BaseId) : DEFAULT_CHARACTER.base;
-  const look = typeof o.look === 'string' && hasArt(o.look) ? o.look : null;
+  const lk = migrateKey(o.look);
+  const look = lk && hasArt(lk) ? lk : null;
   const layers: Partial<Record<Slot, ArtKey>> = {};
   for (const s of SLOTS) {
-    const k = o.layers?.[s];
-    if (typeof k === 'string' && hasArt(k)) layers[s] = k;
+    const k = migrateKey(o.layers?.[s]);
+    if (k && hasArt(k)) layers[s] = k;
   }
   return { base, look, layers };
 }

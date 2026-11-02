@@ -62,7 +62,9 @@ export function ObjectiveGlow({
           </RadialGradient>
         </Defs>
         <Circle cx={radius} cy={radius} r={radius} fill="url(#objglow)" />
-        <Circle cx={radius} cy={radius} r={Math.max(3, radius * 0.07)} fill="#eafff2" opacity={Math.min(1, 0.9 * intensity)} />
+        {/* пін цілі: світла крапка в зеленому кільці */}
+        <Circle cx={radius} cy={radius} r={Math.max(7, radius * 0.13)} fill="none" stroke={color} strokeWidth={3} opacity={Math.min(1, 0.95 * intensity)} />
+        <Circle cx={radius} cy={radius} r={Math.max(3.5, radius * 0.06)} fill="#f4fff8" opacity={Math.min(1, 0.95 * intensity)} />
       </Svg>
     </Animated.View>
   );

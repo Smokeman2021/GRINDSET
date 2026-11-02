@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { PathNode, NodeKind } from '../../src/components/PathNode';
+import { PoseImage } from '../../src/components/PoseImage';
+import { PathBackdrop } from '../../src/art/PathBackdrop';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Lesson } from '../../src/data/lessons';
@@ -23,7 +25,7 @@ import { Quests, todayStr } from '../../src/components/Quests';
 import { questsForDay } from '../../src/data/quests';
 import { BoostBanner } from '../../src/components/BoostBanner';
 import { GrindykSay } from '../../src/components/GrindykSay';
-import { poseCutout as poseFile, PoseName } from '../../src/data/poses';
+import { pose as poseFile, PoseName } from '../../src/data/poses';
 import { homeSay, say } from '../../src/data/phrases';
 import { dueKeys } from '../../src/data/srs';
 import { Glow } from '../../src/components/Glow';
@@ -162,7 +164,7 @@ export default function Home() {
     const quiz = ALL_LESSONS.find((l) => l.id === quiz0.id) ?? quiz0; // актуальна мова контенту
     const unlocked = (quiz.requires ?? []).every((id) => completed.includes(id));
     const done = completed.includes(quiz.id);
-    const pose: PoseName = done ? 'cheer' : unlocked ? 'stand' : 'think';
+    const pose: PoseName = done ? 'cheer' : 'think'; // прозорі cutout-и Гріндіка «висять» збоку доріжки
     const gw = POSE_H * poseFile(pose).ratio;
     const yc = yAt(bend.t);
     const pathX = xAt(bend.t);
@@ -231,6 +233,7 @@ export default function Home() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <PathBackdrop />
       <Glow />
       <TopBar />
 
@@ -338,11 +341,9 @@ export default function Home() {
           {/* кишені між вигинами: квіз + Гріндік у різних позах */}
           {quizGeo.map((g) => (
             <React.Fragment key={g.quiz.id}>
-              <Image
-                source={poseFile(g.pose).src}
-                style={{ position: 'absolute', left: g.gx, top: g.yc + 62 - POSE_H, width: g.gw, height: POSE_H }}
-                resizeMode="contain"
-              />
+              <View pointerEvents="none" style={{ position: 'absolute', left: g.gx, top: g.yc + 62 - POSE_H, width: g.gw, height: POSE_H }}>
+                <PoseImage p={poseFile(g.pose)} width={g.gw} height={POSE_H} shadow={0.7} />
+              </View>
               <View style={{ position: 'absolute', left: g.qx, top: g.qTop }}>
                 <PathNode
                   kind={(g.done ? 'quizDone' : g.unlocked ? 'quizOpen' : 'quizLocked') as NodeKind}

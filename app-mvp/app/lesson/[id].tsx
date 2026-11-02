@@ -22,7 +22,7 @@ import { FeedbackSheet } from '../../src/components/FeedbackSheet';
 import { CLOUD_MODE } from '../../src/cloud/config';
 import { track } from '../../src/cloud/analytics';
 import { LevelSplash } from '../../src/art/LevelSplash';
-import { LEVEL_SCENES, isLevelOpener, levelOf } from '../../src/art/levels';
+import { LEVEL_SCENES, levelOf } from '../../src/art/levels';
 import { haptic, useTgMainButton } from '../../src/telegram/webapp';
 import { BundleStep, MatchStep, MultiStep, NumericStep, OrderStep, StoryStep } from '../../src/components/steps';
 
@@ -153,9 +153,9 @@ export default function LessonScreen() {
   const canContinue = isTeach || isReflect || answered;
   const needsCheck = isChoiceLike && !answered;
 
-  // Заставка рівня: перед першим уроком модуля (лише при першому проході)
+  // Екран-сцена перед кожним звичайним уроком модуля (не квіз, не скриня золота, не надолуження/тренування/діагностика)
   const levelNo = levelOf(lsn.id, MODULES);
-  const splashScene = !virtual && !alreadyDone && !isDiagnostic && levelNo && isLevelOpener(lsn.id, MODULES) ? LEVEL_SCENES[levelNo] ?? null : null;
+  const splashScene = !virtual && !isDiagnostic && !lsn.kind && levelNo ? LEVEL_SCENES[levelNo] ?? null : null;
 
   // У Telegram головна кнопка екрана це MainButton Telegram (власну тоді ховаємо)
   const mainTitle = isTeach ? (isQuiz && idx === 0 ? 'Старт' : 'Зрозумів') : needsCheck ? 'Перевірити' : idx + 1 >= total ? 'Завершити' : 'Далі';
@@ -163,8 +163,7 @@ export default function LessonScreen() {
   const tgMain = useTgMainButton({ text: mainTitle, onPress: needsCheck ? onCheck : onContinue, enabled: !mainDisabled, visible: splashDone || !splashScene });
 
   if (splashScene && !splashDone && levelNo) {
-    const modTitle = MODULES[levelNo - 1].title.replace(/^[^·]*·\s*/, '');
-    return <LevelSplash scene={splashScene} kicker={`МОДУЛЬ ${String(levelNo).padStart(2, '0')}`} title={modTitle} task={`${lsn.code} · ${lsn.title}`} onStart={() => setSplashDone(true)} />;
+    return <LevelSplash scene={splashScene} kicker={`Модуль ${String(levelNo).padStart(2, '0')} · урок ${lsn.code}`} title={splashScene.title} task={lsn.title} onStart={() => setSplashDone(true)} onExit={() => router.replace('/home')} />;
   }
 
   function refFor(i: number) {
