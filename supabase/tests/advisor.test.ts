@@ -42,11 +42,13 @@ test('качелі: CBO → розділити, ABO → перезапуск', (
 
 test('поганий сет-ап → новий запуск, навіть якщо є що «вбивати»', () => assert.equal(a({ badSetup: true, cpl: null, leadsPerDay: 0, spend: 99 }).code, 'new_launch'));
 
-test('поріг «вбивати»: без лідів витрати ≥ 3 × поріг; або CPL ≥ 1.5 × поріг після 4 днів і правок', () => {
+test('поріг «вбивати»: без лідів витрати ≥ 3 × поріг; або CPL ≥ 1.5 × поріг після 3 днів і правок (вікно 2–3 дні)', () => {
   assert.equal(a({ cpl: null, leadsPerDay: 0, spend: 9 }).code, 'kill');
   assert.equal(a({ cpl: null, leadsPerDay: 0, spend: 8 }).code, 'hold');
   assert.equal(a({ cpl: 4.6, bidHistory: 'few', daysSinceLaunch: 5 }).code, 'kill');
   assert.equal(a({ cpl: 4.6, bidHistory: 'none', daysSinceLaunch: 5 }).code, 'raise_bid'); // ще не пробували ставку
+  assert.equal(a({ cpl: 4.6, bidHistory: 'few', daysSinceLaunch: 3 }).code, 'kill'); // оцінка вже на 3-й день
+  assert.equal(a({ cpl: 4.6, bidHistory: 'few', daysSinceLaunch: 2 }).code, 'raise_bid'); // 2-й день: ще рано вбивати
 });
 
 test('поріг CPL редагується', () => {

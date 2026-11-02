@@ -10,7 +10,7 @@ const DB_KEY = 'grindset-mock-server-v2';
 const SID_KEY = 'grindset-mock-sid';
 const UID_KEY = 'grindset-mock-uid';
 
-type Row = InviteRow & { display_name: string; is_admin: boolean; active_sid: string | null; last_login_at?: number | null; invite_issued_at?: number | null };
+type Row = InviteRow & { display_name: string; is_admin: boolean; active_sid: string | null; telegram_id?: number | null; last_login_at?: number | null; invite_issued_at?: number | null };
 type Db = { allowed: Row[]; progress: Record<string, { state: Record<string, unknown>; updated_at: number }>; feedback?: FeedbackRow[]; events?: EventRow[] };
 
 // Тестові облікові записи імітації та їхні коди (лише для розробки; справжні коди видає автор через SQL issue_invite)
@@ -85,8 +85,23 @@ export class MockBackend implements CloudBackend {
 
   async login(input: LoginInput): Promise<LoginResult> {
     const db = await readDb();
-    const row = db.allowed.find((r) => r.username === normalizeUsername(input.username)) ?? null;
-    const verdict = await checkInvite(row, input.code, Date.now());
+    // імітація Telegram: initData виду "mock:<id>" (справжній підпис перевіряє Edge Function)
+    const tgId = input.initData?.startsWith('mock:') ? Number(input.initData.slice(5)) : null;
+    if (!input.username && !input.code) {
+      const tgRow = tgId ? db.allowed.find((r) => r.telegram_id === tgId) : null;
+      if (!tgRow) return { ok: false, reason: 'not_linked' };
+      if (tgRow.status === 'blocked') return { ok: false, reason: 'blocked' };
+      const sid = newSid();
+      tgRow.active_sid = sid;
+      tgRow.status = 'active';
+      tgRow.last_login_at = Date.now();
+      writeDb(db);
+      sessionKv.set(SID_KEY, sid);
+      sessionKv.set(UID_KEY, tgRow.id);
+      return { ok: true, user: toUser(tgRow) };
+    }
+    const row = db.allowed.find((r) => r.username === normalizeUsername(input.username ?? '')) ?? null;
+    const verdict = await checkInvite(row, input.code ?? '', Date.now());
     if (row && verdict.patch) Object.assign(row, verdict.patch);
     if (!verdict.ok || !row) {
       writeDb(db);
@@ -95,6 +110,7 @@ export class MockBackend implements CloudBackend {
     const sid = newSid();
     row.active_sid = sid; // новий вхід замінює старий сеанс
     row.status = 'active'; // перший вхід: invited → active (як на сервері)
+    if (tgId && !row.telegram_id && !db.allowed.some((r) => r.telegram_id === tgId)) row.telegram_id = tgId; // привʼязка Telegram разом із кодом
     row.last_login_at = Date.now();
     writeDb(db);
     sessionKv.set(SID_KEY, sid);

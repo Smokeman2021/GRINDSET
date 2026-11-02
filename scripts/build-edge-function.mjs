@@ -1,5 +1,6 @@
 // Збирає ОДИН файл supabase/functions/invite-login/index.ts (його вставляють у Supabase → Edge Functions) із двох частин:
 //  - app-mvp/src/cloud/shared/access.ts (чиста логіка, яку перевіряють автотести і яку використовує режим-імітація),
+//  - app-mvp/src/cloud/shared/telegram.ts (перевірка підпису initData Telegram Mini App),
 //  - supabase/functions/invite-login/handler.template.ts (мережева частина).
 // Запуск: node scripts/build-edge-function.mjs      Перевірка актуальності: node scripts/build-edge-function.mjs --check
 import fs from 'node:fs';
@@ -8,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const shared = fs.readFileSync(path.join(root, 'app-mvp', 'src', 'cloud', 'shared', 'access.ts'), 'utf8').replace(/\r\n/g, '\n');
+const telegram = fs.readFileSync(path.join(root, 'app-mvp', 'src', 'cloud', 'shared', 'telegram.ts'), 'utf8').replace(/\r\n/g, '\n');
 const handler = fs.readFileSync(path.join(root, 'supabase', 'functions', 'invite-login', 'handler.template.ts'), 'utf8').replace(/\r\n/g, '\n');
 const out = path.join(root, 'supabase', 'functions', 'invite-login', 'index.ts');
 
@@ -17,6 +19,8 @@ const text =
   '// Як розгорнути: Supabase → Edge Functions → Deploy a new function → Via Editor (назва invite-login) → вставити весь вміст цього файлу → Deploy.\n' +
   '// Вимкни «Verify JWT» для цієї функції (її викликають до входу).\n\n' +
   shared.trimEnd() +
+  '\n\n' +
+  telegram.trimEnd() +
   '\n\n' +
   handler;
 

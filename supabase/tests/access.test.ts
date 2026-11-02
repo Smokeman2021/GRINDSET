@@ -138,22 +138,22 @@ test('згенерований index.ts функції входу містить
   assert.equal(await mod.hashInvite('salt', 'K7M29QXP4TDH'), referenceHash('salt', 'K7M29QXP4TDH'));
 });
 
-test('рейтинг точності: лише active, без адмінів, від 30 відповідей, тай-брейк за кількістю', () => {
+test('рейтинг точності: лише active, без адмінів, від 10 відповідей, тай-брейк за кількістю', () => {
   const e = (name: string, correct: number, total: number, over: Partial<BoardInput> = {}): BoardInput => ({ name, status: 'active', isAdmin: false, correct, total, ...over });
   const board = accuracyBoard([
-    e('A', 29, 30), // 96.7
+    e('A', 9, 10), // 90.0
     e('B', 50, 52), // 96.2
     e('C', 60, 62), // 96.8
-    e('D', 1, 1), // 100%, але менше 30 відповідей
-    e('E', 29, 29), // 29 відповідей: ще не в рейтингу
-    e('F', 30, 30, { isAdmin: true }), // адмін
-    e('G', 30, 30, { status: 'blocked' }), // заблокований
-    e('H', 30, 30, { status: 'invited' }), // ще не заходив
-    e('I', 30, 30), // 100%, 30 відповідей
+    e('D', 1, 1), // 100%, але менше 10 відповідей
+    e('E', 9, 9), // 9 відповідей: ще не в рейтингу
+    e('F', 10, 10, { isAdmin: true }), // адмін
+    e('G', 10, 10, { status: 'blocked' }), // заблокований
+    e('H', 10, 10, { status: 'invited' }), // ще не заходив
+    e('I', 10, 10), // 100%, 10 відповідей
     e('J', 90, 90), // 100%, 90 відповідей: вище за I
     e('K', 5, 3), // сміття: correct > total → не більше 100%
   ]);
-  assert.deepEqual(board.map((r) => r.name), ['J', 'I', 'C', 'A', 'B']);
+  assert.deepEqual(board.map((r) => r.name), ['J', 'I', 'C', 'B', 'A']);
   assert.equal(board[0].accuracy, 100);
   assert.equal(board[2].accuracy, 96.8);
   assert.deepEqual(Object.keys(board[0]).sort(), ['accuracy', 'answers', 'isMe', 'name']); // ніяких приватних полів

@@ -7,6 +7,8 @@ import { useTheme } from '../src/theme';
 import { initAudio } from '../src/sound';
 import { CLOUD_MODE } from '../src/cloud/config';
 import { useCloud, useCloudBoot } from '../src/cloud/cloudStore';
+import { initTelegram, isTelegram, syncTelegramColors, useTelegramInsets, useTgBackButton } from '../src/telegram/webapp';
+import { usePathname, useRouter } from 'expo-router';
 
 // Усі маршрути застосунку, окрім login: за закритого тесту доступні лише після входу. Новий файл у app/ ОБОВʼЯЗКОВО додати сюди,
 // інакше він лишиться відкритим для всіх (перевіряє scripts/check-routes-protected.mjs).
@@ -19,6 +21,7 @@ const PROTECTED_ROUTES = [
   'results',
   'settings',
   'accuracy',
+  'character',
   'admin',
   'plan',
   'adapt',
@@ -39,9 +42,28 @@ function useWebChrome(bg: string) {
   }, [bg]);
 }
 
+// Маршрути «першого рівня»: на них кнопки «Назад» Telegram не показуємо
+const ROOT_PATHS = new Set(['/', '/home', '/library', '/shop', '/league', '/profile', '/login', '/onboarding']);
+
+// Telegram Mini App: готовність, кольори під тему, BackButton (повертає назад на вкладених екранах), безпечні відступи
+function TelegramBridge({ bg }: { bg: string }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  React.useEffect(() => {
+    initTelegram();
+  }, []);
+  React.useEffect(() => {
+    syncTelegramColors(bg);
+  }, [bg]);
+  const nested = !ROOT_PATHS.has(pathname);
+  useTgBackButton(nested, () => (router.canGoBack() ? router.back() : router.replace('/home')));
+  return null;
+}
+
 export default function RootLayout() {
   const C = useTheme();
   useWebChrome(C.bg);
+  const tgInsets = useTelegramInsets();
   const status = useCloud((s) => s.status);
   const gateOn = CLOUD_MODE !== 'off';
   const signedIn = !gateOn || status === 'signedIn';
@@ -50,8 +72,9 @@ export default function RootLayout() {
     initAudio();
   }, []);
   return (
-    <SafeAreaProvider style={{ backgroundColor: C.bg }}>
+    <SafeAreaProvider style={{ backgroundColor: C.bg, paddingTop: tgInsets.top, paddingBottom: tgInsets.bottom }}>
       <StatusBar style={C.name === 'night' ? 'light' : 'dark'} />
+      {Platform.OS === 'web' && isTelegram() && <TelegramBridge bg={C.bg} />}
       <Stack
         screenOptions={{
           headerShown: false,

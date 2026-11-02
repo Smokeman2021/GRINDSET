@@ -110,8 +110,12 @@ export function PathNode({
   const focused = useIsFocused();
   useEffect(() => {
     if (!focused || (kind !== 'current' && kind !== 'quizOpen')) return;
+    // sequence із миттєвим скиданням: простий loop(timing) на вебі зупиняється після першого проходу
     const loop = Animated.loop(
-      Animated.timing(pulse, { toValue: 1, duration: 1700, easing: Easing.out(Easing.quad), useNativeDriver: true })
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 1700, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0, duration: 0, useNativeDriver: true }),
+      ])
     );
     loop.start();
     return () => loop.stop();

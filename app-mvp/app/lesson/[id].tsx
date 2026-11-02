@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { shuffleQuestion, Step } from '../../src/data/lessons';
-import { ALL_LESSONS } from '../../src/data/modules';
+import { ALL_LESSONS, MODULES } from '../../src/data/modules';
 import { buildDiagnostic, buildMistakes, buildPractice, DIAGNOSTIC_ID, MISTAKES_ID, PRACTICE_ID, VirtualLesson } from '../../src/data/virtual';
 import { useStore, ENERGY_PER_LESSON, AnswerResult } from '../../src/store';
 import { Theme, useStyles, useTheme } from '../../src/theme';
@@ -21,6 +21,9 @@ import { Watermark } from '../../src/components/Watermark';
 import { FeedbackSheet } from '../../src/components/FeedbackSheet';
 import { CLOUD_MODE } from '../../src/cloud/config';
 import { track } from '../../src/cloud/analytics';
+import { LevelSplash } from '../../src/art/LevelSplash';
+import { LEVEL_SCENES, isLevelOpener, levelOf } from '../../src/art/levels';
+import { haptic, useTgMainButton } from '../../src/telegram/webapp';
 import { BundleStep, MatchStep, MultiStep, NumericStep, OrderStep, StoryStep } from '../../src/components/steps';
 
 const SECONDS_L1 = 20;
@@ -85,6 +88,7 @@ export default function LessonScreen() {
 
   const [idx, setIdx] = useState(0);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [splashDone, setSplashDone] = useState(false); // заставка рівня перед першим уроком модуля
   const [selected, setSelected] = useState<number | null>(null);
   const [extCorrect, setExtCorrect] = useState<boolean | null>(null); // результат завдань з власним інтерфейсом
   const [answered, setAnswered] = useState(false);
@@ -149,6 +153,20 @@ export default function LessonScreen() {
   const canContinue = isTeach || isReflect || answered;
   const needsCheck = isChoiceLike && !answered;
 
+  // Заставка рівня: перед першим уроком модуля (лише при першому проході)
+  const levelNo = levelOf(lsn.id, MODULES);
+  const splashScene = !virtual && !alreadyDone && !isDiagnostic && levelNo && isLevelOpener(lsn.id, MODULES) ? LEVEL_SCENES[levelNo] ?? null : null;
+
+  // У Telegram головна кнопка екрана це MainButton Telegram (власну тоді ховаємо)
+  const mainTitle = isTeach ? (isQuiz && idx === 0 ? 'Старт' : 'Зрозумів') : needsCheck ? 'Перевірити' : idx + 1 >= total ? 'Завершити' : 'Далі';
+  const mainDisabled = needsCheck ? selected === null : !canContinue;
+  const tgMain = useTgMainButton({ text: mainTitle, onPress: needsCheck ? onCheck : onContinue, enabled: !mainDisabled, visible: splashDone || !splashScene });
+
+  if (splashScene && !splashDone && levelNo) {
+    const modTitle = MODULES[levelNo - 1].title.replace(/^[^·]*·\s*/, '');
+    return <LevelSplash scene={splashScene} kicker={`МОДУЛЬ ${String(levelNo).padStart(2, '0')}`} title={modTitle} task={`${lsn.code} · ${lsn.title}`} onStart={() => setSplashDone(true)} />;
+  }
+
   function refFor(i: number) {
     return virtual ? virtual.refs[i] : { lessonId: id, idx: i };
   }
@@ -161,6 +179,8 @@ export default function LessonScreen() {
   function record(ok: boolean) {
     pushResult(ok);
     playSfx(ok ? 'correct' : 'wrong');
+    if (ok) haptic.success();
+    else haptic.error();
     if (ok) {
       const nextCombo = combo + 1;
       const bonus = Math.min(20, nextCombo * 2);
@@ -474,7 +494,7 @@ export default function LessonScreen() {
         </Pop>
       )}
 
-      <View style={{ paddingTop: 12, paddingBottom: insets.bottom + 12 }}>
+      <View style={{ paddingTop: 12, paddingBottom: insets.bottom + 12, display: tgMain ? 'none' : 'flex' }}>
         <Button
           title={isTeach ? (isQuiz && idx === 0 ? 'Старт' : 'Зрозумів') : needsCheck ? 'Перевірити' : idx + 1 >= total ? 'Завершити' : 'Далі'}
           onPress={needsCheck ? onCheck : onContinue}

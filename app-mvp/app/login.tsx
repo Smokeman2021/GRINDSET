@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../src/components/Button';
@@ -7,6 +7,7 @@ import { CLOUD_MODE } from '../src/cloud/config';
 import { useCloud } from '../src/cloud/cloudStore';
 import { formatInviteCode, normalizeInviteCode } from '../src/cloud/shared/access';
 import { localKv } from '../src/cloud/storage';
+import { isTelegram, telegramInitData } from '../src/telegram/webapp';
 import { Theme, useStyles, useTheme } from '../src/theme';
 
 const BUST = require('../assets/grindyk-bust.png');
@@ -25,6 +26,14 @@ export default function Login() {
   useEffect(() => {
     void localKv.get(NICK_KEY).then((v) => v && setNick(v));
   }, []);
+
+  // Mini App: одна спроба автоматичного входу через Telegram (без коду, якщо Telegram уже привʼязано)
+  const tgTried = useRef(false);
+  useEffect(() => {
+    if (tgTried.current || !isTelegram() || status !== 'signedOut' || reason) return;
+    tgTried.current = true;
+    void login({ initData: telegramInitData() });
+  }, [status, reason, login]);
 
   const mockAccounts = CLOUD_MODE === 'mock' ? (require('../src/cloud/mockBackend') as typeof import('../src/cloud/mockBackend')).MOCK_ACCOUNTS : [];
   const ready = nick.trim().length > 0 && normalizeInviteCode(code).length === 12;
@@ -46,7 +55,10 @@ export default function Login() {
     title = 'Вхід виконано з іншого пристрою';
     text = 'Один акаунт може бути активним лише на одному пристрої. Увійди ще раз, якщо хочеш продовжити тут.';
   } else if (status === 'signedOut' && reason) {
-    if (reason === 'wrong') error = `Нік або код не збігаються.${detail?.attemptsLeft != null ? ` Лишилось спроб: ${detail.attemptsLeft}.` : ''}`;
+    if (reason === 'not_linked') {
+      title = 'Привʼяжи Telegram';
+      text = 'Один раз введи свій @нік і персональний код: далі Telegram входитиме в тест сам, без коду.';
+    } else if (reason === 'wrong') error = `Нік або код не збігаються.${detail?.attemptsLeft != null ? ` Лишилось спроб: ${detail.attemptsLeft}.` : ''}`;
     else if (reason === 'locked') error = `Забагато хибних спроб. Спробуй за ${Math.max(1, Math.ceil((detail?.lockedSeconds ?? 900) / 60))} хв.`;
     else if (reason === 'too_many') error = 'Забагато спроб з цієї адреси. Зачекай кілька хвилин.';
     else error = 'Не вдалося звʼязатись із сервером. Спробуй ще раз за хвилину.';

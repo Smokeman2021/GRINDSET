@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useIsFocused } from 'expo-router';
 import { Animated, Easing, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { pose, PoseName } from '../data/poses';
+import { PoseImage } from './PoseImage';
 import { cardShadow, Theme, useStyles } from '../theme';
 
 // Гріндік з хмаркою репліки. Постійно ледь «дихає», а хмарка з’являється з пружинкою.
@@ -53,7 +54,7 @@ export function GrindykSay({
           ],
         }}
       >
-        <Image source={p.src} style={{ width: w, height }} resizeMode="contain" />
+        <PoseImage p={p} width={w} height={height} />
       </Animated.View>
       <Animated.View
         style={[

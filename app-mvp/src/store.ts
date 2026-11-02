@@ -7,6 +7,8 @@ import { ITEMS } from './data/shop';
 import { Metric, questsForDay } from './data/quests';
 import { reviewed, srsKey, SrsMap } from './data/srs';
 import type { Campaign, Entry } from './data/advice';
+import type { CharacterConfig } from './art/character';
+import type { SceneMode } from './art/weatherLogic';
 import { outcomeFor, rankOf, standings, weekStartStr, LeagueOutcome } from './data/league';
 import type { ArchetypeId } from './data/avatars';
 import { scaleCoins } from './economy';
@@ -30,6 +32,8 @@ type State = {
   onboarded: boolean;
   lang: Lang; // мова інтерфейсу; контент уроків поки завжди українською
   theme: 'night' | 'day' | 'auto'; // нічний (темний), денний (світлий) або за темою пристрою
+  character: CharacterConfig | null; // конструктор персонажа (арт v2); синхронізується з прогресом на сервері
+  sceneMode: SceneMode; // погода/час у сценах: auto = реальна погода Києва + час доби, off = вимкнено, решта = ручне демо
   playerName: string;
   playerPhoto: string | null; // фото гравця (uri / data-uri); поки null — плейсхолдер з ініціалом
   archetype: ArchetypeId | null; // обраний архетип персонажа-аватара (повний зріст, еволюціонує по модулях)
@@ -123,6 +127,8 @@ type State = {
   setEquip: (slot: EquipSlot, itemId: string | null) => void;
   setLang: (lang: Lang) => void;
   setTheme: (theme: 'night' | 'day' | 'auto') => void;
+  setCharacter: (c: CharacterConfig) => void;
+  setSceneMode: (m: SceneMode) => void;
   setSoundEnabled: (v: boolean) => void;
   setDailyGoal: (goal: DailyGoal) => void;
   setStrictEnergy: (v: boolean) => void;
@@ -286,6 +292,8 @@ const FRESH = {
   onboarded: false,
   lang: 'uk' as Lang,
   theme: 'night' as 'night' | 'day' | 'auto',
+  character: null as CharacterConfig | null,
+  sceneMode: 'auto' as SceneMode,
   playerName: '',
   playerPhoto: null,
   archetype: null as ArchetypeId | null,
@@ -402,6 +410,8 @@ export const useStore = create<State>()(
         set((s) => ({ equipped: itemId ? { ...s.equipped, [slot]: itemId } : { ...s.equipped, [slot]: undefined } })),
 
       setTheme: (theme) => set({ theme }),
+      setCharacter: (character) => set({ character }),
+      setSceneMode: (sceneMode) => set({ sceneMode }),
 
       setSoundEnabled: (v) => set({ soundEnabled: v }),
 

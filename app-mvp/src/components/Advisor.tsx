@@ -154,7 +154,7 @@ export function Advisor() {
         {showParams && (
           <View>
             <Field label="Витрати без жодного ліда ≥ скільки порогів CPL" value={killSpend} onChange={setKillSpend} suffix="×" />
-            <Field label="CPL ≥ скільки порогів (після 4+ днів і правок ставки)" value={killCpl} onChange={setKillCpl} suffix="×" />
+            <Field label="CPL ≥ скільки порогів (після 3 днів і правок ставки)" value={killCpl} onChange={setKillCpl} suffix="×" />
             <Text style={styles.hint}>Це робочі значення за замовчуванням, постав свої.</Text>
           </View>
         )}

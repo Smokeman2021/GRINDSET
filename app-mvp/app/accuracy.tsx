@@ -103,7 +103,7 @@ export default function Accuracy() {
         <Pressable onPress={() => void load()} style={styles.refresh}>
           <Text style={styles.refreshTxt}>{loading ? 'Оновлюємо…' : '↻ Оновити'}</Text>
         </Pressable>
-        <Text style={styles.foot}>При рівній точності вище той, у кого більше відповідей. Адміни й заблоковані в рейтингу не показуються.</Text>
+        <Text style={styles.foot}>Рахується від {MIN_RATED_ANSWERS} відповідей. При рівній точності вище той, у кого більше відповідей. Адміни й заблоковані в рейтингу не показуються.</Text>
       </ScrollView>
     </View>
   );

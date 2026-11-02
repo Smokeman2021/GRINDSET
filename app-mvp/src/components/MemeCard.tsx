@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import type { Meme } from '../data/memes';
 import { pose } from '../data/poses';
+import { PoseImage } from './PoseImage';
 import { Theme, useStyles, useTheme } from '../theme';
 
 export function MemeCard({ meme, locked }: { meme: Meme; locked?: boolean }) {
@@ -19,7 +20,7 @@ export function MemeCard({ meme, locked }: { meme: Meme; locked?: boolean }) {
         <>
           <Text style={styles.cap}>{meme.top}</Text>
           <View style={styles.poseBox}>
-            <Image source={p.src} style={styles.pose} resizeMode="contain" />
+            <PoseImage p={p} fill />
           </View>
           <Text style={styles.cap}>{meme.bottom}</Text>
         </>

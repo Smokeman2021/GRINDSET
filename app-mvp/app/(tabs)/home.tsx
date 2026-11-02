@@ -23,7 +23,7 @@ import { Quests, todayStr } from '../../src/components/Quests';
 import { questsForDay } from '../../src/data/quests';
 import { BoostBanner } from '../../src/components/BoostBanner';
 import { GrindykSay } from '../../src/components/GrindykSay';
-import { pose as poseFile, PoseName } from '../../src/data/poses';
+import { poseCutout as poseFile, PoseName } from '../../src/data/poses';
 import { homeSay, say } from '../../src/data/phrases';
 import { dueKeys } from '../../src/data/srs';
 import { Glow } from '../../src/components/Glow';

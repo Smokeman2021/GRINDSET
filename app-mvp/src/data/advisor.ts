@@ -34,7 +34,7 @@ export const DEFAULT_PARAMS: AdvisorParams = {
   cplThreshold: 3,
   killSpendMult: 3,
   killCplMult: 1.5,
-  killMinDays: 4,
+  killMinDays: 3, // вікно оцінки заливу 2–3 дні (рішення автора 2026-11, було 4+)
   askMin: 0.07,
   budgetStep: 0.2,
   bidStepSmall: 0.1,

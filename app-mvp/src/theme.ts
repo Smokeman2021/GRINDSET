@@ -2,6 +2,7 @@ import { useColorScheme } from 'react-native';
 import type { BoxShadowValue } from 'react-native';
 import { useMemo } from 'react';
 import { useStore } from './store';
+import { telegramColorScheme } from './telegram/webapp';
 
 export type ThemeName = 'night' | 'day';
 
@@ -127,7 +128,8 @@ export function accentGlow(C: Theme): { boxShadow: BoxShadowValue[] } {
 export function useTheme(): Theme {
   const mode = useStore((s) => s.theme);
   const system = useColorScheme(); // 'auto' слідує темі пристрою
-  const name = mode === 'auto' ? (system === 'light' ? 'day' : 'night') : mode;
+  const scheme = telegramColorScheme() ?? system; // у Mini App «Авто» слідує темі Telegram
+  const name = mode === 'auto' ? (scheme === 'light' ? 'day' : 'night') : mode;
   return THEMES[name] ?? NIGHT;
 }
 

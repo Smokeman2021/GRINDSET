@@ -3,6 +3,7 @@ import { Text, View, StyleSheet, Platform, useWindowDimensions } from 'react-nat
 import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme, useStyles, useTheme } from '../../src/theme';
+import { haptic } from '../../src/telegram/webapp';
 import { useStore } from '../../src/store';
 import { scheduleAll } from '../../src/notifications';
 import { useT } from '../../src/i18n';
@@ -39,7 +40,7 @@ export default function TabsLayout() {
 
   return (
     <Tabs
-      screenListeners={{ tabPress: () => playSfx('tap') }}
+      screenListeners={{ tabPress: () => { playSfx('tap'); haptic.select(); } }}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: C.accent,

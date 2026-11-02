@@ -14,6 +14,7 @@ import { CLOUD_MODE } from '../src/cloud/config';
 import { useCloud } from '../src/cloud/cloudStore';
 
 const GOALS: DailyGoal[] = ['casual', 'regular', 'intense'];
+const SCENE_LABEL = { auto: 'Авто', off: 'Вимк.', clear: 'Ясно', overcast: 'Хмарно', rain: 'Дощ', snow: 'Сніг', fog: 'Туман', night: 'Ніч' } as const;
 
 // Усі налаштування застосунку в одному місці: профіль лишається про прогрес, а тут — вигляд, навчання, сповіщення.
 export default function Settings() {
@@ -162,6 +163,20 @@ export default function Settings() {
         </View>
         </>
         )}
+
+        <Text style={styles.h}>СЦЕНИ: ПОГОДА Й ЧАС</Text>
+        <View style={styles.card}>
+          <Text style={styles.sub}>
+            У заставках рівнів світ живе: дощ, сніг, туман, ніч. «Авто» бере реальну погоду Києва (запит до Open-Meteo, лише координати міста) і час доби за годинником. Решта пункти для перегляду ефектів.
+          </Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
+            {(['auto', 'off', 'clear', 'overcast', 'rain', 'snow', 'fog', 'night'] as const).map((m) => (
+              <Pressable key={m} onPress={() => s.setSceneMode(m)} style={[styles.seg, { flex: 0, paddingHorizontal: 14 }, s.sceneMode === m && styles.segOn]}>
+                <Text style={[styles.segTxt, s.sceneMode === m && { color: C.onAccent }]}>{SCENE_LABEL[m]}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
 
         <Text style={styles.h}>ПРО ЗАСТОСУНОК</Text>
         <View style={styles.card}>

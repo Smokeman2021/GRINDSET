@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, Image } from 'react-native';
 import { pose, PoseName } from '../data/poses';
+import { PoseImage } from './PoseImage';
 
 // Реакція Гріндіка на відповідь: вискакує пружинкою, на помилці ще й хитає головою.
 // Рівень азарту росте з комбо (vision: "рівень позитивності росте при серії правильних відповідей"),
@@ -67,7 +68,7 @@ export function Reaction({ kind, size = 64 }: { kind: ReactionKind; size?: numbe
         ],
       }}
     >
-      <Image source={p.src} style={{ width: size * p.ratio, height: size }} resizeMode="contain" />
+      <PoseImage p={p} width={size * p.ratio} height={size} />
     </Animated.View>
   );
 }

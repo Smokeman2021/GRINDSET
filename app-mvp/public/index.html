@@ -9,6 +9,13 @@
     <meta name="color-scheme" content="dark light" />
     <meta name="robots" content="noindex, nofollow" />
     <title>GRINDSET</title>
+    <!-- Telegram Mini App: скрипт підтягуємо ЛИШЕ коли застосунок відкрито з Telegram (у hash є tgWebAppData / клієнт Telegram).
+         У звичайному браузері зовнішній скрипт не вантажиться. Синхронно, до основного бандла, щоб Telegram.WebApp був готовий. -->
+    <script>
+      if (/tgWebApp(Data|Version|Platform)/.test(location.hash + location.search) || /Telegram/i.test(navigator.userAgent)) {
+        document.write('<script src="https://telegram.org/js/telegram-web-app.js"><\/script>');
+      }
+    </script>
     <style id="expo-reset">
       /* Суцільний темний фон на всю висоту й ширину: без білої рамки навколо колонки на десктопі й під адресним рядком.
          Колір під поточну тему далі виставляє застосунок (_layout.tsx, useWebChrome). */
@@ -27,6 +34,7 @@
         display: flex;
         height: 100vh;
         height: 100dvh;
+        height: var(--tg-viewport-height, 100dvh); /* у Telegram висоту дає сам клієнт */
         flex: 1;
       }
     </style>

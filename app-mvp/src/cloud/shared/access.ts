@@ -130,7 +130,7 @@ export function chooseProgress(opts: {
 // ───────── Рейтинг точності ─────────
 // Правила дзеркалять SQL-функцію leaderboard_accuracy (supabase/migrations/0003_accuracy_leaderboard.sql):
 // лише status = active, без адмінів, мінімум MIN_RATED_ANSWERS відповідей; вище точність, при рівності вище більше відповідей.
-export const MIN_RATED_ANSWERS = 30;
+export const MIN_RATED_ANSWERS = 10; // рішення автора 2026-11: поріг 10 відповідей (було 30)
 
 export type BoardInput = { name: string; status: string; isAdmin: boolean; correct: number; total: number; isMe?: boolean };
 export type BoardRow = { name: string; accuracy: number; answers: number; isMe: boolean };

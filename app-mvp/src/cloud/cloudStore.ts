@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { getBackend } from './backend';
 import { CLOUD_MODE } from './config';
 import { startProgressSync, stopProgressSync } from './progressSync';
+import { telegramInitData } from '../telegram/webapp';
 import type { CloudMode, CloudUser, LoginFailure, LoginInput } from './types';
 
 // off — хмара вимкнена (застосунок без входу); loading — перевіряємо сеанс; signedOut — потрібен вхід;
@@ -66,7 +67,8 @@ export const useCloud = create<CloudState>((set, get) => {
       const backend = getBackend();
       if (!backend) return;
       set({ status: 'loading', reason: null, detail: null });
-      const res = await backend.login(input);
+      // у Mini App підписуємо вхід initData Telegram (привʼязка й вхід без коду)
+      const res = await backend.login({ ...input, initData: input.initData ?? (telegramInitData() || undefined) });
       if (res.ok) return enter(res.user);
       set({
         status: DENIED.includes(res.reason) ? 'denied' : 'signedOut',

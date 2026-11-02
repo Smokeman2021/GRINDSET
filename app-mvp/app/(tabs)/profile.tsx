@@ -26,6 +26,7 @@ import { SHOW_BUILD, UI_BUILD, loadedAtLabel } from '../../src/version';
 import { CLOUD_MODE } from '../../src/cloud/config';
 import { useCloud } from '../../src/cloud/cloudStore';
 import { FeedbackSheet } from '../../src/components/FeedbackSheet';
+import { CharacterView } from '../../src/components/CharacterView';
 
 function lessonTitle(id: string): string {
   if (id === 'mistakes') return 'Надолуження помилок';
@@ -195,6 +196,15 @@ export default function Profile() {
           <StatBox label="Скринь золота" value={`${stats.crowns} 💰`} />
           <StatBox label="Засвоєно міцно" value={String(masteredCount(s.srs))} />
         </View>
+
+        <Text style={styles.h}>МІЙ ПЕРСОНАЖ</Text>
+        <Pressable onPress={() => router.push('/character')} style={styles.fbCard}>
+          <CharacterView config={s.character} height={96} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.fbTitle}>Конструктор персонажа</Text>
+            <Text style={styles.fbSub}>Обери основу й образ. Зберігається в профілі й підтягується на іншому пристрої.</Text>
+          </View>
+        </Pressable>
 
         <Text style={styles.h}>НАДОЛУЖЕННЯ ПОМИЛОК</Text>
         <Pressable

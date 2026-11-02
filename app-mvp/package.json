@@ -8,7 +8,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "test:cloud": "node --no-warnings --test ../supabase/tests/*.test.ts"
+    "test:cloud": "node --no-warnings --test ../supabase/tests/*.test.ts",
+    "art:build": "node ../scripts/optimize-art.mjs"
   },
   "dependencies": {
     "@expo/metro-runtime": "~57.0.16",
@@ -37,6 +38,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.14",
+    "sharp": "^0.35.5",
     "typescript": "~6.0.3"
   },
   "private": true
