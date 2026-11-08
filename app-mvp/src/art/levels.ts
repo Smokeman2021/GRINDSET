@@ -73,10 +73,10 @@ export type TravelMode = 'walk' | 'marshrutka' | 'metro' | 'car_old' | 'car_mid'
 export type Act = { n: 1 | 2 | 3 | 4; title: string; sub: string; modules: number[]; home: ArtKey; transport: TravelMode[]; troll: string[] };
 
 export const ACTS: Act[] = [
-  { n: 1, title: 'Околиця', sub: 'Кімната, двір, маршрутка', modules: [1, 2, 3], home: 'worlds/acts/act1_room_b', transport: ['marshrutka', 'metro', 'walk'], troll: ['Ще вчора ти їхав у маршрутці стоячи. Звикай.', 'Метро, пішки, знову метро. Романтика бідності майже закінчилась.'] },
-  { n: 2, title: 'Перші гроші', sub: 'Коворкінг, банк, стара тачка', modules: [4, 5], home: 'worlds/acts/act2_coworking', transport: ['car_old'], troll: ['Тачка стара, але своя. Перший акт позаду, не розслабляйся.', 'Маршрутку здав у архів. Тепер ти «людина з машиною».'] },
-  { n: 3, title: 'Свій рух', sub: 'Квартира, ТЦ, дах, авто', modules: [6, 7, 8], home: 'worlds/acts/act3_apartment', transport: ['car_mid'], troll: ['Квартира з видом. Тільки не став мультимонітор «для вигляду».', 'Нове авто. Бюджети теж ростуть? Перевір, перш ніж хвалитись.'] },
-  { n: 4, title: 'Печерськ', sub: 'Пентхаус, люкс', modules: [9, 10], home: 'worlds/acts/act4_lux', transport: ['car_lux'], troll: ['Люкс і Печерськ. Пам\'ятаєш кімнату на околиці? Я пам\'ятаю.', 'Тепер ти на набережній у костюмі. Але трекер сам себе не налаштує.'] },
+  { n: 1, title: 'Околиця', sub: 'Кімната, двір, маршрутка', modules: [1, 2, 3], home: 'worlds/acts/act1_room_b', transport: ['marshrutka', 'metro', 'walk'], troll: ['Йо. Почнемо з маршрутки, без води. Усі звідси починали, і я теж.', 'Метро, пішки, знову метро. Нічого, друже: цифри важливіші за комфорт.'] },
+  { n: 2, title: 'Перші гроші', sub: 'Коворкінг, банк, стара тачка', modules: [4, 5], home: 'worlds/acts/act2_coworking', transport: ['car_old'], troll: ['Тачка стара, зате своя. Мій сенсей казав: «Спершу цифри, потім емоції». Тримайся цього, колего.', 'Маршрутку здав в архів. Бачу, голова працює. Тільки не поспішай: товарка любить тих, хто рахує.'] },
+  { n: 3, title: 'Свій рух', sub: 'Квартира, ТЦ, дах, авто', modules: [6, 7, 8], home: 'worlds/acts/act3_apartment', transport: ['car_mid'], troll: ['Квартира з видом, друже. Платформа знову щось «покращила», тож тримай запас у бюджеті.', 'Нове авто. Ну, це сміливий вибір для бюджету. Рахуй, перш ніж хвалитись.'] },
+  { n: 4, title: 'Печерськ', sub: 'Пентхаус, люкс', modules: [9, 10], home: 'worlds/acts/act4_lux', transport: ['car_lux'], troll: ['Печерськ. Пам\'ятаєш кімнату на околиці? Я теж. От за це я тебе й поважаю: не вгадав, а подумав.', 'Люкс люксом, а трекер сам себе не налаштує. Без води: дивись цифри.'] },
 ];
 
 export const actOfModule = (moduleNo: number): Act => ACTS.find((a) => a.modules.includes(moduleNo)) ?? ACTS[0];
