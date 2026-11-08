@@ -90,7 +90,11 @@ export type ArtKey =
   | 'worlds/weather/cafe_day'
   | 'worlds/weather/cafe_night'
   | 'worlds/weather/cafe_rain'
-  | 'worlds/weather/cafe_snow';
+  | 'worlds/weather/cafe_snow'
+  | 'cutout/transport/car_lux'
+  | 'cutout/transport/car_mid'
+  | 'cutout/transport/car_old'
+  | 'cutout/transport/marshrutka';
 
 export const ART_MANIFEST: Record<ArtKey, { src: number; w: number; h: number }> = {
   'cutout/archetypes/f_reg': { src: require('../../assets/art-v2-opt/cutout/archetypes/f_reg.webp'), w: 388, h: 1099 },
@@ -183,6 +187,10 @@ export const ART_MANIFEST: Record<ArtKey, { src: number; w: number; h: number }>
   'worlds/weather/cafe_night': { src: require('../../assets/art-v2-opt/worlds/weather/cafe_night.webp'), w: 1216, h: 832 },
   'worlds/weather/cafe_rain': { src: require('../../assets/art-v2-opt/worlds/weather/cafe_rain.webp'), w: 1216, h: 832 },
   'worlds/weather/cafe_snow': { src: require('../../assets/art-v2-opt/worlds/weather/cafe_snow.webp'), w: 1216, h: 832 },
+  'cutout/transport/car_lux': { src: require('../../assets/art-v2-opt/cutout/transport/car_lux.webp'), w: 900, h: 250 },
+  'cutout/transport/car_mid': { src: require('../../assets/art-v2-opt/cutout/transport/car_mid.webp'), w: 900, h: 300 },
+  'cutout/transport/car_old': { src: require('../../assets/art-v2-opt/cutout/transport/car_old.webp'), w: 900, h: 338 },
+  'cutout/transport/marshrutka': { src: require('../../assets/art-v2-opt/cutout/transport/marshrutka.webp'), w: 900, h: 411 },
 };
 
 // Центр обличчя у прозорих фігур (частки зображення) для круглих портретів: x, y центр, span частка висоти, що видно в колі

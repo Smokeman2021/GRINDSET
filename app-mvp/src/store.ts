@@ -33,6 +33,8 @@ type State = {
   lang: Lang; // мова інтерфейсу; контент уроків поки завжди українською
   theme: 'night' | 'day' | 'auto'; // нічний (темний), денний (світлий) або за темою пристрою
   character: CharacterConfig | null; // конструктор персонажа (арт v2); синхронізується з прогресом на сервері
+  worldPos: string | null; // на якій площадці карти-світу стоїть Гріндік (id уроку/скрині): щоб після уроку він ПІШОВ до наступної
+  worldModule: number | null; // у якому модулі гравця востаннє бачили на карті (індекс); null = ще не бачили
   sceneMode: SceneMode; // погода/час у сценах: auto = реальна погода Києва + час доби, off = вимкнено, решта = ручне демо
   playerName: string;
   playerPhoto: string | null; // фото гравця (uri / data-uri); поки null — плейсхолдер з ініціалом
@@ -129,6 +131,8 @@ type State = {
   setTheme: (theme: 'night' | 'day' | 'auto') => void;
   setCharacter: (c: CharacterConfig) => void;
   setSceneMode: (m: SceneMode) => void;
+  setWorldPos: (id: string | null) => void;
+  setWorldModule: (i: number) => void;
   setSoundEnabled: (v: boolean) => void;
   setDailyGoal: (goal: DailyGoal) => void;
   setStrictEnergy: (v: boolean) => void;
@@ -294,6 +298,8 @@ const FRESH = {
   theme: 'night' as 'night' | 'day' | 'auto',
   character: null as CharacterConfig | null,
   sceneMode: 'auto' as SceneMode,
+  worldPos: null as string | null,
+  worldModule: null as number | null,
   playerName: '',
   playerPhoto: null,
   archetype: null as ArchetypeId | null,
@@ -412,6 +418,8 @@ export const useStore = create<State>()(
       setTheme: (theme) => set({ theme }),
       setCharacter: (character) => set({ character }),
       setSceneMode: (sceneMode) => set({ sceneMode }),
+      setWorldPos: (worldPos) => set({ worldPos }),
+      setWorldModule: (worldModule) => set({ worldModule }),
 
       setSoundEnabled: (v) => set({ soundEnabled: v }),
 

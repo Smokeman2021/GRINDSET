@@ -124,7 +124,7 @@ export function LevelSplash({ scene, kicker, title, task, onStart, onExit }: { s
 }
 
 // Пігулки показників на напівпрозорому темному блюрі (лише дрібні HUD-елементи темні, картки поверх арту світлі)
-function Hud() {
+export function Hud() {
   const streak = useStore((s) => s.streak);
   const xp = useStore((s) => s.xp);
   const coins = useStore((s) => s.coins);

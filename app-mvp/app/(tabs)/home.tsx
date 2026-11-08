@@ -14,6 +14,8 @@ import Svg, { Path } from 'react-native-svg';
 import { PathNode, NodeKind } from '../../src/components/PathNode';
 import { PoseImage } from '../../src/components/PoseImage';
 import { PathBackdrop } from '../../src/art/PathBackdrop';
+import { WorldMap } from '../../src/art/WorldMap';
+import { WORLD_MAP } from '../../src/flags';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Lesson } from '../../src/data/lessons';
@@ -230,6 +232,23 @@ export default function Home() {
     }
     return d;
   };
+
+  // Нова карта: світ-подорож замість ланцюга вузлів (стара лишається за прапором EXPO_PUBLIC_WORLD_MAP=false)
+  if (WORLD_MAP) {
+    return (
+      <WorldMap
+        completed={completed}
+        onOpen={open}
+        talk={talk}
+        onTalk={() => setTalk(homeSay({ daysAway: 0, energy, goalDone: xpToday >= goalTarget, fresh: false }))}
+        goal={{ xp: xpToday, target: goalTarget, label: GOAL_LABEL[dailyGoal] }}
+        claimable={claimable}
+        dueCount={dueCount}
+        offerAdapt={offerAdapt}
+        onDismissAdapt={dismissAdapt}
+      />
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>

@@ -87,6 +87,79 @@ for (const f of files) {
   entries.push({ key, w: info.width, h: info.height, alpha: !!meta.hasAlpha, face });
 }
 
+// Транспорт (worlds/transport) це машини на однотонному темному студійному фоні. Для сцени «в дорозі» вирізаємо їх у прозорі cutout/transport/*:
+// заливка від країв кадру по гладкому фону (сусід близький до батьківського пікселя й до середнього кольору кутів), зупиняється на контурі машини.
+async function transportCutout(f) {
+  const name = path.basename(f, path.extname(f));
+  const key = `cutout/transport/${name}`;
+  const dest = path.join(OUT, `${key}.webp`);
+  fs.mkdirSync(path.dirname(dest), { recursive: true });
+  const { data, info } = await sharp(path.join(SRC, f)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const { width: W, height: H } = info;
+  const px = (i) => [data[i * 4], data[i * 4 + 1], data[i * 4 + 2]];
+  const corners = [0, W - 1, (H - 1) * W, H * W - 1].map(px);
+  const bg = [0, 1, 2].map((k) => corners.reduce((s, c) => s + c[k], 0) / 4);
+  const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+  const seen = new Uint8Array(W * H);
+  const stack = [];
+  const push = (x, y, from) => {
+    if (x < 0 || y < 0 || x >= W || y >= H) return;
+    const i = y * W + x;
+    if (seen[i]) return;
+    const c = px(i);
+    if (dist(c, bg) > 52 || (from && dist(c, from) > 7)) return;
+    seen[i] = 1;
+    stack.push(i);
+  };
+  for (let x = 0; x < W; x++) { push(x, 0, null); push(x, H - 1, null); }
+  for (let y = 0; y < H; y++) { push(0, y, null); push(W - 1, y, null); }
+  while (stack.length) {
+    const i = stack.pop();
+    const x = i % W;
+    const y = (i - x) / W;
+    const c = px(i);
+    push(x + 1, y, c); push(x - 1, y, c); push(x, y + 1, c); push(x, y - 1, c);
+  }
+  // розширюємо вирізану область на 2 px, щоб не лишався ореол фону на краях машини
+  const cut = new Uint8Array(seen);
+  for (let pass = 0; pass < 2; pass++) {
+    const nxt = new Uint8Array(cut);
+    for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) { const i = y * W + x; if (!cut[i] && (cut[i - 1] || cut[i + 1] || cut[i - W] || cut[i + W])) nxt[i] = 1; }
+    cut.set(nxt);
+  }
+  // лишаємо лише найбільшу зв'язну компоненту машини (дрібні плями фону/тіні відпадають)
+  const label = new Int32Array(W * H);
+  let best = 0;
+  let bestSize = 0;
+  let nextLabel = 0;
+  for (let s0 = 0; s0 < W * H; s0++) {
+    if (cut[s0] || label[s0]) continue;
+    nextLabel++;
+    let size = 0;
+    const st = [s0];
+    label[s0] = nextLabel;
+    while (st.length) {
+      const i = st.pop();
+      size++;
+      const x = i % W;
+      for (const j of [x + 1 < W ? i + 1 : -1, x > 0 ? i - 1 : -1, i + W, i - W]) if (j >= 0 && j < W * H && !cut[j] && !label[j]) { label[j] = nextLabel; st.push(j); }
+    }
+    if (size > bestSize) { bestSize = size; best = nextLabel; }
+  }
+  for (let i = 0; i < W * H; i++) cut[i] = label[i] === best ? 0 : 1;
+  // силует по рядках: між крайніми точками машини все її (вікна й просвіти під кузовом не стають дірками)
+  for (let y = 0; y < H; y++) {
+    let a = -1;
+    let b = -1;
+    for (let x = 0; x < W; x++) if (!cut[y * W + x]) { if (a < 0) a = x; b = x; }
+    if (a >= 0) for (let x = a; x <= b; x++) cut[y * W + x] = 0;
+  }
+  for (let i = 0; i < W * H; i++) if (cut[i]) data[i * 4 + 3] = 0;
+  const out = await sharp(data, { raw: { width: W, height: H, channels: 4 } }).trim({ threshold: 0 }).resize({ width: 900, withoutEnlargement: true }).webp({ quality: 88, alphaQuality: 92, effort: 5 }).toFile(dest);
+  entries.push({ key, w: out.width, h: out.height, alpha: true, face: null });
+}
+for (const f of files) if (/^worlds\/transport\//.test(f)) await transportCutout(f);
+
 const lines = entries.map((e) => `  '${e.key}': { src: require('../../assets/art-v2-opt/${e.key}.webp'), w: ${e.w}, h: ${e.h} },`);
 const faces = entries.filter((e) => e.face).map((e) => `  '${e.key}': { x: ${e.face.x}, y: ${e.face.y}, span: ${e.face.span} },`);
 const ts = `// ЗГЕНЕРОВАНО скриптом scripts/optimize-art.mjs (npm run art:build). Не редагувати вручну.

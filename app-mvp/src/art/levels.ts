@@ -32,3 +32,11 @@ export function levelOf(lessonId: string, modules: { lessons: { id: string }[]; 
   const i = modules.findIndex((m) => m.lessons.some((l) => l.id === lessonId) || m.checkpoint.id === lessonId || m.quizzes.some((q) => q.id === lessonId));
   return i < 0 ? null : i + 1;
 }
+
+// Висота «підлоги» (де стоять площадки й Гріндік) у частках висоти плити, за номером модуля
+export const FLOOR_Y: Record<number, number> = { 1: 0.72, 2: 0.74, 3: 0.7, 4: 0.74, 5: 0.75, 6: 0.72, 7: 0.76, 8: 0.86, 9: 0.68, 10: 0.75 };
+
+// Чим їдемо В модуль N (ключ = номер модуля, до якого їдемо). Прогрес = достаток: маршрутка → метро → старе авто → своє авто → люкс.
+export type TravelMode = 'marshrutka' | 'metro' | 'car_old' | 'car_mid' | 'car_lux';
+export const TRAVEL_TO: Record<number, TravelMode> = { 2: 'marshrutka', 3: 'metro', 4: 'marshrutka', 5: 'car_old', 6: 'car_old', 7: 'car_mid', 8: 'car_mid', 9: 'car_lux', 10: 'car_lux' };
+export const TRAVEL_LABEL: Record<TravelMode, string> = { marshrutka: 'Маршрутка', metro: 'Метро', car_old: 'Стара тачка', car_mid: 'Своє авто', car_lux: 'Люкс' };
