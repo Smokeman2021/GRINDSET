@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useIsFocused } from 'expo-router';
+import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { useStore } from '../store';
 import { forecastUrl, grade, parseForecast, resolveScene, type SceneState, type SceneWeather } from './weatherLogic';
 
@@ -47,13 +48,28 @@ export function useSceneState(): SceneState {
   return useMemo(() => resolveScene(mode, real, now), [mode, real, now]);
 }
 
+// М'яке радіальне затемнення країв уночі (раніше була жорстка рамка borderWidth, що малювала видимий прямокутник)
+function NightVignette() {
+  return (
+    <Svg width="100%" height="100%" preserveAspectRatio="none" style={StyleSheet.absoluteFill}>
+      <Defs>
+        <RadialGradient id="nvig" cx="50%" cy="50%" r="75%">
+          <Stop offset="0.55" stopColor="#000" stopOpacity={0} />
+          <Stop offset="1" stopColor="#000" stopOpacity={0.3} />
+        </RadialGradient>
+      </Defs>
+      <Rect x="0" y="0" width="100%" height="100%" fill="url(#nvig)" />
+    </Svg>
+  );
+}
+
 // ───────── Рендер: колір-корекція + частинки ─────────
 export function WeatherOverlay({ state }: { state: SceneState }) {
   const g = grade(state);
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       {g && <View style={[StyleSheet.absoluteFill, { backgroundColor: g.tint, opacity: g.opacity }]} />}
-      {state?.part === 'night' && <View style={[StyleSheet.absoluteFill, styles.vignette]} />}
+      {state?.part === 'night' && <NightVignette />}
       {state?.weather === 'fog' && <Fog />}
       {state?.weather === 'rain' && <Particles kind="rain" count={34} />}
       {state?.weather === 'snow' && <Particles kind="snow" count={30} />}

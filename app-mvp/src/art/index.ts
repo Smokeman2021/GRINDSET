@@ -17,7 +17,9 @@ export const artFace = (key: ArtKey) => ART_FACE[key] ?? null;
 // Android цього не вміє (там фігура без тіні). strength 0..1: для маленьких фігур тінь легша.
 export function figureShadow(strength = 1): ImageStyle {
   if (Platform.OS === 'web') {
-    return { filter: `drop-shadow(0px ${Math.round(18 * strength)}px ${Math.round(22 * strength)}px rgba(0,0,0,0.55))` } as unknown as ImageStyle;
+    // Веб: CSS drop-shadow на <img> RN-web малює темний ПРЯМОКУТНИК навколо прозорої фігури (перевірено скріншотами), тому тінь тут вимкнено;
+    // фігури в сценах «заземлюються» контактною тінню-еліпсом під ногами (StopScene).
+    return {};
   }
   return { shadowColor: '#000', shadowOpacity: 0.5 * strength, shadowRadius: 14 * strength, shadowOffset: { width: 0, height: 12 * strength } };
 }

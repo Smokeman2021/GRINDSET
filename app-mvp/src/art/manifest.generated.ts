@@ -94,7 +94,9 @@ export type ArtKey =
   | 'cutout/transport/car_lux'
   | 'cutout/transport/car_mid'
   | 'cutout/transport/car_old'
-  | 'cutout/transport/marshrutka';
+  | 'cutout/transport/marshrutka'
+  | 'cutout/objects/chest_closed'
+  | 'cutout/objects/chest_open';
 
 export const ART_MANIFEST: Record<ArtKey, { src: number; w: number; h: number }> = {
   'cutout/archetypes/f_reg': { src: require('../../assets/art-v2-opt/cutout/archetypes/f_reg.webp'), w: 388, h: 1099 },
@@ -191,6 +193,8 @@ export const ART_MANIFEST: Record<ArtKey, { src: number; w: number; h: number }>
   'cutout/transport/car_mid': { src: require('../../assets/art-v2-opt/cutout/transport/car_mid.webp'), w: 900, h: 300 },
   'cutout/transport/car_old': { src: require('../../assets/art-v2-opt/cutout/transport/car_old.webp'), w: 900, h: 338 },
   'cutout/transport/marshrutka': { src: require('../../assets/art-v2-opt/cutout/transport/marshrutka.webp'), w: 900, h: 411 },
+  'cutout/objects/chest_closed': { src: require('../../assets/art-v2-opt/cutout/objects/chest_closed.webp'), w: 707, h: 574 },
+  'cutout/objects/chest_open': { src: require('../../assets/art-v2-opt/cutout/objects/chest_open.webp'), w: 637, h: 657 },
 };
 
 // Центр обличчя у прозорих фігур (частки зображення) для круглих портретів: x, y центр, span частка висоти, що видно в колі

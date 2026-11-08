@@ -89,9 +89,9 @@ for (const f of files) {
 
 // Транспорт (worlds/transport) це машини на однотонному темному студійному фоні. Для сцени «в дорозі» вирізаємо їх у прозорі cutout/transport/*:
 // заливка від країв кадру по гладкому фону (сусід близький до батьківського пікселя й до середнього кольору кутів), зупиняється на контурі машини.
-async function transportCutout(f) {
+async function transportCutout(f, keyOverride) {
   const name = path.basename(f, path.extname(f));
-  const key = `cutout/transport/${name}`;
+  const key = keyOverride ?? `cutout/transport/${name}`;
   const dest = path.join(OUT, `${key}.webp`);
   fs.mkdirSync(path.dirname(dest), { recursive: true });
   const { data, info } = await sharp(path.join(SRC, f)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
@@ -159,6 +159,8 @@ async function transportCutout(f) {
   entries.push({ key, w: out.width, h: out.height, alpha: true, face: null });
 }
 for (const f of files) if (/^worlds\/transport\//.test(f)) await transportCutout(f);
+// Скриня золота (fx/objects/chest_*) теж лежить на суцільному фоні: вирізаємо в cutout/objects/*, щоб стояла в сцені без прямокутника
+for (const f of files) if (/^fx\/objects\/chest_/.test(f)) await transportCutout(f, `cutout/objects/${path.basename(f, path.extname(f))}`);
 
 const lines = entries.map((e) => `  '${e.key}': { src: require('../../assets/art-v2-opt/${e.key}.webp'), w: ${e.w}, h: ${e.h} },`);
 const faces = entries.filter((e) => e.face).map((e) => `  '${e.key}': { x: ${e.face.x}, y: ${e.face.y}, span: ${e.face.span} },`);

@@ -33,8 +33,9 @@ type State = {
   lang: Lang; // мова інтерфейсу; контент уроків поки завжди українською
   theme: 'night' | 'day' | 'auto'; // нічний (темний), денний (світлий) або за темою пристрою
   character: CharacterConfig | null; // конструктор персонажа (арт v2); синхронізується з прогресом на сервері
-  worldPos: string | null; // на якій площадці карти-світу стоїть Гріндік (id уроку/скрині): щоб після уроку він ПІШОВ до наступної
-  worldModule: number | null; // у якому модулі гравця востаннє бачили на карті (індекс); null = ще не бачили
+  journeyStop: number | null; // індекс зупинки (PATH), де гравець фізично зараз у Києві; null = ще не бачили
+  journeyXp: number; // XP на момент останнього приїзду (різниця = що «капає» під час переїзду)
+  journeyCoins: number;
   sceneMode: SceneMode; // погода/час у сценах: auto = реальна погода Києва + час доби, off = вимкнено, решта = ручне демо
   playerName: string;
   playerPhoto: string | null; // фото гравця (uri / data-uri); поки null — плейсхолдер з ініціалом
@@ -131,8 +132,7 @@ type State = {
   setTheme: (theme: 'night' | 'day' | 'auto') => void;
   setCharacter: (c: CharacterConfig) => void;
   setSceneMode: (m: SceneMode) => void;
-  setWorldPos: (id: string | null) => void;
-  setWorldModule: (i: number) => void;
+  arriveAt: (stop: number, xp: number, coins: number) => void;
   setSoundEnabled: (v: boolean) => void;
   setDailyGoal: (goal: DailyGoal) => void;
   setStrictEnergy: (v: boolean) => void;
@@ -298,8 +298,9 @@ const FRESH = {
   theme: 'night' as 'night' | 'day' | 'auto',
   character: null as CharacterConfig | null,
   sceneMode: 'auto' as SceneMode,
-  worldPos: null as string | null,
-  worldModule: null as number | null,
+  journeyStop: null as number | null,
+  journeyXp: 0,
+  journeyCoins: 0,
   playerName: '',
   playerPhoto: null,
   archetype: null as ArchetypeId | null,
@@ -418,8 +419,7 @@ export const useStore = create<State>()(
       setTheme: (theme) => set({ theme }),
       setCharacter: (character) => set({ character }),
       setSceneMode: (sceneMode) => set({ sceneMode }),
-      setWorldPos: (worldPos) => set({ worldPos }),
-      setWorldModule: (worldModule) => set({ worldModule }),
+      arriveAt: (journeyStop, journeyXp, journeyCoins) => set({ journeyStop, journeyXp, journeyCoins }),
 
       setSoundEnabled: (v) => set({ soundEnabled: v }),
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Image, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Animated, Image, Platform, View, type StyleProp, type ViewStyle } from 'react-native';
 import { FILL_IMG, figureShadow } from '../art';
 import type { PoseFile } from '../data/poses';
 
@@ -19,10 +19,13 @@ export function PoseImage({ p, height, width, fill, shadow = 1, style }: { p: Po
   }, [p.src, fade]);
 
   const sh = shadow > 0 ? figureShadow(shadow) : undefined;
+  // Веб: CSS drop-shadow на самих <img> малює прямокутник навколо фігури (прихований <img> RN-web) → тінь вішаємо на контейнер, вона йде за альфою композиту
+  const webSh = Platform.OS === 'web' ? (sh as unknown as ViewStyle) : undefined;
+  const imgSh = Platform.OS === 'web' ? undefined : sh;
   return (
-    <View style={[fill ? { flex: 1, width: '100%' } : { width: w, height }, style]}>
-      {prev != null && <Image source={prev} style={[FILL_IMG, sh]} resizeMode="contain" />}
-      <Animated.Image source={p.src} style={[FILL_IMG, sh, { opacity: fade }]} resizeMode="contain" />
+    <View style={[fill ? { flex: 1, width: '100%' } : { width: w, height }, webSh, style]}>
+      {prev != null && <Image source={prev} style={[FILL_IMG, imgSh]} resizeMode="contain" />}
+      <Animated.Image source={p.src} style={[FILL_IMG, imgSh, { opacity: fade }]} resizeMode="contain" />
     </View>
   );
 }

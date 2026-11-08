@@ -21,8 +21,6 @@ import { Watermark } from '../../src/components/Watermark';
 import { FeedbackSheet } from '../../src/components/FeedbackSheet';
 import { CLOUD_MODE } from '../../src/cloud/config';
 import { track } from '../../src/cloud/analytics';
-import { LevelSplash } from '../../src/art/LevelSplash';
-import { LEVEL_SCENES, levelOf } from '../../src/art/levels';
 import { haptic, useTgMainButton } from '../../src/telegram/webapp';
 import { BundleStep, MatchStep, MultiStep, NumericStep, OrderStep, StoryStep } from '../../src/components/steps';
 
@@ -88,7 +86,6 @@ export default function LessonScreen() {
 
   const [idx, setIdx] = useState(0);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [splashDone, setSplashDone] = useState(false); // заставка рівня перед першим уроком модуля
   const [selected, setSelected] = useState<number | null>(null);
   const [extCorrect, setExtCorrect] = useState<boolean | null>(null); // результат завдань з власним інтерфейсом
   const [answered, setAnswered] = useState(false);
@@ -153,18 +150,10 @@ export default function LessonScreen() {
   const canContinue = isTeach || isReflect || answered;
   const needsCheck = isChoiceLike && !answered;
 
-  // Екран-сцена перед кожним звичайним уроком модуля (не квіз, не скриня золота, не надолуження/тренування/діагностика)
-  const levelNo = levelOf(lsn.id, MODULES);
-  const splashScene = !virtual && !isDiagnostic && !lsn.kind && levelNo ? LEVEL_SCENES[levelNo] ?? null : null;
-
   // У Telegram головна кнопка екрана це MainButton Telegram (власну тоді ховаємо)
   const mainTitle = isTeach ? (isQuiz && idx === 0 ? 'Старт' : 'Зрозумів') : needsCheck ? 'Перевірити' : idx + 1 >= total ? 'Завершити' : 'Далі';
   const mainDisabled = needsCheck ? selected === null : !canContinue;
-  const tgMain = useTgMainButton({ text: mainTitle, onPress: needsCheck ? onCheck : onContinue, enabled: !mainDisabled, visible: splashDone || !splashScene });
-
-  if (splashScene && !splashDone && levelNo) {
-    return <LevelSplash scene={splashScene} kicker={`Модуль ${String(levelNo).padStart(2, '0')} · урок ${lsn.code}`} title={splashScene.title} task={lsn.title} onStart={() => setSplashDone(true)} onExit={() => router.replace('/home')} />;
-  }
+  const tgMain = useTgMainButton({ text: mainTitle, onPress: needsCheck ? onCheck : onContinue, enabled: !mainDisabled, visible: true });
 
   function refFor(i: number) {
     return virtual ? virtual.refs[i] : { lessonId: id, idx: i };
