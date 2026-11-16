@@ -130,6 +130,20 @@ export function StopScene(p: StopSceneProps) {
           <Animated.View style={{ position: 'absolute', left, top: 0, width: plateW, height: SH, transform: [{ translateX: sceneShift }] }}>
             <Image source={plate.src} style={{ position: 'absolute', left: 0, top, width: plateW, height: plateH }} resizeMode="stretch" />
 
+            {/* dev: сітка плити (?grid=1) для звірки горизонту/ступень/зросту; у продакшні не рендериться */}
+            {__DEV__ && Platform.OS === 'web' && typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('grid') === '1' && (
+              <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+                {[0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9].map((f) => (
+                  <View key={f} style={{ position: 'absolute', left: 0, right: 0, top: top + f * plateH, height: 1, backgroundColor: f === 0.5 ? '#ff0' : 'rgba(255,0,255,0.7)' }}>
+                    <Text style={{ position: 'absolute', left: 2, top: -11, fontSize: 10, color: '#fff', backgroundColor: 'rgba(0,0,0,0.6)' }}>{f.toFixed(2)}</Text>
+                  </View>
+                ))}
+                {[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9].map((f) => (
+                  <View key={f} style={{ position: 'absolute', top: 0, bottom: 0, left: f * plateW, width: 1, backgroundColor: 'rgba(0,255,255,0.5)' }} />
+                ))}
+              </View>
+            )}
+
             {/* квіз-NPC на підлозі поруч */}
             {pending && !stop.isChest && (
               <Pressable onPress={() => p.onQuiz(pending.id)} style={{ position: 'absolute', left: npcX - (npcH * npc.ratio) / 2, top: fy - npcH * 0.985, width: npcH * npc.ratio, height: npcH }} accessibilityLabel={`Квіз на час: ${pending.title}`}>
