@@ -16,6 +16,8 @@ import { FRESH_STATS, POINTS_PER_LEVEL, StatAlloc, StatId, STAT_MAX } from './da
 import type { EquipSlot } from './data/equipment';
 import type { Lang } from './i18n/strings';
 import { setContentLang } from './data/modules';
+import { emitOp } from './cloud/opBus';
+import { newOpId } from './cloud/shared/progressOps';
 
 export type CharStart = 'caveman' | 'sapiens' | 'early';
 export type DailyGoal = 'casual' | 'regular' | 'intense';
@@ -144,7 +146,7 @@ type State = {
     coinsEarned: number,
     xpEarned: number,
     extra?: { correct: number; errors: number; doubled?: boolean; practiceOnly?: boolean; maxCombo?: number; isQuiz?: boolean }
-  ) => void;
+  ) => Promise<void>; // завершується, коли результат записано у сховище пристрою (екран результату чекає на це)
   recordAnswers: (results: AnswerResult[], opts?: { rated?: boolean }) => void;
   claimQuest: (id: string) => void;
   finishSim: (stars: number) => { coins: number; xp: number };
@@ -286,6 +288,11 @@ function energyPatch(s: State, now: number): Partial<State> {
 function questsRoll(s: State): Partial<State> {
   const today = todayStr();
   return s.questsDate === today ? {} : { questsDate: today, questProgress: {}, questsClaimed: [] };
+}
+
+// Енергія в серверному ядрі: клієнт рахує відновлення сам і повідомляє підсумок операцією
+function energyOp(s: { energy: number; energyAt: number }) {
+  void emitOp({ opId: newOpId('energy'), kind: 'energy', at: Date.now(), energy: s.energy, energyAt: Math.max(0, Math.round(s.energyAt)) });
 }
 
 function bump(p: Partial<Record<Metric, number>>, m: Metric, by: number, mode: 'add' | 'max' = 'add') {
@@ -435,7 +442,8 @@ export const useStore = create<State>()(
       setNotif: (p) => set(p),
 
       // Стрік тут лише згасає (якщо днів без уроку забагато); зараховується він у completeLesson
-      checkStreak: () =>
+      checkStreak: () => {
+        const energyBefore = get().energy;
         set((s) => {
           const today = todayStr();
           let patch: Partial<State> = {};
@@ -453,15 +461,21 @@ export const useStore = create<State>()(
           }
           const next = { ...s, ...patch } as State;
           return withAchievements(s, { ...patch, ...rolloverWeek(next), ...questsRoll(next), ...energyPatch(next, Date.now()) });
-        }),
+        });
+        if (get().energy !== energyBefore) energyOp(get());
+      },
 
-      refreshEnergy: () =>
+      refreshEnergy: () => {
+        const energyBefore = get().energy;
         set((s) => {
           const p = energyPatch(s, Date.now());
           return p.energy === s.energy && p.energyAt === s.energyAt && p.lastBonusDate === s.lastBonusDate ? {} : p;
-        }),
+        });
+        if (get().energy !== energyBefore) energyOp(get());
+      },
 
-      completeLesson: (id, coinsEarned, xpEarned, extra) =>
+      completeLesson: (id, coinsEarned, xpEarned, extra) => {
+        const freezesBefore = get().streakFreezes;
         set((s) => {
           const count = !extra?.practiceOnly;
           const completed = !count || s.completed.includes(id) ? s.completed : [...s.completed, id];
@@ -502,10 +516,26 @@ export const useStore = create<State>()(
             doubleCoins: extra?.doubled ? Math.max(0, s.doubleCoins - 1) : s.doubleCoins,
           };
           return withAchievements(s, patch);
-        }),
+        });
+        // операція для сервера: саме вона (а не готовий баланс) формує підсумковий стан; один урок нагороджується один раз
+        return emitOp({
+          opId: newOpId('lesson'),
+          kind: 'lesson',
+          at: Date.now(),
+          lessonId: id,
+          xp: Math.max(0, Math.round(xpEarned)),
+          coins: Math.max(0, Math.round(coinsEarned)),
+          doubled: !!extra?.doubled,
+          freezeUsed: get().streakFreezes < freezesBefore,
+          repeatable: !!extra?.practiceOnly,
+        });
+      },
 
       // Підсумок відповідей уроку: помилки потрапляють у «надолуження», правильні відповіді їх прибирають
-      recordAnswers: (results, opts) =>
+      recordAnswers: (results, opts) => {
+        if (opts?.rated !== false && results.length) {
+          void emitOp({ opId: newOpId('answers'), kind: 'answers', at: Date.now(), total: results.length, correct: results.filter((r) => r.ok).length });
+        }
         set((s) => {
           let mistakes = s.mistakes;
           let fixed = 0;
@@ -530,7 +560,8 @@ export const useStore = create<State>()(
               ? {}
               : { answersTotal: s.answersTotal + results.length, answersCorrect: s.answersCorrect + results.filter((r) => r.ok).length }),
           });
-        }),
+        });
+      },
 
       addCampaign: (c) => {
         const id = `c${Date.now().toString(36)}`;
@@ -595,6 +626,7 @@ export const useStore = create<State>()(
             history: [{ id: 'sim', date: new Date().toISOString(), correct: stars, errors: 0, xp, coins }, ...st.history].slice(0, 60),
           });
         });
+        void emitOp({ opId: newOpId('sim'), kind: 'sim', at: Date.now(), xp, coins });
         return { coins, xp };
       },
 
@@ -627,10 +659,15 @@ export const useStore = create<State>()(
             history: [{ id: 'adsim', date: new Date().toISOString(), correct: stars, errors: 0, xp, coins }, ...st.history].slice(0, 60),
           });
         });
+        void emitOp({ opId: newOpId('sim'), kind: 'sim', at: Date.now(), xp, coins });
         return { coins, xp };
       },
 
-      claimQuest: (id) =>
+      claimQuest: (id) => {
+        const s0 = get();
+        const day0 = questsRoll(s0).questsDate ?? s0.questsDate;
+        const def0 = questsForDay(day0).find((q) => q.id === id);
+        const had = s0.questsDate === day0 && s0.questsClaimed.includes(id);
         set((s) => {
           const q0 = questsRoll(s);
           const day = q0.questsDate ?? s.questsDate;
@@ -644,24 +681,31 @@ export const useStore = create<State>()(
             coins: s.coins + def.reward,
             totalCoinsEarned: s.totalCoinsEarned + def.reward,
           });
-        }),
+        });
+        // постійний opId на день і завдання: два пристрої однієї учётки не заберуть нагороду двічі
+        if (def0 && !had && get().questsClaimed.includes(id)) void emitOp({ opId: `quest:${day0}:${id}`, kind: 'quest', at: Date.now(), coins: def0.reward });
+      },
 
-      spendEnergy: (n) =>
+      spendEnergy: (n) => {
         set((s) => {
           const energy = Math.max(0, s.energy - n);
           // енергія почала витрачатись: відлік відновлення стартує звідси
           return { energy, energyAt: s.energy >= MAX_ENERGY ? Date.now() : s.energyAt };
-        }),
+        });
+        energyOp(get());
+      },
 
       useComboShield: () => {
         if (get().comboShields <= 0) return false;
         set((s) => ({ comboShields: s.comboShields - 1 }));
+        void emitOp({ opId: newOpId('use'), kind: 'use', at: Date.now(), item: 'shield' });
         return true;
       },
 
       useHint: () => {
         if (get().hints <= 0) return false;
         set((s) => ({ hints: s.hints - 1 }));
+        void emitOp({ opId: newOpId('use'), kind: 'use', at: Date.now(), item: 'hint' });
         return true;
       },
 
@@ -703,20 +747,23 @@ export const useStore = create<State>()(
         }
         if (!patch) return 'poor';
         set((st) => withAchievements(st, { ...patch, coins: st.coins - item.cost, purchases: st.purchases + 1 }));
+        void emitOp({ opId: newOpId('spend'), kind: 'spend', at: Date.now(), cost: item.cost, item: id });
         return 'ok';
       },
 
       equipFrame: (frame) => set((s) => (frame === 'green' || s.frames.includes(frame) ? { frame } : {})),
 
       // Діагностичний тест: skipTo = уроки, які вважаємо вже відомими (без нагороди)
-      finishDiagnostic: (perfect, skipTo) =>
+      finishDiagnostic: (perfect, skipTo) => {
         set((s) =>
           withAchievements(s, {
             diagnosticDone: true,
             goldenGlasses: s.goldenGlasses || (perfect && !s.diagnosticDone),
             completed: [...s.completed, ...skipTo.filter((id) => !s.completed.includes(id))],
           })
-        ),
+        );
+        if (skipTo.length) void emitOp({ opId: newOpId('skip'), kind: 'skip', at: Date.now(), lessons: skipTo });
+      },
 
       reset: () => set((s) => ({ ...FRESH, lang: s.lang, theme: s.theme })),
     }),

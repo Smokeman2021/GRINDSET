@@ -4,6 +4,8 @@ import test, { after, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { startDb } from './harness.ts';
 import type { Db, TestUser } from './harness.ts';
+import { coreOf, replay, simSave } from '../../app-mvp/src/cloud/shared/progressOps.ts';
+import type { Op } from '../../app-mvp/src/cloud/shared/progressOps.ts';
 
 type OpRes = { opId: string; status: string; duplicate: boolean };
 type Core = { completed: string[]; coins: number; xp: number; totalCoinsEarned: number; answersTotal: number; answersCorrect: number; energy: number; hints: number; purchases: number };
@@ -200,6 +202,41 @@ test('перевірки значень: відʼємні, дробові, за�
   assert.deepEqual(r.core.completed, []);
   const again = await v2(u, 0, [L('bad-1', 'l1', 10, 10)]); // той самий opId лишається відхиленим
   assert.deepEqual([again.ops[0].status, again.ops[0].duplicate], ['rejected_invalid', true]);
+});
+
+test('правила клієнта (applyOp) і SQL-функції дають однакове ядро й однакові підсумки операцій', async () => {
+  await setMode('v2');
+  const u = await db.newUser();
+  const ops: Op[] = [
+    { opId: 'p-init', kind: 'init', at: 1, state: { completed: ['l0'], coins: 30, xp: 5, totalCoinsEarned: 40, answersTotal: 4, answersCorrect: 9, energy: 40, energyAt: 1700000000000, frames: ['gold'], hints: 1 } },
+    { opId: 'p-1', kind: 'lesson', at: 1, lessonId: 'l1', xp: 10, coins: 20, doubled: true, freezeUsed: true },
+    { opId: 'p-2', kind: 'lesson', at: 1, lessonId: 'l0', xp: 10, coins: 20 },
+    { opId: 'p-3', kind: 'lesson', at: 1, lessonId: 'practice', xp: 3, coins: 4, repeatable: true },
+    { opId: 'p-4', kind: 'answers', at: 1, total: 7, correct: 5 },
+    { opId: 'p-5', kind: 'spend', at: 1, cost: 20, item: 'double' },
+    { opId: 'p-6', kind: 'spend', at: 1, cost: 10, item: 'freeze' },
+    { opId: 'p-7', kind: 'spend', at: 1, cost: 5, item: 'frame_neon' },
+    { opId: 'p-8', kind: 'spend', at: 1, cost: 5000, item: 'energyFull' },
+    { opId: 'p-9', kind: 'spend', at: 1, cost: 5, item: 'energy20' },
+    { opId: 'p-10', kind: 'energy', at: 1, energy: 30, energyAt: 1700000001000 },
+    { opId: 'p-11', kind: 'quest', at: 1, coins: 15 },
+    { opId: 'p-12', kind: 'sim', at: 1, xp: 8, coins: 6 },
+    { opId: 'p-13', kind: 'use', at: 1, item: 'hint' },
+    { opId: 'p-14', kind: 'use', at: 1, item: 'shield' },
+    { opId: 'p-15', kind: 'skip', at: 1, lessons: ['l5', 'l1', 'l6'] },
+    { opId: 'p-16', kind: 'init', at: 1, state: { completed: [] } },
+    { opId: 'p-17', kind: 'lesson', at: 1, lessonId: 'bad id!', xp: 1, coins: 1 },
+    { opId: 'p-18', kind: 'spend', at: 1, cost: 1, item: 'shield3' },
+    { opId: 'p-19', kind: 'spend', at: 1, cost: 1, item: 'hint3' },
+    { opId: 'p-20', kind: 'spend', at: 1, cost: 1, item: 'energy10' },
+  ];
+  const sql = await v2(u, 0, ops);
+  const sim = simSave('v2', null, 0, ops, null);
+  assert.ok(sim.res.status === 'ok');
+  assert.deepEqual(sql.ops.map((o) => o.status), sim.res.ops.map((o) => o.status));
+  assert.deepEqual(sql.core, sim.res.core);
+  assert.deepEqual(sql.rewarded, sim.res.rewarded);
+  assert.deepEqual(sql.core, replay(coreOf({}), [], ops, true).core);
 });
 
 test('T3: запис старим способом між кроком 1 і перемиканням присутній у ядрі після перемикання', async () => {

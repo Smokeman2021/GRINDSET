@@ -229,8 +229,11 @@ export default function LessonScreen() {
       let xp = baseXp + correct * 3 + Math.round(speedPts * 0.6);
 
       if (alreadyDone) {
-        coins = Math.round(coins / 2);
-        xp = Math.round(xp / 2);
+        // Один урок нагороджується один раз (ТЗ-01): повтор пройденого уроку курсу нагороди не дає, сервер відповів би already_rewarded.
+        // Тренування й надолуження помилок не уроки курсу: як і раніше половина.
+        const virtual = id === MISTAKES_ID || id === PRACTICE_ID;
+        coins = virtual ? Math.round(coins / 2) : 0;
+        xp = virtual ? Math.round(xp / 2) : 0;
       }
       if (isCheckpoint && !passed) {
         coins = 0;

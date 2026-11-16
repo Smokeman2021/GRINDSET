@@ -1,3 +1,5 @@
+import type { LoadV2, Op, SaveV2 } from './shared/progressOps';
+
 export type CloudMode = 'off' | 'mock' | 'supabase';
 
 export type CloudUser = {
@@ -41,8 +43,9 @@ export interface CloudBackend {
   login(input: LoginInput): Promise<LoginResult>;
   logout(): Promise<void>;
   checkSession(): Promise<SessionCheck>;
-  loadProgress(): Promise<ServerProgress | null>;
-  saveProgress(state: Record<string, unknown>): Promise<{ updatedAt: number }>; // кидає Error('replaced'), якщо сеанс замінено
+  // Прогрес (ТЗ-01): сервер формує ядро з операцій; клієнтський знімок пишеться лише з актуальною версією. Кидають Error('replaced'), якщо сеанс замінено
+  loadProgressV2(): Promise<LoadV2>;
+  saveProgressV2(baseRev: number, ops: Op[], clientState: Record<string, unknown> | null): Promise<SaveV2>;
   accuracyBoard(): Promise<AccuracyRow[]>; // рейтинг точності реальних гравців; кидає Error('replaced'), якщо сеанс замінено
   trackEvent(name: string, props?: Record<string, unknown>): Promise<void>; // мовчки ігнорує помилки: аналітика не повинна ламати урок
   sendFeedback(input: FeedbackInput): Promise<void>; // кидає Error('replaced'), якщо сеанс замінено

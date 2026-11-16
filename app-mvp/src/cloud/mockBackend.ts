@@ -3,15 +3,18 @@
 // тією самою логікою (shared/access.ts), що й на справжньому сервері. У збірці зі справжнім Supabase цей код не викликається.
 import { InviteRow, accuracyBoard, checkInvite, formatInviteCode, generateInviteCode, hashInvite, newSid, normalizeInviteCode, normalizeUsername, sessionState } from './shared/access';
 import { UI_BUILD } from '../version';
-import type { AccuracyRow, CloudBackend, CloudUser, FeedbackInput, EventRow, FeedbackRow, LoginInput, LoginResult, ServerProgress, SessionCheck, TesterRow } from './types';
+import type { AccuracyRow, CloudBackend, CloudUser, FeedbackInput, EventRow, FeedbackRow, LoginInput, LoginResult, SessionCheck, TesterRow } from './types';
 import { sessionKv } from './storage';
 
 const DB_KEY = 'grindset-mock-server-v2';
+import { coreOf, simLoad, simSave } from './shared/progressOps';
+import type { Core, LoadV2, Op, OpStatus, SaveV2 } from './shared/progressOps';
+
 const SID_KEY = 'grindset-mock-sid';
 const UID_KEY = 'grindset-mock-uid';
 
 type Row = InviteRow & { display_name: string; is_admin: boolean; active_sid: string | null; telegram_id?: number | null; last_login_at?: number | null; invite_issued_at?: number | null };
-type Db = { allowed: Row[]; progress: Record<string, { state: Record<string, unknown>; updated_at: number }>; feedback?: FeedbackRow[]; events?: EventRow[] };
+type Db = { allowed: Row[]; progress: Record<string, { state: Record<string, unknown>; updated_at: number; rev?: number; core?: Core; rewarded?: string[]; journal?: Record<string, OpStatus> }>; feedback?: FeedbackRow[]; events?: EventRow[] };
 
 // Тестові облікові записи імітації та їхні коди (лише для розробки; справжні коди видає автор через SQL issue_invite)
 export const MOCK_ACCOUNTS: { username: string; name: string; code: string; status: Row['status']; admin?: boolean }[] = [
@@ -149,19 +152,24 @@ export class MockBackend implements CloudBackend {
     return row;
   }
 
-  async loadProgress(): Promise<ServerProgress | null> {
+  // Імітація сервера ТЗ-01: ті самі правила, що в save_progress_v2 (shared/progressOps.simSave). Режим завжди v2.
+  async loadProgressV2(): Promise<LoadV2> {
     const row = await this.mustBeActive();
     const p = (await readDb()).progress[row.id];
-    return p ? { state: p.state, updatedAt: p.updated_at } : null;
+    return simLoad('v2', p ? { state: p.state, rev: p.rev ?? 1, core: p.core ?? coreOf(p.state), rewarded: p.rewarded ?? coreOf(p.state).completed, journal: p.journal ?? {} } : null);
   }
 
-  async saveProgress(state: Record<string, unknown>): Promise<{ updatedAt: number }> {
+  async saveProgressV2(baseRev: number, ops: Op[], clientState: Record<string, unknown> | null): Promise<SaveV2> {
     const row = await this.mustBeActive();
     const db = await readDb();
-    const updatedAt = Date.now();
-    db.progress[row.id] = { state, updated_at: updatedAt };
-    writeDb(db);
-    return { updatedAt };
+    const p = db.progress[row.id];
+    const cur = p ? { state: p.state, rev: p.rev ?? 1, core: p.core ?? coreOf(p.state), rewarded: p.rewarded ?? coreOf(p.state).completed, journal: p.journal ?? {} } : null;
+    const out = simSave('v2', cur, baseRev, ops, clientState);
+    if (out.row) {
+      db.progress[row.id] = { ...out.row, updated_at: Date.now() };
+      writeDb(db);
+    }
+    return out.res;
   }
 
   async accuracyBoard(): Promise<AccuracyRow[]> {

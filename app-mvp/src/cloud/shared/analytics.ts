@@ -1,7 +1,8 @@
 // Мініаналітика закритого тесту: чиста логіка підсумків. Без імпортів, перевіряється автотестами (supabase/tests/analytics.test.ts).
 // Події: session_start (відкрив застосунок/увійшов), lesson_start, lesson_complete, lesson_exit (вийшов на кроці props.step з props.total).
 
-export const EVENT_NAMES = ['session_start', 'lesson_start', 'lesson_complete', 'lesson_exit'] as const;
+// sync_error / sync_queue_stale: наблюдаемость синхронізації (ТЗ-01); client_outdated пише сервер, коли стара збірка намагається зберегти
+export const EVENT_NAMES = ['session_start', 'lesson_start', 'lesson_complete', 'lesson_exit', 'sync_error', 'sync_queue_stale', 'client_outdated'] as const;
 export type EventName = (typeof EVENT_NAMES)[number];
 
 export type EventLike = { name: string; username: string; props: Record<string, unknown> | null };

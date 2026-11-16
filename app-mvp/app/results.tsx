@@ -17,6 +17,7 @@ import { MEMES } from '../src/data/memes';
 import { playSfx } from '../src/sound';
 import { Pop } from '../src/components/Anim';
 import { Watermark } from '../src/components/Watermark';
+import { retryLocalWrite } from '../src/cloud/progressSync';
 
 export default function Results() {
   const C = useTheme();
@@ -56,6 +57,8 @@ export default function Results() {
   const [newAch, setNewAch] = useState<string[]>([]);
   const scale = useRef(new Animated.Value(0)).current;
 
+  // Урок вважається записаним, коли операцію записано у сховище пристрою: до цього результат не показуємо
+  const [saveState, setSaveState] = useState<'saving' | 'ok' | 'error'>('ok');
   const saved = useRef(false);
   useEffect(() => {
     if (!saved.current && id) {
@@ -67,7 +70,11 @@ export default function Results() {
         // діагностика не дає нагород; ачівка «золоті окуляри» за безпомилковий тест з першої спроби
         useStore.getState().finishDiagnostic(errors === 0 && correct > 0, []);
       } else if (passed) {
-        completeLesson(id, coins, xp, { correct, errors, doubled, practiceOnly: isMistakes, maxCombo: Math.round(maxBonus / 2), isQuiz: isQuizId(id) });
+        setSaveState('saving');
+        completeLesson(id, coins, xp, { correct, errors, doubled, practiceOnly: isMistakes, maxCombo: Math.round(maxBonus / 2), isQuiz: isQuizId(id) }).then(
+          () => setSaveState('ok'),
+          () => setSaveState('error')
+        );
       }
       const st = useStore.getState();
       const fresh = st.unlocked.filter((a) => !unlockedBefore.includes(a));
@@ -95,6 +102,13 @@ export default function Results() {
   const next = isQuiz || isDiagnostic || isMistakes ? undefined : nextAfter(id);
 
   const failedCheckpoint = isCheckpoint && !passed;
+  const retrySave = () => {
+    setSaveState('saving');
+    retryLocalWrite().then(
+      () => setSaveState('ok'),
+      () => setSaveState('error')
+    );
+  };
   // Точність нижче 60%: головна дія — повторити помилки, наступний урок другорядний
   const lowAccuracy = !isDiagnostic && !failedCheckpoint && correct + errors > 0 && accuracy < 60;
   const goMistakes = () => router.replace(`/lesson/${MISTAKES_ID}`);
@@ -143,6 +157,20 @@ export default function Results() {
     return <DiagnosticResult correct={correct} errors={errors} newAch={newAch} />;
   }
 
+
+  if (saveState !== 'ok') {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 14, backgroundColor: C.bg, paddingTop: insets.top }}>
+        <Text style={styles.h1}>{saveState === 'saving' ? 'Зберігаю результат…' : 'Не вдалося зберегти результат'}</Text>
+        {saveState === 'error' && (
+          <>
+            <Text style={styles.muted}>Урок пройдено, але пристрій не записав результат. Перевір вільне місце й натисни «Повторити».</Text>
+            <Button title="Повторити" onPress={retrySave} />
+          </>
+        )}
+      </View>
+    );
+  }
   return (
     <View style={[styles.screen, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20 }]}>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 8 }} showsVerticalScrollIndicator={false}>

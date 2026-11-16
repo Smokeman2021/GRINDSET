@@ -3,6 +3,8 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UI_BUILD } from '../version';
+import { coreOf } from './shared/progressOps';
+import type { Core, LoadV2, Op, OpResult, SaveV2 } from './shared/progressOps';
 import type { AccuracyRow, CloudBackend, CloudUser, FeedbackInput, EventRow, FeedbackRow, LoginFailure, LoginInput, LoginResult, ServerProgress, SessionCheck, TesterRow } from './types';
 
 const SID_KEY = 'grindset-cloud-sid';
@@ -95,10 +97,41 @@ export class SupabaseBackend implements CloudBackend {
     return { state: data.state as Record<string, unknown>, updatedAt: Number(data.updated_ms) };
   }
 
-  async saveProgress(state: Record<string, unknown>): Promise<{ updatedAt: number }> {
-    const { data, error } = await this.client.rpc('save_progress', { p_state: state });
-    if (error) this.fail(error);
-    return { updatedAt: Number(data) };
+  // Функції ще немає (міграцію 0007 не застосовано): для нової збірки це тимчасовий стан, а не помилка
+  private missing(error: { code?: string; message?: string } | null): boolean {
+    return error?.code === 'PGRST202' || /Could not find the function|does not exist/i.test(error?.message ?? '');
+  }
+
+  async loadProgressV2(): Promise<LoadV2> {
+    const { data, error } = await this.client.rpc('load_progress_v2');
+    if (error) {
+      if (!this.missing(error)) this.fail(error);
+      const old = await this.loadProgress(); // лише читання старим способом; запису старим способом у новій збірці немає
+      const core = coreOf(old?.state);
+      return { mode: 'legacy', exists: !!old, rev: 0, core, rewarded: [...core.completed], state: old?.state ?? null };
+    }
+    const d = data as { mode: string; exists: boolean; rev: number; core: Core; rewarded: string[]; state: Record<string, unknown> | null };
+    return { mode: d.mode === 'v2' ? 'v2' : 'legacy', exists: !!d.exists, rev: Number(d.rev), core: d.core, rewarded: d.rewarded ?? [], state: d.state ?? null };
+  }
+
+  async saveProgressV2(baseRev: number, ops: Op[], clientState: Record<string, unknown> | null): Promise<SaveV2> {
+    const { data, error } = await this.client.rpc('save_progress_v2', { p_base_rev: baseRev, p_ops: ops, p_client_state: clientState });
+    if (error) {
+      if (this.missing(error)) return { status: 'not_active' };
+      this.fail(error);
+    }
+    const d = data as { status: string; rev: number; core: Core; rewarded: string[]; client_state: Record<string, unknown>; client_state_status: string; ops: OpResult[] };
+    if (d.status !== 'ok') return { status: 'not_active' };
+    const cs = d.client_state_status;
+    return {
+      status: 'ok',
+      rev: Number(d.rev),
+      core: d.core,
+      rewarded: d.rewarded ?? [],
+      clientState: d.client_state ?? {},
+      clientStateStatus: cs === 'saved' || cs === 'client_state_conflict' || cs === 'rejected_invalid' ? cs : 'none',
+      ops: d.ops ?? [],
+    };
   }
 
   // Рейтинг точності: SECURITY DEFINER-функція leaderboard_accuracy() віддає лише імʼя, %, кількість відповідей і позначку «це я»
