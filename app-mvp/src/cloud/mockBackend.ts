@@ -4,17 +4,19 @@
 import { InviteRow, accuracyBoard, checkInvite, formatInviteCode, generateInviteCode, hashInvite, newSid, normalizeInviteCode, normalizeUsername, sessionState } from './shared/access';
 import { UI_BUILD } from '../version';
 import type { AccuracyRow, CloudBackend, CloudUser, FeedbackInput, EventRow, FeedbackRow, LoginInput, LoginResult, SessionCheck, TesterRow } from './types';
-import { sessionKv } from './storage';
+import { localKv, sessionKv } from './storage';
 
 const DB_KEY = 'grindset-mock-server-v2';
-import { coreOf, simLoad, simSave } from './shared/progressOps';
-import type { Core, LoadV2, Op, OpStatus, SaveV2 } from './shared/progressOps';
+import { coreOf, simLegacySave, simLoad, simSave, simSwitchToV2 } from './shared/progressOps';
+import type { Core, LoadV2, Op, OpStatus, SaveV2, SimRow } from './shared/progressOps';
+
+const toSim = (p: Db['progress'][string]): SimRow => ({ state: p.state, rev: p.rev ?? 1, core: p.core ?? coreOf(p.state), rewarded: p.rewarded ?? coreOf(p.state).completed, journal: p.journal ?? {} });
 
 const SID_KEY = 'grindset-mock-sid';
 const UID_KEY = 'grindset-mock-uid';
 
 type Row = InviteRow & { display_name: string; is_admin: boolean; active_sid: string | null; telegram_id?: number | null; last_login_at?: number | null; invite_issued_at?: number | null };
-type Db = { allowed: Row[]; progress: Record<string, { state: Record<string, unknown>; updated_at: number; rev?: number; core?: Core; rewarded?: string[]; journal?: Record<string, OpStatus> }>; feedback?: FeedbackRow[]; events?: EventRow[] };
+type Db = { mode?: 'legacy' | 'v2'; allowed: Row[]; progress: Record<string, { state: Record<string, unknown>; updated_at: number; rev?: number; core?: Core; rewarded?: string[]; journal?: Record<string, OpStatus> }>; feedback?: FeedbackRow[]; events?: EventRow[] };
 
 // Тестові облікові записи імітації та їхні коди (лише для розробки; справжні коди видає автор через SQL issue_invite)
 export const MOCK_ACCOUNTS: { username: string; name: string; code: string; status: Row['status']; admin?: boolean }[] = [
@@ -152,11 +154,12 @@ export class MockBackend implements CloudBackend {
     return row;
   }
 
-  // Імітація сервера ТЗ-01: ті самі правила, що в save_progress_v2 (shared/progressOps.simSave). Режим завжди v2.
+  // Імітація сервера ТЗ-01: ті самі правила, що в save_progress_v2 (shared/progressOps.simSave). Режим запису перемикається (типово v2).
   async loadProgressV2(): Promise<LoadV2> {
     const row = await this.mustBeActive();
-    const p = (await readDb()).progress[row.id];
-    return simLoad('v2', p ? { state: p.state, rev: p.rev ?? 1, core: p.core ?? coreOf(p.state), rewarded: p.rewarded ?? coreOf(p.state).completed, journal: p.journal ?? {} } : null);
+    const db = await readDb();
+    const p = db.progress[row.id];
+    return simLoad(db.mode ?? 'v2', p ? { state: p.state, rev: p.rev ?? 1, core: p.core ?? coreOf(p.state), rewarded: p.rewarded ?? coreOf(p.state).completed, journal: p.journal ?? {} } : null);
   }
 
   async saveProgressV2(baseRev: number, ops: Op[], clientState: Record<string, unknown> | null): Promise<SaveV2> {
@@ -164,12 +167,47 @@ export class MockBackend implements CloudBackend {
     const db = await readDb();
     const p = db.progress[row.id];
     const cur = p ? { state: p.state, rev: p.rev ?? 1, core: p.core ?? coreOf(p.state), rewarded: p.rewarded ?? coreOf(p.state).completed, journal: p.journal ?? {} } : null;
-    const out = simSave('v2', cur, baseRev, ops, clientState);
+    const out = simSave(db.mode ?? 'v2', cur, baseRev, ops, clientState);
     if (out.row) {
       db.progress[row.id] = { ...out.row, updated_at: Date.now() };
       writeDb(db);
     }
     return out.res;
+  }
+
+  // ───────── Керування імітацією (лише режим mock): режим запису і «стара збірка» ─────────
+  // З консолі браузера: __grindsetMock.mode(), __grindsetMock.setMode('legacy' | 'v2'), __grindsetMock.legacySaveLocal()
+  async mockMode(): Promise<'legacy' | 'v2'> {
+    return (await readDb()).mode ?? 'v2';
+  }
+
+  // Як set_progress_write_mode: у v2 ядро кожного рядка збирається з поточного state; у legacy лише зміна режиму
+  async mockSetMode(mode: 'legacy' | 'v2'): Promise<void> {
+    const db = await readDb();
+    if ((db.mode ?? 'v2') === mode) return;
+    if (mode === 'v2') for (const [id, p] of Object.entries(db.progress)) db.progress[id] = { ...simSwitchToV2(toSim(p)), updated_at: p.updated_at };
+    db.mode = mode;
+    writeDb(db);
+  }
+
+  // Те, що робила стара збірка: зберегти весь стан одним знімком (правила захищеної save_progress). У режимі v2 нічого не пише.
+  async mockLegacySave(state: Record<string, unknown>): Promise<{ written: boolean }> {
+    const row = await this.mustBeActive();
+    const db = await readDb();
+    const p = db.progress[row.id];
+    const out = simLegacySave(db.mode ?? 'v2', p ? toSim(p) : null, state);
+    if (out.written && out.row) {
+      db.progress[row.id] = { ...out.row, updated_at: Date.now() };
+      writeDb(db);
+    }
+    return { written: out.written };
+  }
+
+  // «Стара збірка» зберігає те, що зараз лежить на пристрої
+  async mockLegacySaveLocal(): Promise<{ written: boolean }> {
+    const raw = await localKv.get('grindset-state');
+    const state = raw ? ((JSON.parse(raw) as { state?: Record<string, unknown> }).state ?? {}) : {};
+    return this.mockLegacySave(state);
   }
 
   async accuracyBoard(): Promise<AccuracyRow[]> {

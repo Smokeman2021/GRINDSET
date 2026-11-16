@@ -222,6 +222,27 @@ begin
 end
 $$;
 
+-- Старе завантаження (ним користуються лише старі збірки). Знімок завжди повний.
+-- У режимі v2 позначка часу = 0: стара збірка, що має на пристрої свою позначку синхронізації, тоді НЕ тягне серверний стан
+-- поверх локального (її правило: брати серверний, лише якщо він новіший), і невідправлений урок доживає до нової збірки,
+-- яка перенесе його операцією legacy:<учётка>:<урок>. Чистий пристрій (без позначки) завантажує знімок як раніше.
+create or replace function public.load_progress() returns json
+language plpgsql stable security definer set search_path = public as $$
+declare
+  uid    uuid := public.my_allowed_id();
+  r      public.progress;
+  v_mode text;
+begin
+  if uid is null then raise exception 'session_replaced'; end if;
+  select * into r from public.progress p where p.user_id = uid;
+  if not found then return null; end if;
+  select s.write_mode into v_mode from public.progress_settings s where s.id;
+  return json_build_object(
+    'state', r.state,
+    'updated_ms', case when v_mode = 'v2' then 0 else (extract(epoch from r.updated_at) * 1000)::bigint end);
+end
+$$;
+
 -- ───────── Новий спосіб: операції + клієнтський знімок з перевіркою версії ─────────
 -- p_ops: масив операцій {opId, kind, ...}. Види: lesson, answers, energy, spend, quest, sim, use, skip, init.
 -- Підсумок операції: applied | already_rewarded | rejected_no_coins | rejected_invalid | rejected_exists.
@@ -308,8 +329,14 @@ begin
         c := c || jsonb_build_object('completed', to_jsonb(v_done),
                                      'xp', (c ->> 'xp')::bigint + a, 'coins', (c ->> 'coins')::bigint + b,
                                      'totalCoinsEarned', (c ->> 'totalCoinsEarned')::bigint + b);
-        if op -> 'doubled' = 'true'::jsonb then c := c || jsonb_build_object('doubleCoins', greatest(0, (c ->> 'doubleCoins')::bigint - 1)); end if;
-        if op -> 'freezeUsed' = 'true'::jsonb then c := c || jsonb_build_object('streakFreezes', greatest(0, (c ->> 'streakFreezes')::bigint - 1)); end if;
+      end if;
+      -- бустер X2 згоряє там, де нагороду нараховано (перше проходження або тренування);
+      -- заморозку стріку витрачає будь-яке зараховане проходження, також повтор пройденого уроку
+      if v_st = 'applied' and op -> 'doubled' = 'true'::jsonb then
+        c := c || jsonb_build_object('doubleCoins', greatest(0, (c ->> 'doubleCoins')::bigint - 1));
+      end if;
+      if v_st <> 'rejected_invalid' and op -> 'freezeUsed' = 'true'::jsonb then
+        c := c || jsonb_build_object('streakFreezes', greatest(0, (c ->> 'streakFreezes')::bigint - 1));
       end if;
 
     elsif v_kind = 'answers' then

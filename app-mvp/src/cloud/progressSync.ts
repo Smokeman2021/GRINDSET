@@ -3,24 +3,25 @@
 //    Операція спершу записується в чергу на пристрої (окрему для кожної учётки) і лише потім відправляється.
 //  • З черги операція знімається ЛИШЕ за відповіддю сервера. Повтор: одразу, при події online, поверненні у вкладку,
 //    запуску, повторному вході й за таймером. Відправка при згортанні це додаткова спроба.
+//  • Черга йде порціями (shared/progressOps.syncQueue: межі BATCH_MAX_OPS / BATCH_MAX_BYTES), послідовно, кожна з актуальною версією.
 //  • Після відповіді беремо серверне ядро й заново накладаємо операції, що лишилися в черзі (створені, поки запит був у дорозі).
-//  • Решта стану (налаштування, персонаж, історія…) йде клієнтським знімком з перевіркою версії; при конфлікті знімки обʼєднуються.
+//  • Решта стану (налаштування, персонаж, історія…) йде клієнтським знімком з останньою порцією; при конфлікті знімки обʼєднуються.
 //  • Поки сервер у режимі старого запису (або міграції ще немає), відповідь not_active: операції чекають у черзі.
 import { useStore } from '../store';
 import { levelForXp } from '../data/levels';
 import { POINTS_PER_LEVEL } from '../data/stats';
 import { setOpSink } from './opBus';
-import { legacyOps, mergeClientState, replay, settle, staleInfo } from './shared/progressOps';
-import type { Core, Op } from './shared/progressOps';
+import { legacyOps, mergeClientState, replay, staleInfo, syncQueue } from './shared/progressOps';
+import type { Op, SyncBase, SyncState } from './shared/progressOps';
 import { localKv } from './storage';
 import type { CloudBackend, CloudUser } from './types';
 
 const META_KEY = 'grindset-cloud-meta'; // чиї дані лежать на пристрої (мітка власника)
 const queueKey = (uid: string) => `grindset-opq:${uid}`;
+const deadKey = (uid: string) => `grindset-opq-dead:${uid}`; // операції, які сервер не може прийняти через ліміт розміру
 const syncKey = (uid: string) => `grindset-sync:${uid}`;
 
-// base: останнє відоме серверне ядро; pristine = на сервері ще не було рядка (лише тоді діє операція init)
-type SyncMeta = { rev: number; dirty: boolean; migrated: boolean; base: { core: Core; rewarded: string[]; pristine: boolean } | null };
+type SyncMeta = { rev: number; dirty: boolean; migrated: boolean; base: SyncBase | null };
 const FRESH_META: SyncMeta = { rev: 0, dirty: false, migrated: false, base: null };
 
 async function readJson<T>(key: string, def: T): Promise<T> {
@@ -54,8 +55,10 @@ function whenHydrated(): Promise<void> {
 
 type Ctx = { backend: CloudBackend; user: CloudUser; onReplaced: () => void };
 let ctx: Ctx | null = null;
-let queue: Op[] = [];
-let meta: SyncMeta = { ...FRESH_META };
+// S: черга, версія й останнє серверне ядро (спільний обʼєкт із циклом відправки syncQueue)
+let S: SyncState = { queue: [], rev: 0, base: null, dead: [] };
+let dirty = false; // клієнтський знімок змінився й ще не збережений на сервері
+let migrated = false;
 let busy = false;
 let again = false;
 let applying = false; // ми самі пишемо у стор: це не зміна від гравця
@@ -68,12 +71,15 @@ const lastEvent: Record<string, number> = {};
 
 // Записи черги йдуть строго по порядку; проміс відхиляється, якщо сховище пристрою відмовило
 function persistQueue(uid: string): Promise<void> {
-  const body = JSON.stringify(queue);
+  const body = JSON.stringify(S.queue);
   const next = writes.catch(() => undefined).then(() => localKv.set(queueKey(uid), body));
   writes = next;
   return next;
 }
-const persistMeta = (uid: string) => localKv.set(syncKey(uid), JSON.stringify(meta)).catch(() => undefined);
+const persistMeta = (uid: string) => {
+  const meta: SyncMeta = { rev: S.rev, dirty, migrated, base: S.base };
+  return localKv.set(syncKey(uid), JSON.stringify(meta)).catch(() => undefined);
+};
 
 function event(name: 'sync_error' | 'sync_queue_stale', key: string, props: Record<string, unknown>, gapMs: number) {
   const now = Date.now();
@@ -84,8 +90,8 @@ function event(name: 'sync_error' | 'sync_queue_stale', key: string, props: Reco
 
 // Серверне ядро + черга = те, що бачить учень. Рівень і очки характеристик рахуються із серверного XP.
 function applyVisible(clientState: Record<string, unknown> | null) {
-  if (!meta.base) return;
-  const v = replay(meta.base.core, meta.base.rewarded, queue, meta.base.pristine);
+  if (!S.base) return;
+  const v = replay(S.base.core, S.base.rewarded, S.queue, S.base.pristine);
   applying = true;
   try {
     if (clientState) {
@@ -112,7 +118,7 @@ function schedule(ms: number) {
 
 async function enqueue(op: Op): Promise<void> {
   if (!ctx) return;
-  queue.push(op);
+  S.queue.push(op);
   await persistQueue(ctx.user.id); // урок вважається записаним лише після цього
   void flush();
 }
@@ -131,32 +137,48 @@ export async function flush(): Promise<void> {
     again = true;
     return;
   }
-  if (queue.length === 0 && !meta.dirty) return;
+  if (S.queue.length === 0 && !dirty) return;
   busy = true;
   const uid = my.user.id;
+  const live = S; // вихід з акаунта підміняє S: цей запит тоді працює зі своїм знімком і нічого спільного не чіпає
   try {
-    const st = staleInfo(queue, Date.now());
+    const st = staleInfo(live.queue, Date.now());
     if (st.stale) event('sync_queue_stale', 'stale', { ops: st.ops, minutes: st.oldestMin }, 10 * 60 * 1000);
-    const sent = queue.slice();
-    const seq = stateSeq;
-    const res = await my.backend.saveProgressV2(meta.rev, sent, meta.dirty ? snapshot() : null);
-    if (ctx !== my) return; // вийшли з акаунта, поки запит був у дорозі: черга лишилась на пристрої, повтор безпечний
-    if (res.status === 'not_active') {
+    let seq = stateSeq;
+    const out = await syncQueue(live, {
+      send: (baseRev, ops, clientState) => my.backend.saveProgressV2(baseRev, ops, clientState),
+      snapshot: () => {
+        if (!dirty || ctx !== my) return null;
+        seq = stateSeq;
+        return snapshot();
+      },
+      afterPortion: async () => {
+        if (ctx !== my || S !== live) return;
+        await persistQueue(uid);
+        applyVisible(null); // серверне ядро + те, що ще в черзі
+        await persistMeta(uid);
+      },
+    });
+    if (ctx !== my || S !== live) return; // вийшли з акаунта, поки запит був у дорозі: черга лишилась на пристрої, повтор безпечний
+    if (out.quarantined) {
+      await localKv.set(deadKey(uid), JSON.stringify(live.dead)).catch(() => undefined);
+      event('sync_error', 'quarantine', { code: 'op_too_large', ops: out.quarantined }, 5 * 60 * 1000);
+    }
+    if (out.status === 'not_active') {
       schedule(60000);
       return;
     }
-    queue = settle(queue, res.ops);
-    await persistQueue(uid);
-    meta.base = { core: res.core, rewarded: res.rewarded, pristine: false };
-    meta.rev = res.rev;
-    if (res.clientStateStatus === 'client_state_conflict') {
+    if (out.snapshot === 'conflict' && out.conflictState) {
       // знімок зі старою версією нічого не затер: обʼєднуємо й відправляємо знову вже з новою версією
-      applyVisible(mergeClientState(snapshot(), res.clientState));
-      meta.dirty = true;
+      applyVisible(mergeClientState(snapshot(), out.conflictState));
+      dirty = true;
       again = true;
-    } else {
-      if (res.clientStateStatus === 'saved' && seq === stateSeq) meta.dirty = false;
-      applyVisible(null);
+    } else if (out.snapshot === 'saved' && seq === stateSeq) {
+      dirty = false;
+    } else if (out.snapshot === 'too_large') {
+      // знімок завеликий для сервера: операції пішли, знімок чекає, поки стан зменшиться (напр. фото профілю)
+      event('sync_error', 'snapshot', { code: 'state_too_large' }, 30 * 60 * 1000);
+      dirty = false;
     }
     await persistMeta(uid);
   } catch (e) {
@@ -166,13 +188,13 @@ export async function flush(): Promise<void> {
       return;
     }
     event('sync_error', `err:${msg.slice(0, 20)}`, { code: msg.replace(/[^A-Za-z0-9_ .:-]/g, '').slice(0, 40) }, 5 * 60 * 1000);
-    schedule(20000);
+    if (ctx === my) schedule(20000);
   } finally {
     busy = false;
     if (again && ctx === my) {
       again = false;
       void flush();
-    } else if (ctx === my && queue.length > 0 && !timer) schedule(20000);
+    } else if (ctx === my && S.queue.length > 0 && !timer) schedule(20000);
   }
 }
 
@@ -190,9 +212,16 @@ export async function startProgressSync(backend: CloudBackend, user: CloudUser, 
     useStore.getState().reset();
     applying = false;
   }
-  queue = await readJson<Op[]>(queueKey(user.id), []);
-  meta = { ...FRESH_META, ...(await readJson<Partial<SyncMeta>>(syncKey(user.id), {})) };
-  if (mine && preLogin.length) queue.push(...preLogin);
+  const meta = { ...FRESH_META, ...(await readJson<Partial<SyncMeta>>(syncKey(user.id), {})) };
+  S = {
+    queue: await readJson<Op[]>(queueKey(user.id), []),
+    rev: meta.rev,
+    base: meta.base,
+    dead: await readJson<Op[]>(deadKey(user.id), []),
+  };
+  dirty = meta.dirty;
+  migrated = meta.migrated;
+  if (mine && preLogin.length) S.queue.push(...preLogin);
   ctx = my;
   setOpSink(enqueue);
   try {
@@ -205,22 +234,22 @@ export async function startProgressSync(backend: CloudBackend, user: CloudUser, 
   try {
     const srv = await backend.loadProgressV2();
     if (ctx !== my) return;
-    if (!meta.migrated) {
+    if (!migrated) {
       // один раз на учётку й пристрій: перенесення даних, створених до оновлення
-      if (queue.length === 0) {
+      if (S.queue.length === 0) {
         const ops = legacyOps(user.id, owner, snapshot(), srv, Date.now());
         if (ops.length) {
-          queue.push(...ops);
+          S.queue.push(...ops);
           await persistQueue(user.id);
-          meta.dirty = true; // на пристрої є новіше за серверне: клієнтський знімок теж відправимо
+          dirty = true; // на пристрої є новіше за серверне: клієнтський знімок теж відправимо
         }
       }
-      meta.migrated = true;
+      migrated = true;
     }
-    meta.base = { core: srv.core, rewarded: srv.rewarded, pristine: !srv.exists };
-    meta.rev = srv.rev;
+    S.base = { core: srv.core, rewarded: srv.rewarded, pristine: !srv.exists };
+    S.rev = srv.rev;
     // клієнтську частину беремо із сервера, якщо на пристрої немає невідправлених змін цієї учётки
-    applyVisible(mine && meta.dirty ? null : srv.state);
+    applyVisible(mine && dirty ? null : srv.state);
     await persistMeta(user.id);
   } catch (e) {
     if (ctx !== my) return;
@@ -229,14 +258,14 @@ export async function startProgressSync(backend: CloudBackend, user: CloudUser, 
       return;
     }
     // немає мережі при запуску: показуємо локальний стан, черга відправиться пізніше
-    if (meta.base && mine) applyVisible(null);
+    if (S.base && mine) applyVisible(null);
     event('sync_error', 'load', { code: 'load_failed' }, 5 * 60 * 1000);
   }
 
   unsubStore = useStore.subscribe(() => {
     if (applying) return;
     stateSeq += 1;
-    meta.dirty = true;
+    dirty = true;
     if (!timer) schedule(1500);
   });
   if (typeof window !== 'undefined' && typeof window.addEventListener === 'function' && typeof document !== 'undefined') {
@@ -271,7 +300,8 @@ export async function stopProgressSync(flushFirst = false): Promise<void> {
     setOpSink(null);
   }
   ctx = null;
-  queue = [];
-  meta = { ...FRESH_META };
+  S = { queue: [], rev: 0, base: null, dead: [] };
+  dirty = false;
+  migrated = false;
   again = false;
 }

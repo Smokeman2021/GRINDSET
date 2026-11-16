@@ -9,7 +9,16 @@ export function getBackend(): CloudBackend | null {
   if (!instance) {
     if (CLOUD_MODE === 'mock') {
       const { MockBackend } = require('./mockBackend') as typeof import('./mockBackend');
-      instance = new MockBackend();
+      const mock = new MockBackend();
+      instance = mock;
+      // керування імітацією з консолі браузера (лише режим mock): режим запису і збереження «старою збіркою»
+      if (typeof window !== 'undefined') {
+        (window as unknown as { __grindsetMock?: unknown }).__grindsetMock = {
+          mode: () => mock.mockMode(),
+          setMode: (m: 'legacy' | 'v2') => mock.mockSetMode(m),
+          legacySaveLocal: () => mock.mockLegacySaveLocal(),
+        };
+      }
     } else {
       const { SupabaseBackend } = require('./supabaseBackend') as typeof import('./supabaseBackend');
       instance = new SupabaseBackend(SUPABASE_URL, SUPABASE_ANON_KEY);

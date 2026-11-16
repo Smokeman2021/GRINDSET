@@ -4,8 +4,9 @@ import test, { after, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { startDb } from './harness.ts';
 import type { Db, TestUser } from './harness.ts';
-import { coreOf, replay, simSave } from '../../app-mvp/src/cloud/shared/progressOps.ts';
-import type { Op } from '../../app-mvp/src/cloud/shared/progressOps.ts';
+import { coreOf, legacyOps, replay, simLegacySave, simSave, syncQueue } from '../../app-mvp/src/cloud/shared/progressOps.ts';
+import type { Op, SaveV2, SimRow, SyncState } from '../../app-mvp/src/cloud/shared/progressOps.ts';
+import { chooseProgress } from '../../app-mvp/src/cloud/shared/access.ts';
 
 type OpRes = { opId: string; status: string; duplicate: boolean };
 type Core = { completed: string[]; coins: number; xp: number; totalCoinsEarned: number; answersTotal: number; answersCorrect: number; energy: number; hints: number; purchases: number };
@@ -215,7 +216,11 @@ test('правила клієнта (applyOp) і SQL-функції дають �
     { opId: 'p-4', kind: 'answers', at: 1, total: 7, correct: 5 },
     { opId: 'p-5', kind: 'spend', at: 1, cost: 20, item: 'double' },
     { opId: 'p-6', kind: 'spend', at: 1, cost: 10, item: 'freeze' },
+    { opId: 'p-6b', kind: 'spend', at: 1, cost: 10, item: 'freeze' },
     { opId: 'p-7', kind: 'spend', at: 1, cost: 5, item: 'frame_neon' },
+    { opId: 'p-7a', kind: 'lesson', at: 1, lessonId: 'practice', xp: 2, coins: 6, repeatable: true, doubled: true, freezeUsed: true },
+    { opId: 'p-7b', kind: 'lesson', at: 1, lessonId: 'l1', xp: 0, coins: 0, doubled: true, freezeUsed: true },
+    { opId: 'p-7c', kind: 'spend', at: 1, cost: 20, item: 'double' },
     { opId: 'p-8', kind: 'spend', at: 1, cost: 5000, item: 'energyFull' },
     { opId: 'p-9', kind: 'spend', at: 1, cost: 5, item: 'energy20' },
     { opId: 'p-10', kind: 'energy', at: 1, energy: 30, energyAt: 1700000001000 },
@@ -319,7 +324,10 @@ test('RB3: старий load_progress після записів через v2 п
   assert.equal(old!.state.xp, 10);
   assert.equal(old!.state.coins, 20);
   assert.equal(old!.state.answersTotal, 4);
-  assert.ok(Number(old!.updated_ms) > 0);
+  assert.equal(Number(old!.updated_ms), 0); // режим v2: стара збірка не тягне серверний стан поверх локального
+  await setMode('legacy');
+  assert.ok(Number((await oldLoad(u))!.updated_ms) > 0); // після відкату позначка справжня
+  await setMode('v2');
 });
 
 test('RB4: запит, початий до перемикання, завершується до нього; запит після перемикання бачить новий режим', async () => {
@@ -358,4 +366,165 @@ test('RB4: запит, початий до перемикання, заверш�
   await w.query('commit');
   assert.deepEqual((await load(u)).core.completed, ['l1']);
   await w.end();
+});
+
+// ───────── Етап A (ТЗ 004) ─────────
+// Справжній цикл відправки клієнта (syncQueue) поверх справжньої функції бази
+const sqlIo = (u: TestUser, opts: { loseCall?: number; snapshot?: () => Record<string, unknown> | null } = {}) => {
+  const calls: { baseRev: number; ops: number; snapshot: boolean }[] = [];
+  return {
+    calls,
+    io: {
+      send: async (baseRev: number, ops: Op[], cs: Record<string, unknown> | null): Promise<SaveV2> => {
+        calls.push({ baseRev, ops: ops.length, snapshot: !!cs });
+        const r = await v2(u, baseRev, ops, cs);
+        if (opts.loseCall === calls.length) throw new Error('Failed to fetch'); // база записала, відповідь не дійшла
+        if (r.status !== 'ok') return { status: 'not_active' };
+        return { status: 'ok', rev: Number(r.rev), core: r.core as never, rewarded: r.rewarded, clientState: r.client_state, clientStateStatus: r.client_state_status as never, ops: r.ops as never };
+      },
+      snapshot: opts.snapshot ?? (() => null),
+    },
+  };
+};
+const mixedOps = (n: number): Op[] =>
+  Array.from({ length: n }, (_, i): Op => {
+    const at = 1000 + i;
+    const k = i % 8;
+    if (k === 0) return { opId: `m${i}`, kind: 'lesson', at, lessonId: `l${i}`, xp: 10 + (i % 7), coins: 20 + (i % 5) };
+    if (k === 1) return { opId: `m${i}`, kind: 'answers', at, total: 6, correct: i % 7 };
+    if (k === 2) return { opId: `m${i}`, kind: 'energy', at, energy: 50 - (i % 50), energyAt: 1700000000000 + i };
+    if (k === 3) return { opId: `m${i}`, kind: 'spend', at, cost: 60, item: 'shield3' };
+    if (k === 4) return { opId: `m${i}`, kind: 'quest', at, coins: 15 };
+    if (k === 5) return { opId: `m${i}`, kind: 'lesson', at, lessonId: 'practice', xp: 4, coins: 5, repeatable: true };
+    if (k === 6) return { opId: `m${i}`, kind: 'lesson', at, lessonId: `l${i - 6}`, xp: 0, coins: 0 };
+    return { opId: `m${i}`, kind: 'spend', at, cost: 100000, item: 'energyFull' };
+  });
+const freshState = (queue: Op[]): SyncState => ({ queue, rev: 0, base: null, dead: [] });
+
+test('ліміт пакета: понад 500 операцій або понад 1 000 000 байт відхиляється цілком, нічого не записано', async () => {
+  await setMode('v2');
+  const u = await db.newUser();
+  await assert.rejects(() => v2(u, 0, mixedOps(501)), /too_many_ops/);
+  assert.equal(await journal(u), 0);
+  await assert.rejects(() => v2(u, 0, [L('big-1', 'l1')], { blob: Array.from({ length: 60000 }, (_, i) => `рядок-${i}-${Math.random()}`) }), /state_too_large/);
+  assert.equal(await journal(u), 0);
+  assert.equal(await row(u), undefined);
+  const ok = await v2(u, 0, mixedOps(500));
+  assert.equal(ok.ops.length, 500);
+});
+
+test('P1: 620 операцій порціями, відповідь на другу порцію загублено, повтор: уся черга в базі, нагороди не подвоєні, підсумок як без втрати', async () => {
+  await setMode('v2');
+  const ref = await db.newUser();
+  const lossy = await db.newUser();
+  const a = sqlIo(ref, { snapshot: () => ({ theme: 'day' }) });
+  const stA = freshState(mixedOps(620));
+  const outA = await syncQueue(stA, a.io);
+  assert.equal(outA.portions, 4);
+  assert.deepEqual(a.calls.map((c) => [c.ops, c.snapshot]), [[200, false], [200, false], [200, false], [20, true]]);
+
+  const b = sqlIo(lossy, { loseCall: 2, snapshot: () => ({ theme: 'day' }) });
+  const stB = freshState(mixedOps(620));
+  await assert.rejects(() => syncQueue(stB, b.io), /Failed to fetch/);
+  assert.equal(stB.queue.length, 420);
+  assert.equal(await journal(lossy), 400);
+  const outB = await syncQueue(stB, b.io);
+  assert.equal(outB.status, 'done');
+  assert.equal(outB.snapshot, 'saved');
+  assert.equal(stB.queue.length, 0);
+  assert.equal(stB.dead.length, 0);
+  assert.equal(await journal(lossy), 620);
+  const ra = await row(ref);
+  const rb = await row(lossy);
+  assert.deepEqual(rb.core, ra.core);
+  assert.deepEqual(rb.rewarded, ra.rewarded);
+  assert.deepEqual(rb.core, replay(coreOf({}), [], mixedOps(620), true).core);
+  assert.equal(rb.state.theme, 'day');
+  assert.equal(rb.answers_total, ra.answers_total);
+});
+
+test('старий спосіб: правила імітації (simLegacySave) і функції бази дають однаковий стан', async () => {
+  await setMode('legacy');
+  const u = await db.newUser();
+  let sim: SimRow | null = null;
+  const steps: Record<string, unknown>[] = [
+    snap(['l1', 'l2'], 20, 40, { answersTotal: 10, answersCorrect: 7, hints: 3, frames: ['gold'] }),
+    snap(['l1', 'l2', 'l3'], 35, 30, { totalCoinsEarned: 60, answersTotal: 16, answersCorrect: 11, purchases: 1 }), // урок і покупка
+    snap(['l1'], 10, 20), // застарілий знімок
+    snap(['l1', 'l9'], 17, 29, { history: [{ id: 'l9', xp: 3, coins: 4 }, { id: 'l9', xp: 7, coins: 9 }, { id: 'l1', xp: 10, coins: 20 }], frames: ['neon'] }), // відсталий пристрій зі своїм уроком
+    snap(['l1', 'l9'], 17, 29, { history: [{ id: 'l9', xp: 7, coins: 9 }] }), // той самий знімок повторно
+    snap(['l1', 'l2', 'l3', 'l9', 'l4'], 500, 5, { totalCoinsEarned: 900, answersTotal: 3, answersCorrect: 3 }),
+  ];
+  for (const [i, st] of steps.entries()) {
+    await legacy(u, st);
+    sim = simLegacySave('legacy', sim, st).row;
+    const r = await row(u);
+    assert.deepEqual(coreOf(r.state), sim!.core, `крок ${i + 1}`);
+    assert.equal(Number(r.rev), sim!.rev, `rev, крок ${i + 1}`);
+  }
+});
+
+// P2. Модель старої збірки: вона зберігала ВЕСЬ стан старою функцією і при запуску вирішувала, чий стан брати, функцією chooseProgress
+// (справжній код старої збірки, досі лежить у shared/access.ts).
+async function p2Setup() {
+  await setMode('legacy');
+  const u = await db.newUser();
+  const hist1 = [{ id: 'l1', xp: 10, coins: 20 }];
+  const t0 = Number(await legacy(u, snap(['l1'], 10, 20, { history: hist1 })));
+  await setMode('v2');
+  // стара збірка завершує урок l2 ПІСЛЯ перемикання: сервер нічого не приймає
+  const local = snap(['l1', 'l2'], 22, 45, { history: [{ id: 'l2', xp: 12, coins: 25 }, ...hist1] });
+  const ret = Number(await legacy(u, local));
+  assert.deepEqual((await row(u)).core.completed, ['l1']);
+  return { u, local, meta: { userId: u.id, updatedAt: ret }, t0 };
+}
+async function newBuildMigrates(u: TestUser, local: Record<string, unknown>) {
+  const srv = await load(u);
+  const ops = legacyOps(u.id, u.id, local, srv, 5);
+  const st: SyncState = { queue: ops, rev: srv.rev, base: null, dead: [] };
+  await syncQueue(st, sqlIo(u).io);
+  return { ops, st };
+}
+
+test('P2 (повернення в застосунок): урок старої збірки після перемикання перенесено legacy:<учётка>:<урок>, на другому пристрої один раз', async () => {
+  const { u, local } = await p2Setup();
+  // застосунок повернувся з фону: перевірка версії перезавантажує на нову збірку, локальні дані з міткою цієї учётки лишаються
+  const first = await newBuildMigrates(u, local);
+  assert.deepEqual(first.ops.map((o) => o.opId), [`legacy:${u.id}:l2`]);
+  assert.equal(first.st.queue.length, 0);
+  let r = await row(u);
+  assert.deepEqual(r.core.completed, ['l1', 'l2']);
+  assert.equal(r.core.coins, 45);
+  assert.equal(r.core.xp, 22);
+  // другий пристрій: бачить урок один раз; якщо в нього лежить та сама стара копія, повторне перенесення нічого не додає
+  const second = await load(u);
+  assert.equal(second.core.completed.filter((x) => x === 'l2').length, 1);
+  const dup = await v2(u, second.rev, [L(`legacy:${u.id}:l2`, 'l2', 12, 25)]);
+  assert.deepEqual([dup.ops[0].status, dup.ops[0].duplicate], ['applied', true]);
+  r = await row(u);
+  assert.equal(r.core.coins, 45);
+  assert.equal(r.core.xp, 22);
+  assert.equal(legacyOps(u.id, u.id, local, await load(u), 6).length, 0); // повторний запуск нової збірки нічого не переносить
+});
+
+test('P2 (холодний старт старої збірки): серверний знімок не лягає поверх локального, урок доживає до нової збірки', async () => {
+  const { u, local, meta } = await p2Setup();
+  // тим часом інший пристрій з новою збіркою записав свій урок: серверний стан став новішим
+  const other = await load(u);
+  await v2(u, other.rev, [L('other-l3', 'l3')], { playerName: 'Інший пристрій' });
+  const realUpdated = Number((await db.admin.query('select (extract(epoch from updated_at) * 1000)::bigint ms from public.progress where user_id = $1', [u.id])).rows[0].ms);
+  // холодний старт старої збірки з кешу
+  const old = await oldLoad(u);
+  const base = { localUserId: meta.userId, localUpdatedAt: meta.updatedAt, userId: u.id, localCompleted: 2, serverCompleted: (old!.state.completed as string[]).length };
+  assert.equal(chooseProgress({ ...base, serverUpdatedAt: Number(old!.updated_ms) }), 'push'); // локальний стан лишається
+  assert.equal(chooseProgress({ ...base, serverUpdatedAt: realUpdated + 1000 }), 'pull'); // без заходу (позначка 0) стара збірка взяла б серверний стан і загубила l2
+  await legacy(u, local); // її «push» у режимі v2 нічого не пише
+  assert.deepEqual((await row(u)).core.completed, ['l1', 'l3']);
+  // далі перевірка версії перезавантажує на нову збірку, і вона переносить урок
+  await newBuildMigrates(u, local);
+  const r = await row(u);
+  assert.deepEqual(r.core.completed, ['l1', 'l3', 'l2']);
+  assert.equal(r.core.coins, 20 + 20 + 25);
+  assert.equal(r.core.xp, 10 + 10 + 12);
+  assert.equal((await load(u)).core.completed.filter((x) => x === 'l2').length, 1);
 });
