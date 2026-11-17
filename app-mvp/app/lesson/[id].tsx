@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, TextInput } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Рушій кроків гілок (ТЗ 004, C1). Старий курс (модулі 01–10) сюди більше не імпортується.
 import { shuffleQuestion } from '../../src/data/shuffle';
@@ -134,6 +134,8 @@ export default function LessonScreen() {
     if (lessonKey) track('lesson_start', { lesson: lessonKey });
   }, [lessonKey]);
 
+  // фінал товарки — тренажер «Ліди» на власному екрані
+  if (ref?.unit.sim === 'leads') return <Redirect href="/leads" />;
   if (!lesson) {
     return (
       <View style={[styles.screen, { paddingTop: insets.top + 40 }]}>

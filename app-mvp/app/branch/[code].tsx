@@ -25,6 +25,7 @@ export default function BranchScreen() {
   const lang = useStore((s) => s.lang);
   const energy = useStore((s) => s.energy);
   const strictEnergy = useStore((s) => s.strictEnergy);
+  const simStep = useStore((s) => s.simLeads?.step ?? 0);
   const [introOpen, setIntroOpen] = React.useState(false);
   const [feedbackOpen, setFeedbackOpen] = React.useState(false);
 
@@ -49,6 +50,8 @@ export default function BranchScreen() {
       return;
     }
     useStore.getState().setBranchProg(b.code, { started: true });
+    // фінал товарки — тренажер «Ліди» (етап D): власний екран
+    if (id === b.final?.id && b.final.sim === 'leads') return router.push('/leads');
     router.push(`/lesson/${id}`);
   };
   const lessonTitle = (id?: string) => b.lessons.find((l) => l.id === id)?.title;
@@ -192,7 +195,7 @@ export default function BranchScreen() {
             <Text style={[styles.rowNum, finalDone && { color: C.accentTxt }]}>{finalDone ? '✓' : '🏁'}</Text>
             <Text style={[styles.rowTxt, (!isFinalOpen || !b.final.ready) && { color: C.disabledTxt }]}>
               Фінал · {b.final.title}
-              {!isFinalOpen ? ' · відкриється після 5 уроків або практики' : ''}
+              {!isFinalOpen ? ' · відкриється після 5 уроків або практики' : b.final.sim && !finalDone && simStep > 0 ? ` · продовжити з кроку ${simStep + 1}` : ''}
             </Text>
           </Pressable>
         ) : (

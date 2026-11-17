@@ -69,7 +69,7 @@ export function MultiStep({ step, resolution, onResolve }: Props<'multi'>) {
 }
 
 // ─── Збери зв'язку: по одному варіанту на кожен слот ───
-export function BundleStep({ step, resolution, onResolve }: Props<'bundle'>) {
+export function BundleStep({ step, resolution, onResolve, hint }: Props<'bundle'> & { hint?: string }) {
   const styles = useStyles(makeStyles);
   const [sel, setSel] = useState<(number | null)[]>(() => step.slots.map(() => null));
   const done = resolution !== null;
@@ -77,7 +77,7 @@ export function BundleStep({ step, resolution, onResolve }: Props<'bundle'>) {
   const check = () => onResolve(step.slots.every((s, i) => sel[i] === s.answer));
   return (
     <View>
-      <Text style={styles.hint}>Збери зв'язку: обери по одному варіанту в кожному пункті</Text>
+      <Text style={styles.hint}>{hint ?? "Збери зв'язку: обери по одному варіанту в кожному пункті"}</Text>
       {step.slots.map((slot, si) => (
         <View key={si} style={{ marginBottom: 12 }}>
           <Text style={styles.slotLabel}>{slot.label}</Text>

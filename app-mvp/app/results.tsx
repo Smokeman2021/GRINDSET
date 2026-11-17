@@ -18,6 +18,7 @@ import { playSfx } from '../src/sound';
 import { Pop } from '../src/components/Anim';
 import { Watermark } from '../src/components/Watermark';
 import { retryLocalWrite } from '../src/cloud/progressSync';
+import { kbGet } from '../src/data/kb';
 
 export default function Results() {
   const C = useTheme();
@@ -156,7 +157,7 @@ export default function Results() {
     : lowAccuracy
     ? `Точність ${accuracy}%. Краще одразу розібрати помилки, поки свіжо.`
     : isPractice
-    ? 'Повторення — половина нагороди, але пам’ять дякує.'
+    ? 'Повторення без нагороди: це вже зараховано раніше. Пам’ять дякує.'
     : 'Норм. Помилки — частина процесу.';
 
 
@@ -272,7 +273,7 @@ export default function Results() {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
             {ref.unit.kb.map((k) => (
               <Pressable key={k} onPress={() => router.push({ pathname: '/kb/[id]', params: { id: k } })} style={styles.kbChip} accessibilityRole="link">
-                <Text style={styles.kbChipTxt}>{k}</Text>
+                <Text style={styles.kbChipTxt}>📘 {kbGet(k, 'uk')?.title ?? k}</Text>
               </Pressable>
             ))}
           </View>
