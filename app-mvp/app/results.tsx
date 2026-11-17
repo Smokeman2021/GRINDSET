@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Animated, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Animated, ScrollView, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { isQuizId, nextAfter } from '../src/data/modules';
 import { useStore } from '../src/store';
 import { Button } from '../src/components/Button';
 import { Icon } from '../src/components/Icon';
@@ -10,8 +9,9 @@ import { Theme, useStyles, useTheme } from '../src/theme';
 import { GrindykSay } from '../src/components/GrindykSay';
 import { say, PhraseKind } from '../src/data/phrases';
 import { ACHIEVEMENTS } from '../src/data/achievements';
-import { DIAGNOSTIC_ID, MISTAKES_ID, PRACTICE_ID, skippableUpTo } from '../src/data/virtual';
-import { MODULES } from '../src/data/modules';
+import { readyLessonIds, unitById } from '../src/data/branches';
+import { nextUnit } from '../src/data/branchRules';
+
 import { MemeCard } from '../src/components/MemeCard';
 import { MEMES } from '../src/data/memes';
 import { playSfx } from '../src/sound';
@@ -50,8 +50,10 @@ export default function Results() {
   const isCheckpoint = params.checkpoint === '1';
   const passed = params.passed !== '0';
 
-  const isDiagnostic = id === DIAGNOSTIC_ID;
-  const isMistakes = id === MISTAKES_ID || id === PRACTICE_ID;
+  const isDiagnostic = false; // стару діагностику прибрано разом зі старим курсом (C1.0)
+  const isMistakes = false;
+  const ref = unitById(id);
+  const hub = ref ? `/branch/${ref.branch.code}` : '/home';
   const doubled = params.doubled === '1';
   const [leveledUp, setLeveledUp] = useState(false);
   const [newAch, setNewAch] = useState<string[]>([]);
@@ -71,7 +73,7 @@ export default function Results() {
         useStore.getState().finishDiagnostic(errors === 0 && correct > 0, []);
       } else if (passed) {
         setSaveState('saving');
-        completeLesson(id, coins, xp, { correct, errors, doubled, practiceOnly: isMistakes, maxCombo: Math.round(maxBonus / 2), isQuiz: isQuizId(id) }).then(
+        completeLesson(id, coins, xp, { correct, errors, doubled, practiceOnly: isMistakes, maxCombo: Math.round(maxBonus / 2), isQuiz: false }).then(
           () => setSaveState('ok'),
           () => setSaveState('error')
         );
@@ -98,8 +100,12 @@ export default function Results() {
   const accuracy = correct + errors > 0 ? Math.round((correct / (correct + errors)) * 100) : 0;
   const level = useStore((s) => s.level);
 
-  const isQuiz = isQuizId(id);
-  const next = isQuiz || isDiagnostic || isMistakes ? undefined : nextAfter(id);
+  const isQuiz = false;
+  // наступна одиниця тієї ж гілки (completed уже містить щойно пройдений урок)
+  const completedNow = useStore((s) => s.completed);
+  const prog = useStore((s) => (ref ? s.branchProg[ref.branch.code] : undefined));
+  const nextId = ref ? nextUnit(ref.branch.code, completedNow, prog, readyLessonIds(ref.branch), !!ref.branch.final?.ready) : null;
+  const next = nextId ? unitById(nextId)?.unit : undefined;
 
   const failedCheckpoint = isCheckpoint && !passed;
   const retrySave = () => {
@@ -111,8 +117,8 @@ export default function Results() {
   };
   // Точність нижче 60%: головна дія — повторити помилки, наступний урок другорядний
   const lowAccuracy = !isDiagnostic && !failedCheckpoint && correct + errors > 0 && accuracy < 60;
-  const goMistakes = () => router.replace(`/lesson/${MISTAKES_ID}`);
-  const goNext = () => (next ? router.replace(`/lesson/${next.id}`) : router.replace('/home'));
+  const goMistakes = () => router.replace(`/lesson/${id}`);
+  const goNext = () => (next ? router.replace(`/lesson/${next.id}`) : router.dismissTo(hub));
 
   const talkKind: PhraseKind = failedCheckpoint
     ? 'crownFail'
@@ -152,10 +158,6 @@ export default function Results() {
     : isPractice
     ? 'Повторення — половина нагороди, але пам’ять дякує.'
     : 'Норм. Помилки — частина процесу.';
-
-  if (isDiagnostic) {
-    return <DiagnosticResult correct={correct} errors={errors} newAch={newAch} />;
-  }
 
 
   if (saveState !== 'ok') {
@@ -258,99 +260,45 @@ export default function Results() {
         <Text style={styles.nextTxt}>
           {failedCheckpoint
             ? 'Повтори будь-який урок (🔁 practice) і спробуй знову.'
-            : isMistakes
-            ? id === PRACTICE_ID
-              ? 'Тренування залічено. Так знання й закріплюються.'
-              : 'Помилки, які ти виправив, зникли зі списку.'
-            : isQuiz
-            ? 'Квіз пройдено. Повертайся на шлях і продовжуй!'
             : next
-            ? `Наступний: ${next.code} · ${next.title}`
-            : 'Усі доступні модулі пройдено! Нові — скоро 🎯'}
+            ? `Далі: ${next.title}`
+            : 'Повертайся до гілки: там видно, що відкрилось.'}
         </Text>
       </View>
+
+      {ref && ref.unit.kb.length > 0 && (
+        <View style={styles.nextBox}>
+          <Text style={styles.memeTag}>МАТЕРІАЛИ В «БАЗІ»</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
+            {ref.unit.kb.map((k) => (
+              <Pressable key={k} onPress={() => router.push({ pathname: '/kb/[id]', params: { id: k } })} style={styles.kbChip} accessibilityRole="link">
+                <Text style={styles.kbChipTxt}>{k}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      )}
 
       </ScrollView>
 
       {lowAccuracy ? (
         <View style={{ gap: 10 }}>
-          <Button title="Повторити помилки" onPress={goMistakes} />
-          <Button title={next ? 'Наступний урок' : 'На головну'} ghost onPress={goNext} />
+          <Button title="Пройти ще раз (без нагороди)" onPress={goMistakes} />
+          <Button title={next ? 'Далі' : 'До гілки'} ghost onPress={goNext} />
         </View>
       ) : (
-        <Button
-          title={failedCheckpoint || isMistakes ? 'Повернутись' : 'Забрати нагороду'}
-          onPress={() => {
-            if (!failedCheckpoint && !isMistakes && coins > 0) playSfx('coin');
-            router.replace('/home');
-          }}
-        />
+        <View style={{ gap: 10 }}>
+          <Button
+            title={next ? 'Далі' : 'До гілки'}
+            onPress={() => {
+              if (coins > 0) playSfx('coin');
+              goNext();
+            }}
+          />
+          {next && <Button title="До гілки" ghost onPress={() => router.dismissTo(hub)} />}
+        </View>
       )}
       <Watermark />
-    </View>
-  );
-}
-
-function DiagnosticResult({ correct, errors, newAch }: { correct: number; errors: number; newAch: string[] }) {
-  const C = useTheme();
-  const styles = useStyles(makeStyles);
-  const insets = useSafeAreaInsets();
-  const router = useRouter();
-  const charStart = useStore((s) => s.charStart);
-  const finishDiagnostic = useStore((s) => s.finishDiagnostic);
-  const total = correct + errors;
-  const pct = total ? Math.round((correct / total) * 100) : 0;
-  const perfect = errors === 0 && total > 0;
-  const skip = pct >= 80 ? 2 : pct >= 60 ? 1 : 0;
-  const kind: PhraseKind = perfect ? 'diagPerfect' : skip > 0 ? 'diagPass' : 'diagFail';
-  const talk = useMemo(() => say(kind), [kind]);
-  const mismatch = charStart === 'caveman' && skip > 0;
-  const target = MODULES[skip];
-
-  const skipAhead = () => {
-    finishDiagnostic(false, skippableUpTo(skip));
-    router.replace('/home');
-  };
-
-  return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
-    <ScrollView
-      style={{ flex: 1 }}
-      contentContainerStyle={{ padding: 22, paddingTop: insets.top + 20, paddingBottom: insets.bottom + 24, gap: 14 }}
-    >
-      <GrindykSay text={talk.text} pose={talk.pose} height={120} />
-      <Text style={styles.h1}>Результат: {pct}%</Text>
-      <Text style={styles.muted}>
-        {correct} із {total} правильно
-      </Text>
-
-      {newAch.includes('glasses') && (
-        <View style={styles.ach}>
-          <Text style={{ fontSize: 40 }}>😎</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.achTitle}>Золоті окуляри!</Text>
-            <Text style={styles.achSub}>Ексклюзив: безпомилковий діагностичний тест з першої спроби.</Text>
-          </View>
-        </View>
-      )}
-
-      {skip > 0 ? (
-        <>
-          <Text style={styles.diagTxt}>
-            {mismatch ? 'Ти казав, що новачок, але тест показує інше. ' : ''}
-            Можеш пропустити модулі, які вже знаєш, і почати з «{target?.title}». Пропущені уроки позначаться пройденими, але без нагород.
-          </Text>
-          <Button title={`Почати з модуля ${skip + 1}`} onPress={skipAhead} />
-          <Button title="Пройти з початку, хочу міцну базу" onPress={() => router.replace('/home')} />
-        </>
-      ) : (
-        <>
-          <Text style={styles.diagTxt}>Стартуємо з основ: так надійніше. Помилки з тесту потрапили в «Надолуження помилок».</Text>
-          <Button title="Почати навчання" onPress={() => router.replace('/home')} />
-        </>
-      )}
-    </ScrollView>
-    <Watermark />
     </View>
   );
 }
@@ -371,6 +319,8 @@ const makeStyles = (C: Theme) => StyleSheet.create({
   emoji: { fontSize: 60 },
   h1: { color: C.txt, fontSize: 26, fontWeight: '800', marginTop: 8 },
   memeTag: { color: C.goldTxt, fontWeight: '900', fontSize: 11, letterSpacing: 1, textAlign: 'center', marginBottom: 6 },
+  kbChip: { backgroundColor: C.panel2, borderRadius: 10, borderWidth: 2, borderBottomWidth: 4, borderColor: C.line, paddingVertical: 6, paddingHorizontal: 10 },
+  kbChipTxt: { color: C.blueTxt, fontWeight: '800', fontSize: 13 },
   doubled: { color: C.goldTxt, fontWeight: '800', marginTop: 10 },
   diagTxt: { color: C.txt, fontSize: 15, lineHeight: 22, textAlign: 'center' },
   muted: { color: C.muted, fontSize: 14, marginTop: 6, textAlign: 'center' },

@@ -131,21 +131,6 @@ export default function Settings() {
           />
         </View>
 
-        <Text style={styles.h}>МАРШРУТ І ТЕСТИ</Text>
-        <View style={styles.card}>
-          <Pressable onPress={() => router.push('/adapt')} style={styles.link}>
-            <Text style={styles.linkTxt}>🎯 Підлаштувати курс</Text>
-          </Pressable>
-          <View style={styles.divider} />
-          <Pressable onPress={() => router.push('/plan')} style={styles.link}>
-            <Text style={styles.linkTxt}>🗺️ Мій маршрут</Text>
-          </Pressable>
-          <View style={styles.divider} />
-          <Pressable onPress={() => router.push('/diagnostic')} style={styles.link}>
-            <Text style={styles.linkTxt}>🧪 Діагностичний тест{s.diagnosticDone ? ' (пройдено)' : ''}</Text>
-          </Pressable>
-        </View>
-
         {SHOW_BUILD && (
         <>
         <Text style={styles.h}>ЩО НОВОГО (ДЛЯ РОЗРОБНИКА)</Text>

@@ -69,8 +69,17 @@ test('витік: у публічній збірці немає текстів �
   for (const n of names) assert.ok(!b.includes(`"${n}"`) && !b.includes(`'${n}'`), `ризикова картка ${n} у публічному бандлі`);
 });
 
-test('у повній збірці позначені тексти є (перевірка, що тест бачить бандл)', { skip: !DIR || PUBLIC }, () => {
+// C1.0: старий курс (модулі 01–10) прибрано з інтерфейсу й не імпортується в бандл; гілки — є.
+// (Колишня перевірка «у повній збірці позначені тексти є» зняла сенс: позначені тексти жили в старому курсі,
+// тепер їх немає в жодній збірці; що тест бачить бандл, підтверджують рядки гілок нижче.)
+test('старого курсу в зібраному бандлі немає, гілки вертикалей є', { skip: !DIR }, () => {
   const b = bundleText(DIR!);
-  const texts = restrictedTexts();
-  assert.ok(texts.some((t) => b.includes(JSON.stringify(t).slice(1, -1)) || b.includes(t)));
+  const lessonsSrc = fs.readFileSync(path.join(ROOT, 'app-mvp', 'src', 'data', 'lessons.ts'), 'utf8');
+  const oldTitles = [...lessonsSrc.matchAll(/title: '([^']{12,})'/g)].map((m) => m[1]).slice(0, 15);
+  assert.ok(oldTitles.length >= 10);
+  const gen = path.join(ROOT, 'app-mvp', 'src', 'data', 'generated');
+  for (const f of fs.readdirSync(gen).filter((x) => /^m\d\d\.json$/.test(x))) oldTitles.push(...JSON.parse(fs.readFileSync(path.join(gen, f), 'utf8')).lessons.slice(0, 2).map((l: { title: string }) => l.title).filter((t: string) => t.length >= 12));
+  const leaked = oldTitles.filter((t) => b.includes(`'${t}'`) || b.includes(`"${t}"`));
+  assert.deepEqual(leaked, []);
+  for (const s of ['Обери вертикаль', 'Практика: втрати по етапах CRM', 'BR-ADT-PR']) assert.ok(b.includes(s), s);
 });

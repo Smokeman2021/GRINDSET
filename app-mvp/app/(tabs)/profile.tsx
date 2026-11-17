@@ -11,7 +11,8 @@ import { ACHIEVEMENTS } from '../../src/data/achievements';
 import { MemeCard } from '../../src/components/MemeCard';
 import { MEMES } from '../../src/data/memes';
 import { levelProgress, levelTitle } from '../../src/data/levels';
-import { ALL_LESSONS, crownsCompleted } from '../../src/data/modules';
+import { BRANCHES, unitById } from '../../src/data/branches';
+import { branchCrowns } from '../../src/data/branchRules';
 import { ArchetypeId, avatarStage, AVATAR_CHANGE_PRICE } from '../../src/data/avatars';
 import { ArchetypePicker } from '../../src/components/ArchetypePicker';
 import { Button } from '../../src/components/Button';
@@ -35,8 +36,8 @@ function lessonTitle(id: string): string {
   if (id === 'sim') return 'Симулятор кампанії';
   if (id === 'adsim') return 'Тренажер кабінету';
   if (id === 'practice') return 'Швидке тренування';
-  const l = ALL_LESSONS.find((x) => x.id === id);
-  return l ? `${l.code} ${l.title}` : id;
+  const l = unitById(id);
+  return l ? `${l.branch.emoji} ${l.unit.title}` : id;
 }
 
 export default function Profile() {
@@ -56,7 +57,7 @@ export default function Profile() {
   const stats = statsOf(s);
   const acc = s.totalCorrect + s.totalErrors > 0 ? Math.round((s.totalCorrect / (s.totalCorrect + s.totalErrors)) * 100) : 0;
   const unlocked = useMemo(() => new Set(s.unlocked), [s.unlocked]);
-  const stage = avatarStage(crownsCompleted(s.completed));
+  const stage = avatarStage(branchCrowns(s.completed, BRANCHES.map((b) => b.code)));
   const t = useT();
 
   // Фото стискаємо до 320 px і зберігаємо як data-uri: так воно переживає перезапуск і працює на вебі
@@ -214,21 +215,6 @@ export default function Profile() {
           <View style={{ flex: 1 }}>
             <Text style={styles.fbTitle}>Конструктор персонажа</Text>
             <Text style={styles.fbSub}>Обери основу й образ. Зберігається в профілі й підтягується на іншому пристрої.</Text>
-          </View>
-        </Pressable>
-
-        <Text style={styles.h}>НАДОЛУЖЕННЯ ПОМИЛОК</Text>
-        <Pressable
-          disabled={s.mistakes.length === 0}
-          onPress={() => router.push('/lesson/mistakes')}
-          style={({ pressed }) => [styles.mistakes, s.mistakes.length === 0 && { opacity: 0.6 }, pressed && { transform: [{ translateY: 2 }] }]}
-        >
-          <Text style={{ fontSize: 28 }}>🩹</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.mTitle}>{s.mistakes.length ? `До повторення: ${s.mistakes.length}` : 'Помилок нема'}</Text>
-            <Text style={styles.mSub}>
-              {s.mistakes.length ? 'Питання, у яких ти помилявся. Правильна відповідь прибирає їх зі списку.' : 'Роби уроки, а я збиратиму все, що йде не так.'}
-            </Text>
           </View>
         </Pressable>
 

@@ -1,6 +1,7 @@
 // Надійне збереження прогресу (ТЗ-01): чиста логіка операцій. Без імпортів, перевіряється автотестами (supabase/tests/progressOps.test.ts).
 // Правила дзеркалять SQL-функцію save_progress_v2 (supabase/migrations/0007_progress_v2.sql): клієнт цими ж правилами
 // показує результат учневі одразу, а після відповіді сервера бере серверне ядро й заново накладає операції, що ще в черзі.
+import { mergeBranchProg } from '../../data/branchRules.ts';
 
 // ───────── Серверне ядро ─────────
 export type Core = {
@@ -262,6 +263,8 @@ export function mergeClientState(local: Record<string, unknown>, server: Record<
   const obj = (v: unknown) => (v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {});
   out.srs = { ...obj(server.srs), ...obj(local.srs) };
   out.quiz = { ...obj(server.quiz), ...obj(local.quiz) };
+  // прогрес гілок (ТЗ 004, C1): зарахування самоперевірки й практики не відкочується
+  out.branchProg = mergeBranchProg(local.branchProg, server.branchProg);
   return out;
 }
 

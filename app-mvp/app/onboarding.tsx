@@ -137,14 +137,14 @@ export default function Onboarding() {
           <Text style={styles.avatarNote}>Він росте разом із твоїм прогресом. Змінити образ пізніше можна, але це платно (💎 {AVATAR_CHANGE_PRICE}).</Text>
         </ScrollView>
         <Button
-          title="До першого уроку"
+          title="До вибору вертикалі"
           disabled={arch === null}
           onPress={() => {
             if (!arch) return;
             setArchetype(arch);
             finishOnboarding(name, goal ?? 'regular');
             askPermission(); // дозвіл на нагадування (не блокує)
-            router.replace('/lesson/l1');
+            router.replace('/home'); // старий курс прибрано (C1.0): після онбордингу — вибір вертикалі
           }}
         />
       </View>

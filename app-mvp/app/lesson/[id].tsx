@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, TextInput } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { shuffleQuestion, Step } from '../../src/data/lessons';
-import { ALL_LESSONS, MODULES } from '../../src/data/modules';
-import { buildDiagnostic, buildMistakes, buildPractice, DIAGNOSTIC_ID, MISTAKES_ID, PRACTICE_ID, VirtualLesson } from '../../src/data/virtual';
+// Рушій кроків гілок (ТЗ 004, C1). Старий курс (модулі 01–10) сюди більше не імпортується.
+import { shuffleQuestion } from '../../src/data/shuffle';
+import { unitById } from '../../src/data/branches';
+import type { BStep } from '../../src/data/branch';
+import { branchReward, gradeFinal } from '../../src/data/branchRules';
 import { useStore, ENERGY_PER_LESSON, AnswerResult } from '../../src/store';
 import { Theme, useStyles, useTheme } from '../../src/theme';
 import { Grindyk } from '../../src/components/Grindyk';
@@ -64,25 +66,26 @@ export default function LessonScreen() {
   const hintsLeft = useStore((s) => s.hints);
   const doubleCoins = useStore((s) => s.doubleCoins);
 
-  // надолуження помилок і діагностика збираються на льоту
-  const virtual: VirtualLesson | null = useMemo(() => {
-    if (id === MISTAKES_ID) return buildMistakes(useStore.getState().mistakes);
-    if (id === DIAGNOSTIC_ID) return buildDiagnostic();
-    if (id === PRACTICE_ID) return buildPractice(useStore.getState().completed, useStore.getState().srs);
-    return null;
-  }, [id]);
-  const isDiagnostic = id === DIAGNOSTIC_ID;
+  const setBranchProg = useStore((s) => s.setBranchProg);
+  const ref = useMemo(() => unitById(id), [id]);
+  const kind = ref?.kind;
+  const code = ref?.branch.code ?? '';
+  const hub = `/branch/${code}` as const;
+  const isDiagnostic = false;
+  const isCheckpoint = false;
+  const isQuiz = false;
+  // один обʼєкт на маршрут: інакше варіанти перемішувались би на кожному рендері
+  const lesson = useMemo(() => (ref && ref.unit.ready && ref.unit.steps.length ? { ...ref.unit, minutes: 5 } : undefined), [ref]);
+  const alreadyDone = lesson ? completed.includes(lesson.id) : false;
 
-  const lesson = useMemo(() => virtual?.lesson ?? ALL_LESSONS.find((l) => l.id === id), [id, virtual]);
-  const isCheckpoint = lesson?.kind === 'checkpoint';
-  const isQuiz = lesson?.kind === 'quiz';
-  const alreadyDone = lesson ? completed.includes(lesson.id) || id === MISTAKES_ID || id === PRACTICE_ID : false;
-
-  const steps: Step[] = useMemo(() => {
+  const steps: BStep[] = useMemo(() => {
     if (!lesson) return [];
-    // Варіанти перемішуються при КОЖНОМУ проходженні будь-якого уроку (також у контрольних квізах і скрині золота)
-    return lesson.steps.map((s) => (s.type === 'teach' || s.type === 'reflect' ? s : shuffleQuestion(s)));
+    // Варіанти перемішуються при КОЖНОМУ проходженні
+    return lesson.steps.map((s) => (s.type === 'teach' || s.type === 'reflect' ? s : (shuffleQuestion(s as never) as BStep)));
   }, [lesson]);
+  const [hintOpen, setHintOpen] = useState(false);
+  const [note, setNote] = useState(''); // «твоє пояснення»: не оцінюється, показується поруч з еталоном
+  const chosenRef = useRef<Record<number, number>>({});
 
   const [idx, setIdx] = useState(0);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -135,7 +138,7 @@ export default function LessonScreen() {
     return (
       <View style={[styles.screen, { paddingTop: insets.top + 40 }]}>
         <Text style={styles.q}>Урок не знайдено</Text>
-        <Button title="Назад" onPress={() => router.replace('/home')} />
+        <Button title="Назад" onPress={() => router.replace(ref ? hub : '/home')} />
       </View>
     );
   }
@@ -156,7 +159,7 @@ export default function LessonScreen() {
   const tgMain = useTgMainButton({ text: mainTitle, onPress: needsCheck ? onCheck : onContinue, enabled: !mainDisabled, visible: true });
 
   function refFor(i: number) {
-    return virtual ? virtual.refs[i] : { lessonId: id, idx: i };
+    return { lessonId: id, idx: i };
   }
 
   function pushResult(ok: boolean) {
@@ -203,6 +206,7 @@ export default function LessonScreen() {
 
   function onCheck() {
     if (answered || selected === null || (step.type !== 'choice' && step.type !== 'fill')) return;
+    chosenRef.current[idx] = selected;
     setAnswered(true);
     record(selected === step.answer);
   }
@@ -216,29 +220,47 @@ export default function LessonScreen() {
 
   function onContinue() {
     if (idx + 1 >= total) {
-      recordAnswers(resultsRef.current, { rated: !isDiagnostic });
+      // Точність (leaderboard_accuracy): усі перевірювані завдання гілок, самоперевірки, практики й фіналів
+      recordAnswers(resultsRef.current, { rated: true });
       track('lesson_complete', { lesson: lsn.id, correct, errors });
-      if (!isDiagnostic && id !== MISTAKES_ID && id !== PRACTICE_ID) spendEnergy(ENERGY_PER_LESSON);
+      if (kind !== 'selfcheck') spendEnergy(ENERGY_PER_LESSON);
 
-      const accuracy = correct + errors > 0 ? correct / (correct + errors) : 1;
-      const passed = !isCheckpoint || accuracy >= (lsn.passThreshold ?? 0.8);
+      const okAt = (i: number) => !resultsRef.current.some((r) => r.idx === i && !r.ok);
+      const qIdx = steps.map((s, i) => (s.type === 'teach' || s.type === 'reflect' ? -1 : i)).filter((i) => i >= 0);
+      const firstWrong = qIdx.find((i) => !okAt(i));
+      const allOk = firstWrong === undefined;
 
-      const baseCoins = isCheckpoint ? 40 : isQuiz ? QUIZ_BASE_COINS : 20;
-      const baseXp = isCheckpoint ? 50 : isQuiz ? QUIZ_BASE_XP : 10;
-      let coins = baseCoins + Math.round((baseCoins * maxBonus) / 100) + correct * 5 + speedPts;
-      let xp = baseXp + correct * 3 + Math.round(speedPts * 0.6);
-
-      if (alreadyDone) {
-        // Один урок нагороджується один раз (ТЗ-01): повтор пройденого уроку курсу нагороди не дає, сервер відповів би already_rewarded.
-        // Тренування й надолуження помилок не уроки курсу: як і раніше половина.
-        const virtual = id === MISTAKES_ID || id === PRACTICE_ID;
-        coins = virtual ? Math.round(coins / 2) : 0;
-        xp = virtual ? Math.round(xp / 2) : 0;
+      // Самоперевірка: без нагороди й без позначки уроків; результат і місце — у прогресі гілки
+      if (kind === 'selfcheck') {
+        const w = firstWrong !== undefined ? steps[firstWrong] : undefined;
+        setBranchProg(code, allOk ? { sc: 'pass', scSee: undefined, scWhy: undefined, started: true } : { sc: 'fail', scSee: w?.see, scWhy: (w as { explain?: string } | undefined)?.explain, started: true });
+        router.dismissTo(hub);
+        return;
       }
-      if (isCheckpoint && !passed) {
-        coins = 0;
-        xp = 0;
+      if (kind === 'practice') {
+        const w = firstWrong !== undefined ? steps[firstWrong] : undefined;
+        setBranchProg(code, allOk ? { practice: 'pass', prSee: undefined, prWhy: undefined, started: true } : { practice: 'fail', prSee: w?.see, prWhy: (w as { explain?: string } | undefined)?.explain, started: true });
+        if (!allOk) return router.dismissTo(hub);
       }
+      // Фінал: рішення, дані й наступний крок оцінюються окремо; «запускати» без допуску блокує зарахування
+      let passed = true;
+      if (kind === 'final') {
+        const g = gradeFinal(steps as never, okAt, chosenRef.current);
+        passed = g.passed;
+        setBranchProg(code, { finalGaps: g.gaps, blocked: g.blocked, started: true });
+        if (!passed) return router.dismissTo(hub);
+      }
+
+      const baseCoins = kind === 'final' ? 40 : 20;
+      const baseXp = kind === 'final' ? 50 : 10;
+      const r = branchReward({
+        kind: kind ?? 'lesson',
+        passed,
+        alreadyDone,
+        base: { coins: baseCoins + Math.round((baseCoins * maxBonus) / 100) + correct * 5 + speedPts, xp: baseXp + correct * 3 + Math.round(speedPts * 0.6) },
+      });
+      let coins = r.coins;
+      let xp = r.xp;
       const doubled = doubleCoins > 0 && coins > 0 && !isDiagnostic;
       if (doubled) coins *= 2;
       // X2-вікно посеред дня (10 хвилин після сповіщення): подвоює коїни й XP
@@ -272,6 +294,8 @@ export default function LessonScreen() {
       return;
     }
     setIdx(idx + 1);
+    setHintOpen(false);
+    setNote('');
     setSelected(null);
     setExtCorrect(null);
     setAnswered(false);
@@ -296,7 +320,7 @@ export default function LessonScreen() {
         <Pressable
           onPress={() => {
             track('lesson_exit', { lesson: lsn.id, step: idx, total });
-            router.replace('/home');
+            router.dismissTo(hub);
           }}
         >
           <Text style={styles.x}>✕</Text>
@@ -328,28 +352,24 @@ export default function LessonScreen() {
         </View>
       </View>
 
-      {(isCheckpoint || alreadyDone || isQuiz || isDiagnostic) && (
-        <Text style={[styles.mode, isCheckpoint && { color: C.goldTxt }]}>
-          {isCheckpoint
-            ? '💰 ТЕСТ НА СКРИНЮ ЗОЛОТА · потрібно 80%'
-            : isDiagnostic
-            ? '🧪 ДІАГНОСТИКА · без нагород, лише рівень'
-            : id === MISTAKES_ID
-            ? '🩹 НАДОЛУЖЕННЯ ПОМИЛОК · нагорода ½'
-            : id === PRACTICE_ID
-            ? '🏋️ ШВИДКЕ ТРЕНУВАННЯ · нагорода ½'
-            : alreadyDone
-            ? '🔁 ПОВТОРЕННЯ · без нагороди (урок уже зараховано)'
-            : '⏱ КВІЗ НА ЧАС · бонусна нагорода'}
-        </Text>
-      )}
+      <Text style={[styles.mode, kind === 'final' && { color: C.goldTxt }]}>
+        {kind === 'selfcheck'
+          ? `🧭 САМОПЕРЕВІРКА · ${ref?.branch.title} · без нагороди`
+          : alreadyDone
+          ? '🔁 ПОВТОРЕННЯ · без нагороди (уже зараховано)'
+          : kind === 'final'
+          ? `🏁 ФІНАЛ · рішення, дані, наступний крок${ref?.branch.regulated ? ' · без запуску' : ''}`
+          : kind === 'practice'
+          ? `🎯 ПРАКТИКА · ${ref?.branch.title}`
+          : `${ref?.branch.emoji} ${ref?.branch.title.toUpperCase()} · ${lsn.title}`}
+      </Text>
 
       {limit > 0 && <TimerRow key={idx} leftRef={leftRef} limit={limit} answered={answered} />}
 
       <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
         {isTeach ? (
           <>
-            <Text style={[styles.layer, { color: C.goldTxt }]}>ТЕОРІЯ</Text>
+            <Text style={[styles.layer, { color: C.goldTxt }]}>{ref ? 'БРИФ' : 'ТЕОРІЯ'}</Text>
             <View style={styles.teachHero}>
               <Grindyk mood="think" size={64} />
             </View>
@@ -408,9 +428,19 @@ export default function LessonScreen() {
               </Text>
             )}
 
+            {!answered && step.hint && !hintOpen && (
+              <Pressable onPress={() => setHintOpen(true)} style={styles.hintBtn} accessibilityRole="button">
+                <Text style={styles.hintTxt}>🦝 Підказка Гріндіка</Text>
+              </Pressable>
+            )}
+            {!answered && step.hint && hintOpen && (
+              <View style={styles.reflectHint}>
+                <Text style={styles.reflectHintTxt}>🦝 {step.hint}</Text>
+              </View>
+            )}
             {!answered && hintsLeft > 0 && (step.type === 'choice' || step.type === 'fill') && hidden === null && (
               <Pressable onPress={useHintNow} style={styles.hintBtn}>
-                <Text style={styles.hintTxt}>💡 Підказка ({hintsLeft})</Text>
+                <Text style={styles.hintTxt}>💡 Прибрати варіант ({hintsLeft})</Text>
               </Pressable>
             )}
 
@@ -465,6 +495,17 @@ export default function LessonScreen() {
                 <NumericStep key={`${idx}`} step={step} resolution={answered ? { correct: isCorrect } : null} onResolve={onExternal} />
               )}
             </View>
+            {(kind === 'lesson' || kind === 'final') && !answered && (
+              <TextInput
+                value={note}
+                onChangeText={setNote}
+                placeholder="Твоє пояснення (необовʼязково, не оцінюється)"
+                placeholderTextColor={C.muted}
+                multiline
+                maxLength={500}
+                style={styles.noteInput}
+              />
+            )}
           </>
         )}
       </ScrollView>
@@ -477,7 +518,9 @@ export default function LessonScreen() {
             <Text style={[styles.fbTxt, { color: isCorrect ? C.accent : C.red }]}>
               {timedOut ? '⏱ Час вийшов. Правильна відповідь підсвічена зеленим.' : isCorrect ? step.okMsg : step.noMsg}
             </Text>
-            {step.explain && <Text style={styles.explain}>{step.explain}</Text>}
+            {step.explain && <Text style={styles.explain}>{ref ? `Еталон: ${step.explain}` : step.explain}</Text>}
+            {!isCorrect && step.hint && <Text style={styles.explain}>🦝 {step.hint}</Text>}
+            {note.trim() ? <Text style={styles.explain}>Твоє пояснення: {note.trim()}</Text> : null}
             {shieldHit && <Text style={styles.shield}>🛡️ Захист комбо врятував серію</Text>}
             <Quip kind={timedOut ? 'timeout' : isCorrect ? (combo >= 5 ? 'combo5' : combo >= 3 ? 'combo3' : 'correct') : 'wrong'} />
           </View>
@@ -512,6 +555,7 @@ const makeStyles = (C: Theme) => StyleSheet.create({
   pbar: { flex: 1, height: 16, flexDirection: 'row', gap: 2, borderRadius: 10, overflow: 'hidden' },
   seg: { flex: 1, backgroundColor: C.track },
   fill: { height: '100%', backgroundColor: C.accent, borderRadius: 10 },
+  noteInput: { marginTop: 14, minHeight: 56, borderRadius: 12, borderWidth: 2, borderColor: C.line, backgroundColor: C.panel, color: C.txt, padding: 10, fontSize: 14, textAlignVertical: 'top' },
   hintBtn: { alignSelf: 'flex-start', backgroundColor: C.panel2, borderRadius: 12, paddingVertical: 7, paddingHorizontal: 12, borderWidth: 2, borderColor: C.gold, marginTop: 6 },
   hintTxt: { color: C.goldTxt, fontWeight: '800', fontSize: 13 },
   shield: { color: C.blueTxt, fontWeight: '800', fontSize: 13, marginTop: 6 },

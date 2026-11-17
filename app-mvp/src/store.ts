@@ -15,7 +15,7 @@ import { scaleCoins } from './economy';
 import { FRESH_STATS, POINTS_PER_LEVEL, StatAlloc, StatId, STAT_MAX } from './data/stats';
 import type { EquipSlot } from './data/equipment';
 import type { Lang } from './i18n/strings';
-import { setContentLang } from './data/modules';
+import type { BranchProg } from './data/branchRules.ts';
 import { emitOp } from './cloud/opBus';
 import { newOpId } from './cloud/shared/progressOps';
 
@@ -66,6 +66,7 @@ type State = {
   dailyGoal: DailyGoal;
   level: number;
   completed: string[]; // ids пройдених уроків (включно з 'checkpoint')
+  branchProg: Record<string, BranchProg>; // гілки вертикалей (ТЗ 004, C1)
   quiz: QuizAnswers;
 
   // бустери з магазину
@@ -163,6 +164,7 @@ type State = {
   buyItem: (id: string) => 'ok' | 'poor' | 'max' | 'owned';
   equipFrame: (frame: string) => void;
   finishDiagnostic: (perfect: boolean, skipTo: string[]) => void;
+  setBranchProg: (code: string, patch: Partial<BranchProg>) => void;
   reset: () => void;
 };
 
@@ -335,6 +337,7 @@ const FRESH = {
   dailyGoal: 'regular' as DailyGoal,
   level: 1,
   completed: [] as string[],
+  branchProg: {} as Record<string, BranchProg>, // гілки вертикалей: самоперевірка, практика, прогалини фіналу (уроки — лише в completed)
   quiz: {} as QuizAnswers,
   comboShields: 0,
   hints: 0,
@@ -430,10 +433,7 @@ export const useStore = create<State>()(
 
       setSoundEnabled: (v) => set({ soundEnabled: v }),
 
-      setLang: (lang) => {
-        setContentLang(lang);
-        set({ lang });
-      },
+      setLang: (lang) => set({ lang }),
 
       setDailyGoal: (goal) => set({ dailyGoal: goal }),
 
@@ -765,13 +765,14 @@ export const useStore = create<State>()(
         if (skipTo.length) void emitOp({ opId: newOpId('skip'), kind: 'skip', at: Date.now(), lessons: skipTo });
       },
 
+      setBranchProg: (code, patch) => set((s) => ({ branchProg: { ...s.branchProg, [code]: { ...s.branchProg[code], ...patch } } })),
+
       reset: () => set((s) => ({ ...FRESH, lang: s.lang, theme: s.theme })),
     }),
     {
       name: 'grindset-state',
       storage: createJSONStorage(() => AsyncStorage),
       onRehydrateStorage: () => (state) => {
-        setContentLang(state?.lang ?? 'uk');
         state?.checkStreak();
         state?.setHydrated();
       },
