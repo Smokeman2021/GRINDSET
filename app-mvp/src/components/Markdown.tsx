@@ -210,6 +210,20 @@ export function Markdown({ text, small }: { text: string; small?: boolean }) {
             <Text style={styles.sheetTag}>ТЕРМІН</Text>
             <Text style={styles.sheetTitle}>{popup?.title}</Text>
             <Text style={styles.sheetDef}>{popup?.def}</Text>
+            {/* термін → стаття «Бази» за спільним ID; «Назад» зі статті повертає в той самий крок уроку з відповіддю (урок лишається в стеку) */}
+            {popup?.article && (
+              <Pressable
+                onPress={() => {
+                  const id = popup.article!;
+                  setPopup(null);
+                  router.push({ pathname: '/kb/[id]', params: { id } });
+                }}
+                style={styles.sheetBtn}
+                accessibilityRole="button"
+              >
+                <Text style={styles.sheetBtnTxt}>Відкрити статтю →</Text>
+              </Pressable>
+            )}
             <Text style={styles.sheetHint}>Торкнись будь-де, щоб закрити</Text>
           </View>
         </Pressable>
@@ -232,6 +246,8 @@ const makeStyles = (C: Theme) => StyleSheet.create({
   sheetTitle: { color: C.txt, fontWeight: '900', fontSize: 22, marginTop: 4 },
   sheetDef: { color: C.txt, fontSize: 16, lineHeight: 24, marginTop: 10 },
   sheetHint: { color: C.muted, fontSize: 12, marginTop: 14 },
+  sheetBtn: { marginTop: 14, alignSelf: 'flex-start', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 12, borderWidth: 2, borderBottomWidth: 4, borderColor: C.gold, backgroundColor: C.panel2 },
+  sheetBtnTxt: { color: C.goldTxt, fontWeight: '900', fontSize: 14 },
   bold: { fontWeight: '800' },
   italic: { fontStyle: 'italic', color: C.muted },
   mono: { fontFamily: 'monospace', backgroundColor: C.panel2 },
