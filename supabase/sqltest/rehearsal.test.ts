@@ -1,6 +1,6 @@
 // Репетиція вікна викладки (ТЗ 004, ізольована перевірка) на локальній базі з чинною 0007 з гілки.
 // Порядок як у плані вікна: стан b24 → резервна копія → 0007 (legacy) → нова збірка копить операції → перемикання v2 →
-// [0008 — етап E2, ще не існує] → відкат legacy → повернення v2. Після кожного кроку: жоден урок і жодна нагорода не втрачені
+// 0008 (відгуки) → відкат legacy → повернення v2 (0008 аддитивна, лишається). Після кожного кроку: жоден урок і жодна нагорода не втрачені
 // відносно резервної копії, нічого не подвоєно.
 import test, { after, before } from 'node:test';
 import assert from 'node:assert/strict';
@@ -110,7 +110,20 @@ test('репетиція вікна: копія → 0007 → нова збірк
   assert.deepEqual((await state(b))!.completed, ['l1']);
   await noLoss('після перемикання');
 
-  // 5. 0008 (відгуки) — етап E2, ще не існує: крок репетиції пропущено
+  // 5. 0008 (відгуки). До неї нова збірка пише відгук старим форматом (вид і контекст у тексті) — запис приймається
+  await db.rpc(a, "insert into public.feedback (kind, body, screen, build) values ('idea', '[коментар] до 0008 (гілка TOV)', 'map/TOV', 26)");
+  await db.rpc(b, "insert into public.feedback (kind, body, screen, build) values ('bug', 'стара збірка', 'lesson', 24)");
+  // наявні відгуки порівнюємо за колонками до 0008 (нові branch / sim_step додаються порожніми)
+  const oldFb = async () => JSON.stringify((await db.admin.query('select id, user_id, username, kind, screen, lesson_id, step_idx, body, build, created_at from public.feedback order by id')).rows);
+  const fbBefore = await oldFb();
+  const before0008 = await backup();
+  await db.applyMigration('0008_feedback_queue.sql');
+  const after0008 = await backup();
+  assert.equal(await oldFb(), fbBefore, '0008 не змінює наявних відгуків');
+  assert.equal(after0008.out.progress.sha, before0008.out.progress.sha, '0008 не чіпає прогрес');
+  await db.rpc(a, "insert into public.feedback (kind, body, screen, branch, sim_step, build) values ('comment', 'після 0008', 'leads', 'TOV', 3, 26)");
+  assert.equal(Number(await db.rpc(b, 'select count(*) from public.feedback')), 1, 'тестер бачить лише свій відгук');
+  await noLoss('після 0008');
 
   // 6. Відкат: legacy; стара збірка з застарілим знімком не затирає те, що записано через v2
   await setMode('legacy');
@@ -132,5 +145,6 @@ test('репетиція вікна: копія → 0007 → нова збірк
   const fin = await backup();
   assert.equal(fin.out.allowed_users.sha, copy.out.allowed_users.sha);
   assert.ok(fin.out.events.rows >= copy.out.events.rows);
+  assert.equal(fin.out.feedback.rows, 3, 'відгуки до й після 0008 пережили відкат і повернення');
   assert.equal(fin.out.progress.rows, copy.out.progress.rows + 1);
 });
