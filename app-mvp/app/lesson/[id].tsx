@@ -7,6 +7,7 @@ import { shuffleQuestion } from '../../src/data/shuffle';
 import { unitById } from '../../src/data/branches';
 import type { BStep } from '../../src/data/branch';
 import { branchReward, gradeFinal } from '../../src/data/branchRules';
+import { lessonPlace, resumeFor } from '../../src/data/place';
 import { useStore, ENERGY_PER_LESSON, AnswerResult } from '../../src/store';
 import { Theme, useStyles, useTheme } from '../../src/theme';
 import { Grindyk } from '../../src/components/Grindyk';
@@ -85,23 +86,26 @@ export default function LessonScreen() {
   }, [lesson]);
   const [hintOpen, setHintOpen] = useState(false);
   const [note, setNote] = useState(''); // «твоє пояснення»: не оцінюється, показується поруч з еталоном
-  const chosenRef = useRef<Record<number, number>>({});
+  // «Продовжити» (етап E): той самий урок відкривається з кроку, на якому гравець вийшов, разом із відповідями до нього
+  const setPlace = useStore((s) => s.setPlace);
+  const [resume] = useState(() => resumeFor(useStore.getState().placeBox, id ?? '', steps.length));
+  const chosenRef = useRef<Record<number, number>>(resume?.chosen ?? {});
 
-  const [idx, setIdx] = useState(0);
+  const [idx, setIdx] = useState(resume?.idx ?? 0);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
   const [extCorrect, setExtCorrect] = useState<boolean | null>(null); // результат завдань з власним інтерфейсом
   const [answered, setAnswered] = useState(false);
   const [combo, setCombo] = useState(0);
   const [maxBonus, setMaxBonus] = useState(0);
-  const [correct, setCorrect] = useState(0);
-  const [errors, setErrors] = useState(0);
+  const [correct, setCorrect] = useState(resume?.correct ?? 0);
+  const [errors, setErrors] = useState(resume?.errors ?? 0);
   const [timedOut, setTimedOut] = useState(false);
   const [speedPts, setSpeedPts] = useState(0);
   const [shieldHit, setShieldHit] = useState(false);
   const [hidden, setHidden] = useState<number | null>(null); // варіант, прибраний підказкою
-  const resultsRef = useRef<AnswerResult[]>([]);
-  const [wrongSteps, setWrongSteps] = useState<number[]>([]);
+  const resultsRef = useRef<AnswerResult[]>(resume?.results ?? []);
+  const [wrongSteps, setWrongSteps] = useState<number[]>(() => (resume?.results ?? []).filter((r) => !r.ok).map((r) => r.idx));
   const leftRef = useRef(0);
 
   // Квіз іде на час: 20 с на питання, 30 с на сценарну задачу
@@ -222,6 +226,8 @@ export default function LessonScreen() {
 
   function onContinue() {
     if (idx + 1 >= total) {
+      // одиницю завершено: місця немає, «Продовжити» поведе до наступної одиниці цієї гілки
+      if (kind !== 'selfcheck') setPlace(null, code);
       // Точність (leaderboard_accuracy): усі перевірювані завдання гілок, самоперевірки, практики й фіналів
       recordAnswers(resultsRef.current, { rated: true });
       track('lesson_complete', { lesson: lsn.id, correct, errors });
@@ -296,6 +302,9 @@ export default function LessonScreen() {
       return;
     }
     setIdx(idx + 1);
+    // зберегти місце: наступний крок і відповіді до нього (самоперевірку не зберігаємо)
+    const pl = lessonPlace({ id: lsn.id, idx: idx + 1, total, results: [...resultsRef.current], chosen: { ...chosenRef.current }, correct, errors, title: `${ref?.branch.title} · ${lsn.title}` }, Date.now());
+    if (pl) setPlace(pl, code);
     setHintOpen(false);
     setNote('');
     setSelected(null);
@@ -366,6 +375,7 @@ export default function LessonScreen() {
           : `${ref?.branch.emoji} ${ref?.branch.title.toUpperCase()} · ${lsn.title}`}
       </Text>
 
+      {resume && idx === resume.idx && <Text style={[styles.mode, { color: C.accentTxt }]}>↩ Продовжуємо з кроку {resume.idx + 1} з {total}</Text>}
       {limit > 0 && <TimerRow key={idx} leftRef={leftRef} limit={limit} answered={answered} />}
 
       <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>

@@ -107,7 +107,10 @@ function StepView({ idx }: { idx: number }) {
     const go = () => {
       const now = useStore.getState().simLeads ?? SIM_FRESH;
       const reviewIdx = SIM_STEPS.length - 1;
-      setSim({ ...now, step: now.back ? reviewIdx : idx + 1, back: false, at: Date.now() });
+      const step = now.back ? reviewIdx : idx + 1;
+      setSim({ ...now, step, back: false, at: Date.now() });
+      // «Продовжити» (етап E): крок тренажера
+      useStore.getState().setPlace({ kind: 'sim', id: SIM_LEADS_ID, step, total: SIM_STEPS.length, title: 'Товарка · Тренажер «Ліди»', at: Date.now() }, 'TOV');
     };
     const canGo = isTeach || res !== null || picked;
     const isChoice = q?.type === 'choice';
@@ -223,6 +226,7 @@ function Review({ alreadyDone }: { alreadyDone: boolean }) {
       s.spendEnergy(ENERGY_PER_LESSON);
       s.setBranchProg('TOV', { started: true });
       setSim({ ...st, done: true, at: Date.now() });
+      s.setPlace(null, 'TOV');
       track('lesson_complete', { lesson: SIM_LEADS_ID, correct, errors });
       router.replace({
         pathname: '/results',

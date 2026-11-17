@@ -3,6 +3,7 @@
 // показує результат учневі одразу, а після відповіді сервера бере серверне ядро й заново накладає операції, що ще в черзі.
 import { mergeBranchProg } from '../../data/branchRules.ts';
 import { mergeSimLeads } from '../../data/simLeadsRules.ts';
+import { mergePlace } from '../../data/place.ts';
 
 // ───────── Серверне ядро ─────────
 export type Core = {
@@ -268,6 +269,8 @@ export function mergeClientState(local: Record<string, unknown>, server: Record<
   out.branchProg = mergeBranchProg(local.branchProg, server.branchProg);
   // тренажер «Ліди» (етап D): новіший крок перемагає, завершення не відкочується
   out.simLeads = mergeSimLeads(local.simLeads, server.simLeads);
+  // «Продовжити» (етап E): новіше місце перемагає
+  out.placeBox = mergePlace(local.placeBox, server.placeBox);
   return out;
 }
 

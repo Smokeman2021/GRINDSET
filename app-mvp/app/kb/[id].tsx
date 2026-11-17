@@ -17,10 +17,23 @@ export default function KbArticleScreen() {
   const styles = useStyles(makeStyles);
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, ret } = useLocalSearchParams<{ id: string; ret?: string }>();
   const lang = useStore((s) => s.lang);
   const a = useMemo(() => (id ? kbGet(String(id), lang) : null), [id, lang]);
-  const back = () => (router.canGoBack() ? router.back() : router.replace('/library'));
+  // «Продовжити» (етап E): стаття — останнє місце; якщо її відкрито з уроку чи тренажера, зберігаємо, куди повернутись
+  const [retTo] = useState(() => {
+    const cur = useStore.getState().placeBox?.place ?? null;
+    return cur?.kind === 'kb' ? cur.back : cur ?? undefined;
+  });
+  useEffect(() => {
+    if (a) useStore.getState().setPlace({ kind: 'kb', id: a.id, title: `«База» · ${a.title}`, back: retTo, at: Date.now() });
+  }, [a?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  const back = () => {
+    // повернення: місцем знову стає урок / тренажер, з якого відкрили статтю
+    if (retTo) useStore.getState().setPlace(retTo);
+    if (ret === '1' && retTo) return router.replace(retTo.kind === 'sim' ? '/leads' : `/lesson/${retTo.id}`);
+    return router.canGoBack() ? router.back() : router.replace('/library');
+  };
 
   if (!a) {
     return (
@@ -35,7 +48,7 @@ export default function KbArticleScreen() {
     <View style={styles.root}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: insets.top + 12, paddingBottom: insets.bottom + 40 }}>
         <Pressable onPress={back} style={styles.backBtn} accessibilityRole="button" accessibilityLabel="Назад">
-          <Text style={styles.backTxt}>← Назад</Text>
+          <Text style={styles.backTxt}>{ret === '1' && retTo ? `← Повернутись: ${retTo.title}` : '← Назад'}</Text>
         </Pressable>
         <Text style={styles.kicker}>
           {a.id}

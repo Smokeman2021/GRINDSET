@@ -17,6 +17,7 @@ import type { EquipSlot } from './data/equipment';
 import type { Lang } from './i18n/strings';
 import type { BranchProg } from './data/branchRules.ts';
 import { SIM_FRESH, type SimLeadsState } from './data/simLeadsRules.ts';
+import { PLACE_FRESH, type Place, type PlaceBox } from './data/place.ts';
 import { emitOp } from './cloud/opBus';
 import { newOpId } from './cloud/shared/progressOps';
 
@@ -68,6 +69,7 @@ type State = {
   level: number;
   completed: string[]; // ids пройдених уроків (включно з 'checkpoint')
   branchProg: Record<string, BranchProg>; // гілки вертикалей (ТЗ 004, C1)
+  placeBox: PlaceBox; // «Продовжити» (ТЗ 004, E): останнє місце й остання гілка, на пристрої й у клієнтському знімку
   simLeads: SimLeadsState; // тренажер «Ліди» (ТЗ 004, D): крок і відповіді, на пристрої й у клієнтському знімку
   quiz: QuizAnswers;
 
@@ -168,6 +170,7 @@ type State = {
   finishDiagnostic: (perfect: boolean, skipTo: string[]) => void;
   setBranchProg: (code: string, patch: Partial<BranchProg>) => void;
   setSimLeads: (next: SimLeadsState) => void;
+  setPlace: (place: Place | null, lastBranch?: string | null) => void;
   reset: () => void;
 };
 
@@ -340,6 +343,7 @@ const FRESH = {
   dailyGoal: 'regular' as DailyGoal,
   level: 1,
   completed: [] as string[],
+  placeBox: PLACE_FRESH,
   simLeads: SIM_FRESH,
   branchProg: {} as Record<string, BranchProg>, // гілки вертикалей: самоперевірка, практика, прогалини фіналу (уроки — лише в completed)
   quiz: {} as QuizAnswers,
@@ -770,6 +774,7 @@ export const useStore = create<State>()(
       },
 
       setSimLeads: (next) => set({ simLeads: next }),
+      setPlace: (place, lastBranch) => set((s) => ({ placeBox: { place, lastBranch: lastBranch === undefined ? s.placeBox?.lastBranch ?? null : lastBranch, at: Date.now() } })),
       setBranchProg: (code, patch) => set((s) => ({ branchProg: { ...s.branchProg, [code]: { ...s.branchProg[code], ...patch } } })),
 
       reset: () => set((s) => ({ ...FRESH, lang: s.lang, theme: s.theme })),
