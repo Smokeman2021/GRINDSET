@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSyncReady } from '../src/cloud/progressSync';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ONBOARD_STEPS as QUIZ, SKILL_LEVELS } from '../src/data/quiz';
 import { ArchetypeId, AVATAR_CHANGE_PRICE } from '../src/data/avatars';
@@ -35,6 +36,11 @@ export default function Onboarding() {
   const C = useTheme();
   const styles = useStyles(makeStyles);
   const router = useRouter();
+  // прогрес із сервера прийшов, поки відкритий онбординг (вхід на чистому пристрої): гравець уже пройшов його раніше → на головну
+  const syncReady = useSyncReady((s) => s.ready);
+  useEffect(() => {
+    if (syncReady && useStore.getState().onboarded) router.replace('/home');
+  }, [syncReady, router]);
   const insets = useSafeAreaInsets();
   const setQuizAnswer = useStore((s) => s.setQuizAnswer);
   const finishOnboarding = useStore((s) => s.finishOnboarding);

@@ -7,6 +7,7 @@
 //  • Після відповіді беремо серверне ядро й заново накладаємо операції, що лишилися в черзі (створені, поки запит був у дорозі).
 //  • Решта стану (налаштування, персонаж, історія…) йде клієнтським знімком з останньою порцією; при конфлікті знімки обʼєднуються.
 //  • Поки сервер у режимі старого запису (або міграції ще немає), відповідь not_active: операції чекають у черзі.
+import { create } from 'zustand';
 import { useStore } from '../store';
 import { levelForXp } from '../data/levels';
 import { POINTS_PER_LEVEL } from '../data/stats';
@@ -51,6 +52,17 @@ function whenHydrated(): Promise<void> {
       }
     });
   });
+}
+
+// Готовність прогресу після входу: стартовий екран чекає на неї, щоб чистий пристрій не відкрив онбординг як новий користувач,
+// коли на сервері вже є прогрес (ТЗ 004, CS2). Без мережі або при довгій відповіді готовність настає за READY_TIMEOUT_MS.
+export const useSyncReady = create<{ ready: boolean }>(() => ({ ready: false }));
+const READY_TIMEOUT_MS = 8000;
+let readyTimer: ReturnType<typeof setTimeout> | null = null;
+function markReady() {
+  if (readyTimer) clearTimeout(readyTimer);
+  readyTimer = null;
+  useSyncReady.setState({ ready: true });
 }
 
 type Ctx = { backend: CloudBackend; user: CloudUser; onReplaced: () => void };
@@ -200,6 +212,8 @@ export async function flush(): Promise<void> {
 
 export async function startProgressSync(backend: CloudBackend, user: CloudUser, onReplaced: () => void): Promise<void> {
   await stopProgressSync();
+  useSyncReady.setState({ ready: false });
+  readyTimer = setTimeout(markReady, READY_TIMEOUT_MS);
   const my: Ctx = { backend, user, onReplaced };
   await whenHydrated();
   const owner = (await readJson<{ userId: string | null }>(META_KEY, { userId: null })).userId;
@@ -250,6 +264,7 @@ export async function startProgressSync(backend: CloudBackend, user: CloudUser, 
     S.rev = srv.rev;
     // клієнтську частину беремо із сервера, якщо на пристрої немає невідправлених змін цієї учётки
     applyVisible(mine && dirty ? null : srv.state);
+    markReady();
     await persistMeta(user.id);
   } catch (e) {
     if (ctx !== my) return;
@@ -259,6 +274,7 @@ export async function startProgressSync(backend: CloudBackend, user: CloudUser, 
     }
     // немає мережі при запуску: показуємо локальний стан, черга відправиться пізніше
     if (S.base && mine) applyVisible(null);
+    markReady();
     event('sync_error', 'load', { code: 'load_failed' }, 5 * 60 * 1000);
   }
 
@@ -284,6 +300,9 @@ export async function startProgressSync(backend: CloudBackend, user: CloudUser, 
 
 // flushFirst = true: перед виходом спробувати відправити чергу. Невідправлене лишається на пристрої під ключем учётки.
 export async function stopProgressSync(flushFirst = false): Promise<void> {
+  useSyncReady.setState({ ready: false });
+  if (readyTimer) clearTimeout(readyTimer);
+  readyTimer = null;
   if (flushFirst && ctx) {
     if (timer) clearTimeout(timer);
     timer = null;

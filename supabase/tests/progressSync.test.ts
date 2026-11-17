@@ -322,3 +322,43 @@ test('імітація: перемикач режиму й «стара збір
   assert.equal(c.row!.core.xp, 17);
   assert.equal(c.row!.core.coins, 29);
 });
+
+// ───────── CS1 / CS2 (ТЗ 004, A.4a): холодний старт старої збірки й чистий пристрій ─────────
+// Стара збірка при запуску вибирала стан функцією chooseProgress (справжній код, досі в shared/access.ts).
+// У режимі v2 стара load_progress віддає позначку часу 0.
+import { chooseProgress } from '../../app-mvp/src/cloud/shared/access.ts';
+
+test('CS1 (логіка клієнта): стара збірка з невідправленим уроком при холодному старті лишає свій стан, нова збірка переносить урок', () => {
+  // на пристрої є позначка синхронізації й локальний урок, якого сервер не прийняв (режим v2)
+  const base = { localUserId: 'u', localUpdatedAt: 1_700_000_000_000, userId: 'u', localCompleted: 3, serverCompleted: 5 };
+  assert.equal(chooseProgress({ ...base, serverUpdatedAt: 0 }), 'push'); // позначка 0: серверний стан не новіший → локальний лишається
+  assert.equal(chooseProgress({ ...base, serverUpdatedAt: 1_700_000_999_000 }), 'pull'); // без заходу стара збірка взяла б серверний і загубила урок
+  // «push» старої збірки в режимі v2 нічого не пише; після оновлення нова збірка переносить урок з постійним opId
+  const server = simSwitchToV2(simLegacySave('legacy', null, { completed: ['l1', 'l2', 'l3', 'l4', 'l5'], xp: 50, coins: 100, totalCoinsEarned: 100 }).row!);
+  const local = { completed: ['l1', 'l2', 'l9'], xp: 32, coins: 65, totalCoinsEarned: 65, history: [{ id: 'l9', xp: 12, coins: 25 }] };
+  assert.equal(simLegacySave('v2', server, local).written, false);
+  const ops = legacyOps('u', 'u', local, simLoad('v2', server), 1);
+  assert.deepEqual(ops.map((o) => o.opId), ['legacy:u:l9']);
+  const r1 = simSave('v2', server, server.rev, ops, null);
+  assert.ok(r1.res.status === 'ok');
+  assert.equal(r1.row!.core.completed.filter((x) => x === 'l9').length, 1);
+  assert.equal(r1.row!.core.coins, 125);
+  // другий пристрій із тією самою старою копією: урок один раз, нагорода одна
+  const r2 = simSave('v2', r1.row, 0, legacyOps('u', 'u', local, simLoad('v2', server), 2), null);
+  assert.ok(r2.res.status === 'ok' && r2.res.ops[0].duplicate);
+  assert.equal(r2.row!.core.coins, 125);
+  assert.equal(legacyOps('u', 'u', local, simLoad('v2', r2.row), 3).length, 0);
+});
+
+test('CS2 (логіка клієнта): чистий пристрій бачить серверний прогрес, а не порожній курс', () => {
+  // стара збірка: позначки синхронізації немає, локальних уроків 0, позначка сервера 0 → бере серверний стан
+  assert.equal(chooseProgress({ localUserId: null, localUpdatedAt: null, userId: 'u', serverUpdatedAt: 0, localCompleted: 0, serverCompleted: 4 }), 'pull');
+  // і наступний запуск тієї ж старої збірки (позначка 0 = 0) не тягне нічого поверх
+  assert.equal(chooseProgress({ localUserId: 'u', localUpdatedAt: 0, userId: 'u', serverUpdatedAt: 0, localCompleted: 4, serverCompleted: 4 }), 'push');
+  // нова збірка: даних без мітки власника не переносить, бере серверний знімок цілком (зокрема onboarded)
+  const server = simSwitchToV2(simLegacySave('legacy', null, { completed: ['l1', 'l2', 'l3', 'l4'], xp: 40, coins: 80, totalCoinsEarned: 80, onboarded: true, playerName: 'Тестер' }).row!);
+  const l = simLoad('v2', server);
+  assert.equal(legacyOps('u', null, {}, l, 1).length, 0);
+  assert.equal(l.state!.onboarded, true);
+  assert.deepEqual(l.core.completed, ['l1', 'l2', 'l3', 'l4']);
+});

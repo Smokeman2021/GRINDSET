@@ -528,3 +528,35 @@ test('P2 (холодний старт старої збірки): серверн
   assert.equal(r.core.xp, 10 + 10 + 12);
   assert.equal((await load(u)).core.completed.filter((x) => x === 'l2').length, 1);
 });
+
+test('CS1 (база): невідправлений урок старої збірки після холодного старту доходить через нову збірку, на другому пристрої один раз', async () => {
+  const { u, local, meta } = await p2Setup(); // урок l2 пройдено старою збіркою вже в режимі v2
+  const old = await oldLoad(u);
+  assert.equal(Number(old!.updated_ms), 0);
+  assert.equal(chooseProgress({ localUserId: meta.userId, localUpdatedAt: meta.updatedAt, userId: u.id, serverUpdatedAt: Number(old!.updated_ms), localCompleted: 2, serverCompleted: 1 }), 'push');
+  await newBuildMigrates(u, local);
+  const second = await load(u);
+  assert.equal(second.core.completed.filter((x) => x === 'l2').length, 1);
+  assert.equal(second.core.coins, 45);
+  await newBuildMigrates(u, local); // друге устройство з тією самою старою копією
+  assert.equal((await load(u)).core.coins, 45);
+});
+
+test('CS2 (база): чистий пристрій отримує серверний прогрес і в старій, і в новій збірці', async () => {
+  await setMode('legacy');
+  const u = await db.newUser();
+  await legacy(u, snap(['l1', 'l2', 'l3'], 30, 60, { onboarded: true }));
+  await setMode('v2');
+  // стара збірка: позначки на пристрої немає
+  const old = await oldLoad(u);
+  assert.equal(Number(old!.updated_ms), 0);
+  assert.deepEqual(old!.state.completed, ['l1', 'l2', 'l3']);
+  assert.equal(old!.state.onboarded, true);
+  assert.equal(chooseProgress({ localUserId: null, localUpdatedAt: null, userId: u.id, serverUpdatedAt: 0, localCompleted: 0, serverCompleted: 3 }), 'pull');
+  // нова збірка
+  const l = await load(u);
+  assert.equal(l.exists, true);
+  assert.deepEqual(l.core.completed, ['l1', 'l2', 'l3']);
+  assert.equal((l.state as Record<string, unknown>).onboarded, true);
+  assert.equal(legacyOps(u.id, null, {}, l, 1).length, 0);
+});
