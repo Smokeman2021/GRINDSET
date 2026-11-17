@@ -296,7 +296,9 @@ export default function Results() {
               goNext();
             }}
           />
-          {next && <Button title="До гілки" ghost onPress={() => router.dismissTo(hub)} />}
+          {/* етап E: карта Києва показує, що пройдено й що відкрилось */}
+          {ref && passed && <Button title="🗺 Карта: що відкрилось" ghost onPress={() => router.replace({ pathname: '/map/[code]', params: { code: ref.branch.code, done: id } })} />}
+          {next && !ref && <Button title="До гілки" ghost onPress={() => router.dismissTo(hub)} />}
         </View>
       )}
       <Watermark />

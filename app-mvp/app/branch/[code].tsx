@@ -75,6 +75,11 @@ export default function BranchScreen() {
         <Text style={styles.muted}>{b.scenario}</Text>
         {lang !== 'uk' && <Text style={styles.note}>Гілка доступна українською. Мову застосунку не змінюємо.</Text>}
         {b.regulated && <Text style={[styles.note, { color: C.goldTxt }]}>Регульована вертикаль · фінал: рішення про допуск, без запуску</Text>}
+        {/* етап E: кожна одиниця гілки — точка на карті Києва */}
+        <Pressable onPress={() => router.push({ pathname: '/map/[code]', params: { code: b.code } })} style={styles.mapBtn} accessibilityRole="button" accessibilityLabel="Карта Києва">
+          <Text style={styles.mapBtnTxt}>🗺 Карта Києва · {b.title}</Text>
+          <Text style={styles.mapBtnSub}>уроки, практика й фінал як заклади на карті</Text>
+        </Pressable>
 
         {showIntro ? (
           <View style={styles.card}>
@@ -225,6 +230,9 @@ const makeStyles = (C: Theme) =>
     link: { color: C.blueTxt, fontWeight: '800', fontSize: 14 },
     section: { color: C.muted, fontSize: 12, fontWeight: '900', letterSpacing: 1, marginTop: 8 },
     row: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.panel, borderRadius: 14, padding: 12, borderWidth: 2, borderBottomWidth: 4, borderColor: C.line },
+    mapBtn: { backgroundColor: '#ece4d1', borderRadius: 14, padding: 12, borderWidth: 2, borderBottomWidth: 4, borderColor: '#d9ceb4' },
+    mapBtnTxt: { color: '#2a2418', fontWeight: '900', fontSize: 15 },
+    mapBtnSub: { color: '#6b604a', fontWeight: '700', fontSize: 12 },
     rowGrey: { backgroundColor: C.disabled, borderColor: C.disabledEdge },
     rowNum: { width: 26, textAlign: 'center', color: C.txt, fontWeight: '900', fontSize: 16 },
     rowTxt: { flex: 1, color: C.txt, fontSize: 15, fontWeight: '700' },
