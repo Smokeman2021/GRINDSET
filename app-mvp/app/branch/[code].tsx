@@ -32,7 +32,7 @@ export default function BranchScreen() {
     return (
       <View style={[styles.root, { paddingTop: insets.top + 20, padding: 20 }]}>
         <Text style={styles.h1}>Гілку не знайдено</Text>
-        <Button title="До вертикалей" onPress={() => router.replace('/home')} />
+        <Button title="До вертикалей" onPress={() => router.dismissTo('/home')} />
       </View>
     );
   }
@@ -57,7 +57,7 @@ export default function BranchScreen() {
     <View style={styles.root}>
       <ScrollView contentContainerStyle={{ padding: 18, paddingTop: insets.top + 10, paddingBottom: insets.bottom + 40, gap: 12 }}>
         <View style={styles.topRow}>
-          <Pressable onPress={() => router.replace('/home')} accessibilityRole="button" accessibilityLabel="До вертикалей">
+          <Pressable onPress={() => router.dismissTo('/home')} accessibilityRole="button" accessibilityLabel="До вертикалей">
             <Text style={styles.back}>← Вертикалі</Text>
           </Pressable>
           {CLOUD_MODE !== 'off' && (
