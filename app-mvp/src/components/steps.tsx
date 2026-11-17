@@ -299,7 +299,8 @@ export function MatchStep({ step, resolution, onResolve }: Props<'match'>) {
 
 // ─── Вписати число ───
 const defaultTol = (f: { answer: number }) => Math.max(0.02, Math.abs(f.answer) * 0.01);
-const parseNum = (s: string) => parseFloat(s.replace(',', '.').replace(/[^\d.\-]/g, ''));
+// «−» (U+2212) і «–» теж мінус: відʼємний результат (збиток) уводиться зі знаком
+export const parseNum = (s: string) => parseFloat(s.replace(',', '.').replace(/[−–]/g, '-').replace(/[^\d.-]/g, ''));
 
 export function NumericStep({ step, resolution, onResolve }: Props<'numeric'>) {
   const C = useTheme();
@@ -324,8 +325,8 @@ export function NumericStep({ step, resolution, onResolve }: Props<'numeric'>) {
               style={styles.input}
               value={vals[i]}
               editable={!done}
-              keyboardType="decimal-pad"
-              placeholder="0"
+              keyboardType={f.answer < 0 ? 'numbers-and-punctuation' : 'decimal-pad'}
+              placeholder={f.answer < 0 ? 'зі знаком: −0' : '0'}
               placeholderTextColor={C.muted}
               onChangeText={(t) => setVals((v) => v.map((x, xi) => (xi === i ? t : x)))}
             />

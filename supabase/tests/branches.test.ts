@@ -133,6 +133,37 @@ test('корони аватара рахуються з гілок, без ко�
   assert.equal(branchCrowns(['BR-SRV-PR', 'BR-SRV-FINAL', ...lessonIds('INF')], ['SRV', 'INF']), 3);
 });
 
+// C2: уроки й фінали у формах з перевіркою
+test('C2: кожен готовий урок — бриф, перевірювані кроки з еталоном, підказка Гріндіка, формулювання 023 для звіту', () => {
+  for (const b of BRANCHES) for (const l of b.lessons.filter((x) => x.ready)) {
+    assert.equal(l.steps[0].type, 'teach', `${l.id}: перший крок — бриф`);
+    const qs = questionSteps(l);
+    assert.ok(qs.length >= 1 && qs.length <= 4, l.id);
+    for (const q of qs) assert.ok((q as { explain?: string }).explain, `${l.id}: еталон`);
+    assert.ok(qs.some((q) => q.hint), `${l.id}: підказка Гріндіка`);
+    assert.ok(qs[0].src, `${l.id}: src 023`);
+    assert.ok(l.kb.length >= 1, `${l.id}: «База»`);
+  }
+});
+
+test('C2: фінал перевіряє рішення, дані й наступний крок; у регульованих «запускати» блокує зарахування', () => {
+  for (const b of BRANCHES) {
+    if (!b.final) continue;
+    const qs = questionSteps(b.final);
+    for (const p of ['decision', 'data', 'next']) assert.ok(qs.some((q) => q.part === p), `${b.code}: немає частини ${p}`);
+    for (const q of qs) assert.ok(q.part && q.see && b.lessons.some((l) => l.id === q.see), `${b.code}: частина без уроку для повтору`);
+    const dec = qs.filter((q) => q.part === 'decision');
+    if (b.regulated) assert.ok(dec.some((q) => (q.blockLaunch ?? []).length > 0), `${b.code}: блок «запускати»`);
+    // правильний варіант ніколи не позначений як блокуючий
+    for (const q of dec) if (q.type === 'choice') assert.ok(!(q.blockLaunch ?? []).includes(q.answer), b.code);
+  }
+});
+
+test('C2: жодних способів обходу модерації ні в текстах, ні в неправильних варіантах', () => {
+  const all = JSON.stringify(BRANCHES).toLowerCase();
+  for (const s of ['обійти', 'обхід модерац', 'клоак', 'cloak', 'фарм', 'авторег', 'інший акаунт', 'інший домен', 'антидетект']) assert.ok(!all.includes(s), s);
+});
+
 // C1.0: старий курс (модулі 01–10) прибрано з інтерфейсу; файли лишаються без змін і в бандл не імпортуються
 const OLD = ['lessons', 'modules', 'content', 'module02', 'virtual', 'plan'];
 test('старий курс не імпортується жодним екраном (лише import type)', () => {
