@@ -1,8 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const dir = 'C:/Users/murak/Downloads/GRINDSET/content/adsmanager-map';
-const out = 'C:/Users/murak/Downloads/GRINDSET/app-mvp/src/data/adsManagerTour.ts';
+// Шляхи від кореня репозиторію, де лежить скрипт (раніше були жорстко прописані на папку власника)
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const dir = path.join(ROOT, 'content', 'adsmanager-map');
+const out = path.join(ROOT, 'app-mvp', 'src', 'data', 'adsManagerTour.ts');
 
 const files = fs.readdirSync(dir).filter((f) => f.endsWith('.md')).sort();
 const entries = files.map((f) => {
