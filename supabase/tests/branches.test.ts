@@ -120,10 +120,11 @@ test('практика: одне коротке завдання на нові �
   }
 });
 
-test('товарка не дублює цифри кейсу «Ліди» (₴180, 30/28, 6/8/14, −₴48, +₴330); фінал товарки до етапу D не зараховується', () => {
-  const tov = JSON.stringify(BRANCHES[0]);
+test('товарка не дублює цифри кейсу «Ліди» (₴180, 30/28, 6/8/14, −₴48, +₴330) в уроках; фінал товарки — тренажер «Ліди»', () => {
+  const tov = JSON.stringify([BRANCHES[0].lessons, BRANCHES[0].practice, BRANCHES[0].selfcheck]);
   for (const s of ['₴180', '180 ×', '30 відправлень', '28 прийнят', '−₴48', '+₴330', '₴6 на прийняту']) assert.ok(!tov.includes(s), s);
-  assert.equal(BRANCHES[0].final, null);
+  // етап D: фінал — тренажер на власному екрані (дані й перевірки — simLeads.test.ts)
+  assert.equal(BRANCHES[0].final?.sim, 'leads');
   assert.equal(nextUnit('TOV', ['BR-TOV-PR'], { practice: 'pass' }, [], false), null);
 });
 
@@ -148,7 +149,7 @@ test('C2: кожен готовий урок — бриф, перевірюва�
 
 test('C2: фінал перевіряє рішення, дані й наступний крок; у регульованих «запускати» блокує зарахування', () => {
   for (const b of BRANCHES) {
-    if (!b.final) continue;
+    if (!b.final || b.final.sim) continue; // фінал товарки — тренажер «Ліди» (етап D), свої автотести
     const qs = questionSteps(b.final);
     for (const p of ['decision', 'data', 'next']) assert.ok(qs.some((q) => q.part === p), `${b.code}: немає частини ${p}`);
     for (const q of qs) assert.ok(q.part && q.see && b.lessons.some((l) => l.id === q.see), `${b.code}: частина без уроку для повтору`);

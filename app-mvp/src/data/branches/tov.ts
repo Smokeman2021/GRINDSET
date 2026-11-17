@@ -165,5 +165,6 @@ export const TOV: Branch = {
       ),
     ]),
   ],
-  final: null,
+  // фінал — тренажер «Ліди» (етап D): екран /leads, дані src/data/simLeads.ts
+  final: { id: 'BR-TOV-FINAL', title: 'Тренажер «Ліди»', steps: [], kb: ['ECO-02', 'ECO-04', 'ECO-10', 'MET-02', 'EXP-07'], ready: true, sim: 'leads' },
 };

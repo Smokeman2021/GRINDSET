@@ -22,6 +22,7 @@ export type Unit = {
   steps: BStep[];
   kb: string[]; // картки «Бази» за ID
   ready: boolean; // конвертовано у форми з перевіркою
+  sim?: 'leads'; // одиниця — тренажер (власний екран /leads), а не кроки уроку
 };
 
 export type Branch = {

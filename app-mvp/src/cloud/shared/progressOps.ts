@@ -2,6 +2,7 @@
 // Правила дзеркалять SQL-функцію save_progress_v2 (supabase/migrations/0007_progress_v2.sql): клієнт цими ж правилами
 // показує результат учневі одразу, а після відповіді сервера бере серверне ядро й заново накладає операції, що ще в черзі.
 import { mergeBranchProg } from '../../data/branchRules.ts';
+import { mergeSimLeads } from '../../data/simLeadsRules.ts';
 
 // ───────── Серверне ядро ─────────
 export type Core = {
@@ -265,6 +266,8 @@ export function mergeClientState(local: Record<string, unknown>, server: Record<
   out.quiz = { ...obj(server.quiz), ...obj(local.quiz) };
   // прогрес гілок (ТЗ 004, C1): зарахування самоперевірки й практики не відкочується
   out.branchProg = mergeBranchProg(local.branchProg, server.branchProg);
+  // тренажер «Ліди» (етап D): новіший крок перемагає, завершення не відкочується
+  out.simLeads = mergeSimLeads(local.simLeads, server.simLeads);
   return out;
 }
 

@@ -16,6 +16,7 @@ import { FRESH_STATS, POINTS_PER_LEVEL, StatAlloc, StatId, STAT_MAX } from './da
 import type { EquipSlot } from './data/equipment';
 import type { Lang } from './i18n/strings';
 import type { BranchProg } from './data/branchRules.ts';
+import { SIM_FRESH, type SimLeadsState } from './data/simLeadsRules.ts';
 import { emitOp } from './cloud/opBus';
 import { newOpId } from './cloud/shared/progressOps';
 
@@ -67,6 +68,7 @@ type State = {
   level: number;
   completed: string[]; // ids пройдених уроків (включно з 'checkpoint')
   branchProg: Record<string, BranchProg>; // гілки вертикалей (ТЗ 004, C1)
+  simLeads: SimLeadsState; // тренажер «Ліди» (ТЗ 004, D): крок і відповіді, на пристрої й у клієнтському знімку
   quiz: QuizAnswers;
 
   // бустери з магазину
@@ -165,6 +167,7 @@ type State = {
   equipFrame: (frame: string) => void;
   finishDiagnostic: (perfect: boolean, skipTo: string[]) => void;
   setBranchProg: (code: string, patch: Partial<BranchProg>) => void;
+  setSimLeads: (next: SimLeadsState) => void;
   reset: () => void;
 };
 
@@ -337,6 +340,7 @@ const FRESH = {
   dailyGoal: 'regular' as DailyGoal,
   level: 1,
   completed: [] as string[],
+  simLeads: SIM_FRESH,
   branchProg: {} as Record<string, BranchProg>, // гілки вертикалей: самоперевірка, практика, прогалини фіналу (уроки — лише в completed)
   quiz: {} as QuizAnswers,
   comboShields: 0,
@@ -765,6 +769,7 @@ export const useStore = create<State>()(
         if (skipTo.length) void emitOp({ opId: newOpId('skip'), kind: 'skip', at: Date.now(), lessons: skipTo });
       },
 
+      setSimLeads: (next) => set({ simLeads: next }),
       setBranchProg: (code, patch) => set((s) => ({ branchProg: { ...s.branchProg, [code]: { ...s.branchProg[code], ...patch } } })),
 
       reset: () => set((s) => ({ ...FRESH, lang: s.lang, theme: s.theme })),
