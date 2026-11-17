@@ -9,7 +9,8 @@ import { CLOUD_MODE } from '../src/cloud/config';
 import { useCloud, useCloudBoot } from '../src/cloud/cloudStore';
 import { useWebVersionGuard } from '../src/webVersion';
 import { initTelegram, isTelegram, syncTelegramColors, useTelegramInsets, useTgBackButton } from '../src/telegram/webapp';
-import { usePathname, useRouter } from 'expo-router';
+import { useGlobalSearchParams, usePathname, useRouter } from 'expo-router';
+import { FeedbackFab } from '../src/components/FeedbackSheet';
 
 // Усі маршрути застосунку, окрім login: за закритого тесту доступні лише після входу. Новий файл у app/ ОБОВʼЯЗКОВО додати сюди,
 // інакше він лишиться відкритим для всіх (перевіряє scripts/check-routes-protected.mjs).
@@ -65,6 +66,18 @@ function TelegramBridge({ bg }: { bg: string }) {
   return null;
 }
 
+// Відгук на кожному екрані (ТЗ 004, E2): екрани з власною 🐞 у шапці мають свою кнопку, решта — плаваюча кнопка звідси.
+// Контекст — з маршруту: екран, для результату — ID одиниці, для статті — ID статті.
+const OWN_FEEDBACK = ['/lesson/', '/branch/', '/map/', '/leads', '/profile', '/login'];
+function GlobalFeedback() {
+  const pathname = usePathname();
+  const params = useGlobalSearchParams<{ id?: string }>();
+  if (pathname === '/' || OWN_FEEDBACK.some((p) => pathname.startsWith(p))) return null;
+  const screen = pathname.slice(1) || 'home';
+  const lessonId = pathname === '/results' && typeof params.id === 'string' ? params.id : undefined;
+  return <FeedbackFab context={{ screen, lessonId }} />;
+}
+
 export default function RootLayout() {
   const C = useTheme();
   useWebChrome(C.bg);
@@ -98,6 +111,7 @@ export default function RootLayout() {
           <Stack.Screen name="login" />
         </Stack.Protected>
       </Stack>
+      {gateOn && signedIn && <GlobalFeedback />}
     </SafeAreaProvider>
   );
 }

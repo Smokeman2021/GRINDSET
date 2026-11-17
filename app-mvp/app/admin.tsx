@@ -10,8 +10,9 @@ import { getBackend } from '../src/cloud/backend';
 import { useCloud } from '../src/cloud/cloudStore';
 import { toCsv } from '../src/cloud/shared/csv';
 import { summarizeEvents } from '../src/cloud/shared/analytics';
-import { copyText, saveCsv } from '../src/cloud/exportFile';
-import type { EventRow, FeedbackRow, TesterRow } from '../src/cloud/types';
+import { copyText, saveCsv, saveText } from '../src/cloud/exportFile';
+import type { EventRow, FeedbackRow, FeedbackStatus, TesterRow } from '../src/cloud/types';
+import { STATUS_LABEL as FB_STATUS, contextLine, contributors, kindIcon, kindLabel, queueMarkdown } from '../src/cloud/shared/feedbackQueue';
 
 const fmt = (ms: number | null) => (ms ? new Date(ms).toLocaleString('uk-UA', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—');
 const STATUS_LABEL: Record<TesterRow['status'], string> = { invited: 'запрошений', active: 'активний', blocked: 'заблокований' };
@@ -29,7 +30,9 @@ export default function Admin() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const me = useCloud((c) => c.user);
-  const [tab, setTab] = useState<'feedback' | 'testers' | 'events'>('feedback');
+  const [tab, setTab] = useState<'feedback' | 'testers' | 'events' | 'team'>('feedback');
+  const [onlyQueue, setOnlyQueue] = useState(false);
+  const [notes, setNotes] = useState<Record<number, string>>({}); // чернетки поміток власника
   const [feedback, setFeedback] = useState<FeedbackRow[] | null>(null);
   const [testers, setTesters] = useState<TesterRow[] | null>(null);
   const [events, setEvents] = useState<EventRow[] | null>(null);
@@ -104,12 +107,26 @@ export default function Admin() {
     }
   };
 
+  const review = async (f: FeedbackRow, patch: { note?: string; status?: FeedbackStatus; useful?: boolean }) => {
+    setMsg(null);
+    try {
+      await getBackend()!.adminFeedbackReview(f.id, patch.note ?? f.note ?? '', patch.status ?? f.status ?? 'new', patch.useful ?? !!f.useful);
+      setFeedback((list) => (list ?? []).map((x) => (x.id === f.id ? { ...x, note: patch.note ?? x.note, status: patch.status ?? x.status, useful: patch.useful ?? x.useful } : x)));
+    } catch (e) {
+      if (e instanceof Error && e.message === 'not_ready') setMsg('Помітки запрацюють після міграції 0008 (вікно викладки).');
+      else fail(e);
+    }
+  };
+
+  // Черга «в черзі для Claude» → Markdown для Ревізора: відгук, контекст, помітка власника
+  const exportQueue = () => saveText('grindset-queue-for-claude.md', queueMarkdown(feedback ?? []), 'text/markdown');
+
   const exportFeedback = () =>
     saveCsv(
       'grindset-feedback.csv',
       toCsv(
-        ['id', 'час', 'нік', 'тип', 'екран', 'урок', 'крок', 'збірка', 'текст'],
-        (feedback ?? []).map((f) => [f.id, new Date(f.createdAt).toISOString(), f.username, f.kind === 'bug' ? 'помилка' : 'ідея', f.screen, f.lessonId, f.stepIdx, f.build, f.body])
+        ['id', 'час', 'нік', 'вид', 'екран', 'гілка', 'урок', 'крок', 'крок тренажера', 'збірка', 'текст', 'статус', 'корисний', 'помітка'],
+        (feedback ?? []).map((f) => [f.id, new Date(f.createdAt).toISOString(), f.username, kindLabel(f.kind), f.screen, f.branch ?? '', f.lessonId, f.stepIdx, f.simStep ?? '', f.build, f.body, FB_STATUS[f.status ?? 'new'], f.useful ? 'так' : '', f.note ?? ''])
       )
     );
 
@@ -149,6 +166,9 @@ export default function Admin() {
         <Pressable onPress={() => setTab('events')} style={[styles.tab, tab === 'events' && styles.tabOn]}>
           <Text style={[styles.tabTxt, tab === 'events' && { color: C.onAccent }]}>Події</Text>
         </Pressable>
+        <Pressable onPress={() => setTab('team')} style={[styles.tab, tab === 'team' && styles.tabOn]}>
+          <Text style={[styles.tabTxt, tab === 'team' && { color: C.onAccent }]}>Внесок</Text>
+        </Pressable>
       </View>
 
       {msg && <Text style={styles.err}>{msg}</Text>}
@@ -174,33 +194,84 @@ export default function Admin() {
 
       {tab === 'feedback' && (
         <>
-          <Pressable onPress={() => void exportFeedback()} disabled={!feedback?.length} style={[styles.export, !feedback?.length && { opacity: 0.5 }]}>
-            <Text style={styles.smallTxt}>⬇ Вивантажити відгуки (CSV)</Text>
-          </Pressable>
+          <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+            <Pressable onPress={() => setOnlyQueue((v) => !v)} style={[styles.export, onlyQueue && { borderColor: C.accent }]}>
+              <Text style={styles.smallTxt}>{onlyQueue ? '☑' : '☐'} Лише «в черзі для Claude» · {(feedback ?? []).filter((f) => f.status === 'queued').length}</Text>
+            </Pressable>
+            <Pressable onPress={() => void exportQueue()} disabled={!feedback?.some((f) => f.status === 'queued')} style={[styles.export, !feedback?.some((f) => f.status === 'queued') && { opacity: 0.5 }]}>
+              <Text style={styles.smallTxt}>⬇ Черга для Claude (Markdown)</Text>
+            </Pressable>
+            <Pressable onPress={() => void exportFeedback()} disabled={!feedback?.length} style={[styles.export, !feedback?.length && { opacity: 0.5 }]}>
+              <Text style={styles.smallTxt}>⬇ Усі відгуки (CSV)</Text>
+            </Pressable>
+          </View>
           {feedback && feedback.length === 0 && (
             <View style={styles.box}>
               <Text style={styles.boxTxt}>Відгуків поки нема.</Text>
             </View>
           )}
-          {(feedback ?? []).map((f) => (
+          {(feedback ?? []).filter((f) => !onlyQueue || f.status === 'queued').map((f) => (
             <View key={f.id} style={styles.card}>
               <View style={styles.cardHead}>
                 <Text style={styles.cardTitle}>
-                  {f.kind === 'bug' ? '🐞' : '💡'} @{f.username}
+                  {kindIcon(f.kind)} {kindLabel(f.kind)} · @{f.username}
+                  {f.useful ? ' · ⭐' : ''}
                 </Text>
                 <Text style={styles.sub}>{fmt(f.createdAt)}</Text>
               </View>
-              <Text style={styles.sub}>
-                {f.screen || '—'}
-                {f.lessonId ? ` · урок ${f.lessonId}` : ''}
-                {f.stepIdx != null ? ` · крок ${f.stepIdx + 1}` : ''}
-                {f.build != null ? ` · b${f.build}` : ''}
-              </Text>
+              <Text style={styles.sub}>{contextLine(f)}</Text>
               <Text selectable style={styles.fbBody}>
                 {f.body}
               </Text>
+              {/* помітка власника, статус черги, «корисний» — тестер цього не бачить */}
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+                {(['new', 'queued', 'done', 'skip'] as FeedbackStatus[]).map((st) => (
+                  <Pressable key={st} onPress={() => void review(f, { status: st })} style={[styles.fbChip, (f.status ?? 'new') === st && styles.fbChipOn]}>
+                    <Text style={[styles.fbChipTxt, (f.status ?? 'new') === st && { color: C.onAccent }]}>{FB_STATUS[st]}</Text>
+                  </Pressable>
+                ))}
+                <Pressable onPress={() => void review(f, { useful: !f.useful })} style={[styles.fbChip, f.useful && styles.fbChipOn]}>
+                  <Text style={[styles.fbChipTxt, f.useful && { color: C.onAccent }]}>⭐ Корисний</Text>
+                </Pressable>
+              </View>
+              <View style={{ flexDirection: 'row', gap: 6, marginTop: 6, alignItems: 'center' }}>
+                <TextInput
+                  value={notes[f.id] ?? f.note ?? ''}
+                  onChangeText={(t) => setNotes((n) => ({ ...n, [f.id]: t.slice(0, 2000) }))}
+                  placeholder="Помітка власника (бачиш лише ти)"
+                  placeholderTextColor={C.muted}
+                  style={[styles.input, { flex: 1 }]}
+                />
+                {notes[f.id] != null && notes[f.id] !== (f.note ?? '') && (
+                  <Pressable onPress={() => void review(f, { note: notes[f.id] })} style={styles.fbChip}>
+                    <Text style={styles.fbChipTxt}>Зберегти</Text>
+                  </Pressable>
+                )}
+              </View>
             </View>
           ))}
+        </>
+      )}
+
+      {tab === 'team' && (
+        <>
+          <Text style={styles.sub}>Внесок тестерів: число відгуків і позначених корисними. Бачиш лише ти.</Text>
+          {contributors(feedback ?? []).map((c) => (
+            <View key={c.username} style={styles.card}>
+              <View style={styles.cardHead}>
+                <Text style={styles.cardTitle}>@{c.username}</Text>
+                <Text style={styles.sub}>{fmt(c.lastAt)}</Text>
+              </View>
+              <Text style={styles.sub}>
+                Відгуків: {c.total} · корисних: {c.useful}
+              </Text>
+            </View>
+          ))}
+          {feedback && feedback.length === 0 && (
+            <View style={styles.box}>
+              <Text style={styles.boxTxt}>Відгуків поки нема.</Text>
+            </View>
+          )}
         </>
       )}
 
@@ -318,6 +389,9 @@ const makeStyles = (C: Theme) =>
     cardTitle: { color: C.txt, fontWeight: '800', fontSize: 15, flexShrink: 1 },
     sub: { color: C.muted, fontSize: 12, lineHeight: 16, marginTop: 2 },
     chip: { color: C.muted, fontSize: 12, fontWeight: '800' },
+    fbChip: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: 10, borderWidth: 2, borderBottomWidth: 3, borderColor: C.line, backgroundColor: C.panel2 },
+    fbChipOn: { backgroundColor: C.accent, borderColor: C.accentEdge },
+    fbChipTxt: { color: C.txt, fontSize: 12, fontWeight: '800' },
     fbBody: { color: C.txt, fontSize: 14, lineHeight: 20, marginTop: 8 },
     input: { color: C.txt, backgroundColor: C.panel2, borderRadius: 10, borderWidth: 2, borderColor: C.line, paddingHorizontal: 12, paddingVertical: 9, fontSize: 15, marginTop: 8 },
     primary: { alignItems: 'center', paddingVertical: 11, borderRadius: 12, borderWidth: 2, borderBottomWidth: 4, borderColor: C.accentEdge, backgroundColor: C.accent, marginTop: 10, marginBottom: 6 },

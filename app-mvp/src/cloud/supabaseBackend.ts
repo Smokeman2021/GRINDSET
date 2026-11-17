@@ -5,7 +5,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UI_BUILD } from '../version';
 import { coreOf } from './shared/progressOps';
 import type { Core, LoadV2, Op, OpResult, SaveV2 } from './shared/progressOps';
-import type { AccuracyRow, CloudBackend, CloudUser, FeedbackInput, EventRow, FeedbackRow, LoginFailure, LoginInput, LoginResult, ServerProgress, SessionCheck, TesterRow } from './types';
+import { feedbackContext, legacyPayload } from './shared/feedbackQueue';
+import type { AccuracyRow, CloudBackend, CloudUser, FeedbackInput, FeedbackStatus, EventRow, FeedbackRow, LoginFailure, LoginInput, LoginResult, ServerProgress, SessionCheck, TesterRow } from './types';
 
 const SID_KEY = 'grindset-cloud-sid';
 
@@ -148,19 +149,43 @@ export class SupabaseBackend implements CloudBackend {
 
   // Відгук: автора й нік підставляє тригер feedback_fill на сервері (migrations/0004), тож їх тут не передаємо
   async sendFeedback(input: FeedbackInput): Promise<void> {
-    const { error } = await this.client.from('feedback').insert({
-      kind: input.kind,
-      body: input.body,
-      screen: input.screen ?? null,
-      lesson_id: input.lessonId ?? null,
-      step_idx: input.stepIdx ?? null,
-      build: UI_BUILD,
-    });
-    if (error) this.fail(error);
+    const ctx = feedbackContext({ screen: input.screen ?? '', lessonId: input.lessonId, stepIdx: input.stepIdx, branch: input.branch, simStep: input.simStep }, UI_BUILD);
+    const base = { screen: ctx.screen, lesson_id: ctx.lessonId ?? null, step_idx: ctx.stepIdx ?? null, build: UI_BUILD };
+    const { error } = await this.client.from('feedback').insert({ ...base, kind: input.kind, body: input.body, branch: ctx.branch ?? null, sim_step: ctx.simStep ?? null });
+    if (!error) return;
+    // 0008 ще не застосовано (вікно викладки): нових колонок і видів сервер не знає — пишемо старим форматом, контекст у тексті
+    if (error.code === '42703' || error.code === '23514' || error.code === 'PGRST204' || /column|check constraint/i.test(error.message ?? '')) {
+      const old = legacyPayload(input.kind === 'idea' ? 'proposal' : input.kind, input.body, ctx);
+      const r = await this.client.from('feedback').insert({ ...base, kind: old.kind, body: old.body });
+      if (r.error) this.fail(r.error);
+      return;
+    }
+    this.fail(error);
   }
 
   // Далі лише для адміна: читання відгуків дозволяє RLS (feedback_admin_read), решта це SECURITY DEFINER-функції 0004 / 0002
   async adminFeedback(): Promise<FeedbackRow[]> {
+    // черга з помітками власника (0008); якщо функції ще немає — старе читання без поміток
+    const q = await this.client.rpc('admin_feedback_queue');
+    if (!q.error) {
+      return ((q.data ?? []) as Record<string, unknown>[]).map((r) => ({
+        id: Number(r.id),
+        username: String(r.username ?? ''),
+        kind: (['bug', 'idea', 'comment', 'proposal'].includes(String(r.kind)) ? r.kind : 'bug') as FeedbackRow['kind'],
+        screen: String(r.screen ?? ''),
+        lessonId: String(r.lesson_id ?? ''),
+        stepIdx: r.step_idx == null ? null : Number(r.step_idx),
+        branch: r.branch == null ? null : String(r.branch),
+        simStep: r.sim_step == null ? null : Number(r.sim_step),
+        body: String(r.body ?? ''),
+        build: r.build == null ? null : Number(r.build),
+        createdAt: Number(r.created_ms),
+        note: r.note == null ? null : String(r.note),
+        status: (r.status ?? 'new') as FeedbackRow['status'],
+        useful: !!r.useful,
+      }));
+    }
+    if (!this.missing(q.error)) this.fail(q.error);
     const { data, error } = await this.client.from('feedback').select('*').order('created_at', { ascending: false }).limit(500);
     if (error) this.fail(error);
     return (data ?? []).map((r: Record<string, unknown>) => ({
@@ -174,6 +199,14 @@ export class SupabaseBackend implements CloudBackend {
       build: r.build == null ? null : Number(r.build),
       createdAt: Date.parse(String(r.created_at)),
     }));
+  }
+
+  async adminFeedbackReview(id: number, note: string, status: FeedbackStatus, useful: boolean): Promise<void> {
+    const { error } = await this.client.rpc('admin_feedback_review', { p_id: id, p_note: note, p_status: status, p_useful: useful });
+    if (error) {
+      if (this.missing(error)) throw new Error('not_ready');
+      this.fail(error);
+    }
   }
 
   // Автора й нік події підставляє тригер events_fill (migrations/0005); помилки глушимо: аналітика не повинна ламати урок

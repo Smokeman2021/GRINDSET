@@ -72,7 +72,7 @@ export default function LeadsSim() {
       ) : (
         <StepView key={cur.id + ':' + idx} idx={idx} />
       )}
-      <FeedbackSheet visible={feedbackOpen} onClose={() => setFeedbackOpen(false)} context={{ screen: 'leads', lessonId: SIM_LEADS_ID, stepIdx: idx }} />
+      <FeedbackSheet visible={feedbackOpen} onClose={() => setFeedbackOpen(false)} context={{ screen: 'leads', lessonId: SIM_LEADS_ID, branch: 'TOV', simStep: idx }} />
       <Watermark />
     </View>
   );

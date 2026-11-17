@@ -24,9 +24,10 @@ export type SessionCheck = 'ok' | 'replaced' | 'signed_out';
 export type AccuracyRow = { name: string; accuracy: number; answers: number; isMe: boolean };
 
 // Відгук тестера (кнопка «Повідомити про помилку / запропонувати»)
-export type FeedbackKind = 'bug' | 'idea';
-export type FeedbackInput = { kind: FeedbackKind; body: string; screen?: string; lessonId?: string; stepIdx?: number };
-export type FeedbackRow = { id: number; username: string; kind: FeedbackKind; screen: string; lessonId: string; stepIdx: number | null; body: string; build: number | null; createdAt: number };
+export type FeedbackKind = 'bug' | 'idea' | 'comment' | 'proposal'; // 'idea' — старий вид (до збірки 26)
+export type FeedbackStatus = 'new' | 'queued' | 'done' | 'skip';
+export type FeedbackInput = { kind: FeedbackKind; body: string; screen?: string; lessonId?: string; stepIdx?: number; branch?: string; simStep?: number };
+export type FeedbackRow = { id: number; username: string; kind: FeedbackKind; screen: string; lessonId: string; stepIdx: number | null; branch?: string | null; simStep?: number | null; body: string; build: number | null; createdAt: number; note?: string | null; status?: FeedbackStatus; useful?: boolean };
 
 // Подія мініаналітики (див. shared/analytics.ts)
 export type EventRow = { id: number; username: string; name: string; props: Record<string, unknown> | null; build: number | null; createdAt: number };
@@ -50,7 +51,8 @@ export interface CloudBackend {
   trackEvent(name: string, props?: Record<string, unknown>): Promise<void>; // мовчки ігнорує помилки: аналітика не повинна ламати урок
   sendFeedback(input: FeedbackInput): Promise<void>; // кидає Error('replaced'), якщо сеанс замінено
   // Лише для адміна (на сервері перевіряє is_admin_user; для не-адміна кидають Error('forbidden'))
-  adminFeedback(): Promise<FeedbackRow[]>;
+  adminFeedback(): Promise<FeedbackRow[]>; // з помітками власника (0008); до 0008 — без поміток
+  adminFeedbackReview(id: number, note: string, status: FeedbackStatus, useful: boolean): Promise<void>; // Error('not_ready'), поки 0008 не застосовано
   adminTesters(): Promise<TesterRow[]>;
   adminEvents(): Promise<EventRow[]>; // останні 5000 подій
   adminAddTester(username: string, name: string): Promise<void>; // Error('already_exists' | 'bad_username')

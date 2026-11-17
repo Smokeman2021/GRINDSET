@@ -3,7 +3,8 @@
 // тією самою логікою (shared/access.ts), що й на справжньому сервері. У збірці зі справжнім Supabase цей код не викликається.
 import { InviteRow, accuracyBoard, checkInvite, formatInviteCode, generateInviteCode, hashInvite, newSid, normalizeInviteCode, normalizeUsername, sessionState } from './shared/access';
 import { UI_BUILD } from '../version';
-import type { AccuracyRow, CloudBackend, CloudUser, FeedbackInput, EventRow, FeedbackRow, LoginInput, LoginResult, SessionCheck, TesterRow } from './types';
+import { feedbackContext } from './shared/feedbackQueue';
+import type { AccuracyRow, CloudBackend, CloudUser, FeedbackInput, FeedbackStatus, EventRow, FeedbackRow, LoginInput, LoginResult, SessionCheck, TesterRow } from './types';
 import { localKv, sessionKv } from './storage';
 
 const DB_KEY = 'grindset-mock-server-v2';
@@ -225,13 +226,19 @@ export class MockBackend implements CloudBackend {
     const me = await this.mustBeActive();
     const db = await readDb();
     const list = (db.feedback ??= []);
+    const ctx = feedbackContext({ screen: input.screen ?? '', lessonId: input.lessonId, stepIdx: input.stepIdx, branch: input.branch, simStep: input.simStep }, UI_BUILD);
     list.push({
       id: list.length + 1,
       username: me.username,
       kind: input.kind,
-      screen: input.screen ?? '',
-      lessonId: input.lessonId ?? '',
-      stepIdx: input.stepIdx ?? null,
+      screen: ctx.screen,
+      lessonId: ctx.lessonId ?? '',
+      stepIdx: ctx.stepIdx ?? null,
+      branch: ctx.branch ?? null,
+      simStep: ctx.simStep ?? null,
+      status: 'new',
+      useful: false,
+      note: null,
       body: input.body.trim().slice(0, 2000),
       build: UI_BUILD,
       createdAt: Date.now(),
@@ -266,6 +273,18 @@ export class MockBackend implements CloudBackend {
   async adminFeedback(): Promise<FeedbackRow[]> {
     await this.mustBeAdmin();
     return [...((await readDb()).feedback ?? [])].sort((a, b) => b.createdAt - a.createdAt);
+  }
+
+  async adminFeedbackReview(id: number, note: string, status: FeedbackStatus, useful: boolean): Promise<void> {
+    await this.mustBeAdmin();
+    if (!['new', 'queued', 'done', 'skip'].includes(status)) throw new Error('bad_status');
+    const db = await readDb();
+    const f = (db.feedback ?? []).find((x) => x.id === id);
+    if (!f) throw new Error('not_found');
+    f.note = note.trim() || null;
+    f.status = status;
+    f.useful = useful;
+    writeDb(db);
   }
 
   async adminTesters(): Promise<TesterRow[]> {

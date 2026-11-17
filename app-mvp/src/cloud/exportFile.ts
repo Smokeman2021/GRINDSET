@@ -18,6 +18,23 @@ export async function saveCsv(filename: string, csv: string): Promise<void> {
   await Share.share({ title: filename, message: csv });
 }
 
+// Текстовий файл (Markdown черги для Claude): у вебі скачування, на телефоні «Поділитися»
+export async function saveText(filename: string, text: string, mime = 'text/plain'): Promise<void> {
+  if (Platform.OS === 'web' && typeof document !== 'undefined') {
+    const blob = new Blob([text], { type: `${mime};charset=utf-8` });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return;
+  }
+  await Share.share({ title: filename, message: text });
+}
+
 // Копіювання в буфер (веб). Повертає false, якщо недоступно: тоді код можна виділити й скопіювати вручну
 export async function copyText(text: string): Promise<boolean> {
   try {
