@@ -5,6 +5,7 @@ import UK from './generated/kb/texts.uk.ts';
 import RU from './generated/kb/texts.ru.ts';
 import EN from './generated/kb/texts.en.ts';
 import type { Lang } from '../i18n/strings';
+import { parseNum } from './numInput.ts';
 
 export type KbSection = 'guides' | 'glossary' | 'software' | 'tools' | 'templates';
 export type KbTask = 'offer' | 'measure' | 'creative' | 'cabinet' | 'geo' | 'risk';
@@ -105,7 +106,8 @@ export const KB_STARTER: { title: string; ids: string[] }[] = [
 // Перевірка відповіді поля вправи
 export function fieldCorrect(f: KbField, v: unknown): boolean {
   if (f.type === 'number') {
-    const n = typeof v === 'string' ? Number(v.replace(',', '.').replace(/[^\d.-]/g, '')) : typeof v === 'number' ? v : NaN;
+    // спільний розбір числа (ТЗ 006, 5.3): «−» (U+2212), кома, пробіли між розрядами; порожнє поле — не 0
+    const n = typeof v === 'string' ? parseNum(v) : typeof v === 'number' ? v : NaN;
     return Number.isFinite(n) && Math.abs(n - f.answer) <= f.tolerance + 1e-9;
   }
   if (f.type === 'choice') return v === f.correct;

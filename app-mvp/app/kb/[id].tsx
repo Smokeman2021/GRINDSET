@@ -8,6 +8,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Markdown } from '../../src/components/Markdown';
 import { Button } from '../../src/components/Button';
 import { useStore } from '../../src/store';
+import { SignButton } from '../../src/components/steps';
+import { NUM_KEYBOARD, NUM_PLACEHOLDER, toggleSign } from '../../src/data/numInput';
 import { fieldCorrect, kbGet, KB_KIND_LABEL, labelText, templateParts, type KbField } from '../../src/data/kb';
 import { localKv } from '../../src/cloud/storage';
 import { Theme, useStyles, useTheme } from '../../src/theme';
@@ -118,7 +120,10 @@ function Exercise({ id, fields, criteria, etalon }: { id: string; fields: KbFiel
             {f.type === 'number' && f.unit ? `, ${f.unit}` : ''}
           </Text>
           {f.type === 'number' && (
-            <TextInput value={String(vals[f.id] ?? '')} onChangeText={(t) => set(f.id, t)} keyboardType="numeric" inputMode="decimal" style={styles.input} placeholder="Число" placeholderTextColor="#8892a0" />
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <SignButton onPress={() => set(f.id, toggleSign(String(vals[f.id] ?? '')))} />
+              <TextInput value={String(vals[f.id] ?? '')} onChangeText={(t) => set(f.id, t)} keyboardType={NUM_KEYBOARD} inputMode="decimal" style={[styles.input, { flex: 1 }]} placeholder={NUM_PLACEHOLDER} placeholderTextColor="#8892a0" />
+            </View>
           )}
           {(f.type === 'choice' || f.type === 'multi') &&
             f.options.map((o, i) => {

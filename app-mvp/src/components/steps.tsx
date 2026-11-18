@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, TextInput } from 'react-native';
 import { Theme, useStyles, useTheme } from '../theme';
 import { Button } from './Button';
 import { allPaired, assignPair, matchOk, pairNoOfRight, unpairRight, type Assign } from '../data/matchRules';
+import { NUM_KEYBOARD, NUM_PLACEHOLDER, parseNum, toggleSign } from '../data/numInput';
 import type { Question } from '../data/lessons';
 
 // null = ще не відповіли; { correct } = відповіли (або вичерпано час: тоді показуємо розв’язок)
@@ -305,8 +306,18 @@ export function MatchStep({ step, resolution, onResolve }: Props<'match'>) {
 
 // ─── Вписати число ───
 const defaultTol = (f: { answer: number }) => Math.max(0.02, Math.abs(f.answer) * 0.01);
-// «−» (U+2212) і «–» теж мінус: відʼємний результат (збиток) уводиться зі знаком
-export const parseNum = (s: string) => parseFloat(s.replace(',', '.').replace(/[−–]/g, '-').replace(/[^\d.-]/g, ''));
+// Розбір числа й кнопка «±» — src/data/numInput.ts (ТЗ 006, 5.3): мінус «-», «−» або «–», кома чи крапка
+export { parseNum } from '../data/numInput';
+
+// Кнопка «±» біля кожного числового поля (ТЗ 006, 5.3): однакова для всіх полів, тож знак відповіді не підказується
+export function SignButton({ onPress, disabled }: { onPress: () => void; disabled?: boolean }) {
+  const styles = useStyles(makeStyles);
+  return (
+    <Pressable onPress={onPress} disabled={disabled} hitSlop={6} accessibilityRole="button" accessibilityLabel="Змінити знак числа" style={({ pressed }) => [styles.signBtn, pressed && { opacity: 0.6 }]}>
+      <Text style={styles.signTxt}>±</Text>
+    </Pressable>
+  );
+}
 
 export function NumericStep({ step, resolution, onResolve }: Props<'numeric'>) {
   const C = useTheme();
@@ -326,13 +337,14 @@ export function NumericStep({ step, resolution, onResolve }: Props<'numeric'>) {
         <View key={i} style={{ marginBottom: 10 }}>
           <Text style={styles.fieldLabel}>{f.label}</Text>
           <View style={[styles.inputRow, done && (results[i] ? styles.optOk : styles.optNo)]}>
+            <SignButton disabled={done} onPress={() => setVals((v) => v.map((x, xi) => (xi === i ? toggleSign(x) : x)))} />
             {f.unit === '$' && <Text style={styles.unit}>$</Text>}
             <TextInput
               style={styles.input}
               value={vals[i]}
               editable={!done}
-              keyboardType={f.answer < 0 ? 'numbers-and-punctuation' : 'decimal-pad'}
-              placeholder={f.answer < 0 ? 'зі знаком: −0' : '0'}
+              keyboardType={NUM_KEYBOARD}
+              placeholder={NUM_PLACEHOLDER}
               placeholderTextColor={C.muted}
               onChangeText={(t) => setVals((v) => v.map((x, xi) => (xi === i ? t : x)))}
             />
@@ -409,5 +421,7 @@ const makeStyles = (C: Theme) => StyleSheet.create({
   },
   input: { flex: 1, color: C.txt, fontSize: 20, fontWeight: '800', paddingVertical: 12 },
   unit: { color: C.muted, fontSize: 18, fontWeight: '800', marginHorizontal: 4 },
+  signBtn: { width: 36, height: 36, borderRadius: 10, borderWidth: 2, borderBottomWidth: 3, borderColor: C.line, backgroundColor: C.panel2, alignItems: 'center', justifyContent: 'center', marginRight: 8 },
+  signTxt: { color: C.txt, fontSize: 18, fontWeight: '900' },
   correctNote: { color: C.accentTxt, fontSize: 13, fontWeight: '700', marginTop: 4 },
 });

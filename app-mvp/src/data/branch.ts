@@ -66,7 +66,7 @@ export function unit(id: string, title: string, kb: string[], steps: BStep[]): U
   return { id, title, kb, steps, ready: true };
 }
 // Плашка для правил майданчика без запису в content/policy-facts.json (REVIEWER-EDITS п. 2)
-export const POLICY_PENDING = '⚠️ Вимога майданчика (Meta Advertising Standards): до звірки. Конкретні правила не стверджуємо, поки немає підтвердженого запису.';
+export const POLICY_PENDING = '⚠️ Підтвердженого правила майданчика для цього випадку немає. Визнач, яких доказів бракує, перш ніж погоджувати запуск.';
 
 // Урок, ще не конвертований у форми: на екрані сірий, без «скоро»
 export function pending(id: string, title: string, kb: string[] = []): Unit {
