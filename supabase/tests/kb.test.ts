@@ -44,7 +44,10 @@ test('мови: спільні ID; немає перекладу → украї�
   const geoEn = kbGet('GEO-01', 'en')!;
   assert.equal(geoEn.lang, 'uk');
   assert.equal(geoEn.fallback, true);
-  for (const id of kbIds().filter((i) => /^(ECO|TRK|EXP|VRT|PAY|SUB|NUT|RSK|MET|FB|FBR|TOOL|OPS|CASE)-/.test(i))) assert.deepEqual(kbMeta(id)!.langs, ['uk', 'ru', 'en'], id);
+  // MET-06, MET-07, VRT-07 (ТЗ 006): переклад CC з RU, EN — після передачі перекладачу
+  const EXTRA_UK_RU = new Set(['MET-06', 'MET-07', 'VRT-07']);
+  for (const id of kbIds().filter((i) => /^(ECO|TRK|EXP|VRT|PAY|SUB|NUT|RSK|MET|FB|FBR|TOOL|OPS|CASE)-/.test(i) && !EXTRA_UK_RU.has(i))) assert.deepEqual(kbMeta(id)!.langs, ['uk', 'ru', 'en'], id);
+  for (const id of EXTRA_UK_RU) assert.deepEqual(kbMeta(id)!.langs, ['uk', 'ru'], id);
 });
 
 test('кейси: розбір відокремлено від умови в усіх мовах (показується лише після спроби)', () => {

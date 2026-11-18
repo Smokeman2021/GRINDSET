@@ -6,7 +6,7 @@ import { Theme, useStyles, useTheme } from '../theme';
 import { Button } from './Button';
 import { Markdown } from './Markdown';
 import type { Resolution } from './steps';
-import { AD_FIELD_LABELS, AD_FIELDS_UNVERIFIED, GOALS, LEAD_MARKS, LEADS, LEVEL_ITEMS, VARIANTS, type AdMock, type Row, type Variant } from '../data/simLeads';
+import { AD_FIELD_LABELS, AD_FIELDS_UNVERIFIED, GOALS, LEAD_MARKS, LEADS, LEVEL_ITEMS, VARIANT_B_CHECK, VARIANTS, type AdMock, type Row, type Variant } from '../data/simLeads';
 import { LEVEL_LABEL, leadsOk, levelsOk, type Level } from '../data/simLeadsRules';
 
 // ───────── Макети ─────────
@@ -247,10 +247,17 @@ export function LeadListStep({ resolution, onResolve }: { resolution: Resolution
 }
 
 // ───────── Варіант повтору: А / Б / В з результатом за варіантом ─────────
-export function VariantStep({ seen, onPick }: { seen: string[]; onPick: (v: Variant) => void }) {
+// Варіанти повтору (APPROVED п. 6). Перший вибір за прохід кроку — рішення (onDecide); інші варіанти можна переглянути.
+// Б: пояснення результату → перевірочне питання «Що змінює варіант Б?» → onDecide з відповіддю (вона йде в точність).
+export function VariantStep({ seen, onDecide, onView }: { seen: string[]; onDecide: (v: Variant, check?: boolean) => void; onView: (v: Variant) => void }) {
   const C = useTheme();
   const styles = useStyles(makeStyles);
   const [cur, setCur] = useState<Variant | null>(null);
+  const [decided, setDecided] = useState<Variant | null>(null);
+  const [checkSel, setCheckSel] = useState<number | null>(null);
+  const [checkDone, setCheckDone] = useState(false);
+  const askB = decided?.id === 'B'; // рішення — Б: питання лишається на екрані до відповіді
+  const showWhy = !!cur && (cur.id !== 'B' || !askB || checkDone);
   return (
     <View>
       {VARIANTS.map((v) => (
@@ -258,7 +265,12 @@ export function VariantStep({ seen, onPick }: { seen: string[]; onPick: (v: Vari
           key={v.id}
           onPress={() => {
             setCur(v);
-            onPick(v);
+            onView(v);
+            if (!decided) {
+              setDecided(v);
+              if (v.id !== 'B') onDecide(v);
+              else onDecide(v, undefined);
+            }
           }}
           style={({ pressed }) => [styles.opt, cur?.id === v.id && styles.optSel, pressed && styles.optPressed]}
         >
@@ -270,8 +282,38 @@ export function VariantStep({ seen, onPick }: { seen: string[]; onPick: (v: Vari
       {cur && (
         <View style={[styles.explainBox, { borderLeftColor: cur.good ? C.accent : C.red }]}>
           {cur.rows ? <ReportTable title={`Варіант ${cur.label.split(' · ')[0]} · результат`} rows={cur.rows} /> : null}
-          <Text style={styles.explainTxt}>{cur.why}</Text>
-          {cur.grindyk && <Text style={styles.grindyk}>🦝 {cur.grindyk}</Text>}
+          {cur.pre && cur.id === 'B' && askB && !checkDone ? <Text style={styles.explainTxt}>{cur.pre}</Text> : null}
+          {showWhy ? <Text style={styles.explainTxt}>{cur.why}</Text> : null}
+          {showWhy && cur.grindyk ? <Text style={styles.grindyk}>🦝 {cur.grindyk}</Text> : null}
+        </View>
+      )}
+      {askB && (
+        <View style={{ marginTop: 10 }}>
+          <Text style={styles.cabLabel}>{VARIANT_B_CHECK.q}</Text>
+          {VARIANT_B_CHECK.options.map((o, k) => {
+            const ok = checkDone && k === VARIANT_B_CHECK.answer;
+            const bad = checkDone && k === checkSel && k !== VARIANT_B_CHECK.answer;
+            return (
+              <Pressable
+                key={k}
+                disabled={checkDone}
+                onPress={() => setCheckSel(k)}
+                style={({ pressed }) => [styles.opt, !checkDone && checkSel === k && styles.optSel, ok && styles.optOk, bad && styles.optNo, pressed && !checkDone && styles.optPressed]}
+              >
+                <Text style={styles.optTxt}>{o}</Text>
+              </Pressable>
+            );
+          })}
+          {!checkDone && (
+            <Button
+              title="Перевірити"
+              disabled={checkSel === null}
+              onPress={() => {
+                setCheckDone(true);
+                onDecide(VARIANTS[1], checkSel === VARIANT_B_CHECK.answer);
+              }}
+            />
+          )}
         </View>
       )}
     </View>
@@ -337,6 +379,8 @@ const makeStyles = (C: Theme) =>
     // варіанти
     opt: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: C.panel, borderColor: C.line, borderWidth: 2, borderBottomWidth: 5, borderRadius: 16, padding: 13, marginBottom: 10 },
     optSel: { borderColor: C.blue, backgroundColor: C.panel2, borderBottomColor: C.blueEdge },
+    optOk: { borderColor: C.accent, backgroundColor: C.accentTint, borderBottomColor: C.accentEdge },
+    optNo: { borderColor: C.red, backgroundColor: C.redTint, borderBottomColor: C.redEdge },
     optPressed: { transform: [{ translateY: 3 }], borderBottomWidth: 2 },
     optTxt: { flex: 1, color: C.txt, fontSize: 15 },
     box: { color: C.blueTxt, fontSize: 16, width: 18 },

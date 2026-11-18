@@ -6,8 +6,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ADS, AD_FIELDS_UNVERIFIED, CRITERIA, GOALS, LEADS, LEVEL_ITEMS, SIM_KB, SIM_LEADS_ID, SIM_STEPS, VARIANTS } from '../../app-mvp/src/data/simLeads.ts';
-import { gradeCriteria, leadsOk, levelsOk, mergeSimLeads, recordStep, SIM_FRESH } from '../../app-mvp/src/data/simLeadsRules.ts';
+import { ADS, AD_FIELDS_UNVERIFIED, CRITERIA, GOALS, LEADS, LEVEL_ITEMS, SIM_KB, SIM_LEADS_ID, SIM_STEPS, VARIANT_B_CHECK, VARIANTS } from '../../app-mvp/src/data/simLeads.ts';
+import { gradeCriteria, leadsOk, levelsOk, mergeSimLeads, recordStep, recordVariant, simPassed, SIM_FRESH } from '../../app-mvp/src/data/simLeadsRules.ts';
 import { BRANCHES, unitById, volumeLabel, readyLessonIds } from '../../app-mvp/src/data/branches/index.ts';
 import { branchReward, nextUnit } from '../../app-mvp/src/data/branchRules.ts';
 import { applyOp, coreOf, mergeClientState, type Op } from '../../app-mvp/src/cloud/shared/progressOps.ts';
@@ -36,8 +36,9 @@ test('D1: сценарій іде за редакцією v5 — бриф → ц
   assert.ok(SIM_STEPS.some((s) => s.view?.includes('sliceD3')));
   assert.ok(SIM_STEPS.some((s) => s.view?.includes('sliceD6')));
   // повтор: три варіанти, результат за варіантом; основний — одна зміна (+₴330), альтернативний −₴150, «підняти бюджет» Гріндік зупиняє
+  // ТЗ 006: Б не помилка (зараховує крок), лише В — ні
   assert.deepEqual(VARIANTS.map((v) => v.id), ['A', 'B', 'C']);
-  assert.equal(VARIANTS.filter((v) => v.good).map((v) => v.id).join(), 'A');
+  assert.equal(VARIANTS.filter((v) => !v.good).map((v) => v.id).join(), 'C');
   assert.equal(VARIANTS[0].result, '+₴330');
   assert.equal(VARIANTS[1].result, '−₴150');
   assert.ok(!VARIANTS[2].rows && VARIANTS[2].grindyk);
@@ -184,4 +185,88 @@ test('D9: підсумок — операція lesson BR-TOV-FINAL; нагор�
   assert.equal(r.core.xp, 74, 'друге проходження не нараховує');
   assert.ok(r.core.completed.includes(SIM_LEADS_ID));
   for (const id of readyLessonIds(BRANCHES[0])) assert.ok(!r.core.completed.includes(id), 'тренажер не позначає уроки');
+});
+
+// ───────── ТЗ 006, пункт 1 (APPROVED п. 5–7) ─────────
+const allRes = () => Object.fromEntries(CRITERIA.flatMap((c) => c.steps).map((id) => [id, true]));
+
+test('006-1.1: зарахування лише за обовʼязковими критеріями 2, 3, 6, 7 і кроком повтору без В; 1, 4, 5, 8 — зворотний звʼязок', () => {
+  assert.deepEqual(CRITERIA.filter((c) => c.mandatory).map((c) => c.n), [2, 3, 6, 7]);
+  assert.ok(CRITERIA.find((c) => c.n === 7)!.steps.includes('variant'), 'крок повтору входить в обовʼязковий критерій 7');
+  assert.equal(simPassed(CRITERIA, allRes()), true);
+  // невиконаний необовʼязковий критерій не блокує
+  for (const id of ['leadlist', 'denominator', 'range', 'wait', 'conclusion']) assert.equal(simPassed(CRITERIA, { ...allRes(), [id]: false }), true, id);
+  // невиконаний обовʼязковий — блокує
+  for (const id of ['cpl', 'fields3', 'mature', 'why', 'next', 'variant']) assert.equal(simPassed(CRITERIA, { ...allRes(), [id]: false }), false, id);
+  assert.equal(simPassed(CRITERIA, {}), false);
+  // невиконаний обовʼязковий веде на свій крок
+  const g = gradeCriteria(CRITERIA, { ...allRes(), variant: false });
+  assert.deepEqual(g.find((x) => x.n === 7), { n: 7, ok: false, mandatory: true, retry: 'variant' });
+});
+
+test('006-1.1: розбір доступний до зарахування — він останній крок і відкривається після першої спроби будь-якого результату', () => {
+  assert.equal(SIM_STEPS[SIM_STEPS.length - 1].kind, 'review');
+  // усі кроки до розбору провалені — розбір усе одно наступний, а зарахування немає
+  const res = Object.fromEntries(SIM_STEPS.filter((s) => s.kind !== 'review').map((s) => [s.id, false]));
+  assert.equal(simPassed(CRITERIA, res), false);
+  assert.ok(gradeCriteria(CRITERIA, res).every((x) => !x.ok && x.retry));
+  // екран розбору: кнопка зарахування вимкнена без обовʼязкових, є «Пройти крок ще раз» і «Вийти»
+  const src = fs.readFileSync(path.join(ROOT, 'app-mvp/app/leads.tsx'), 'utf8');
+  assert.ok(src.includes('disabled={!passed && !alreadyDone}'));
+  assert.ok(src.includes('if (!passed && !alreadyDone) return;'));
+  assert.ok(src.includes('Пройти крок ще раз'));
+});
+
+test('006-1.2: повтор — А вірно, В знижує точність, Б не знижує: у точність іде відповідь на «Що змінює варіант Б?»', () => {
+  // А
+  let r = recordVariant(SIM_FRESH, 'variant', 'A', undefined, 1);
+  assert.deepEqual(r.accuracy, { ok: true, isFirst: true });
+  assert.equal(r.state.res.variant, true);
+  // В — помилка
+  r = recordVariant(SIM_FRESH, 'variant', 'C', undefined, 1);
+  assert.deepEqual(r.accuracy, { ok: false, isFirst: true });
+  assert.equal(r.state.res.variant, false);
+  assert.equal(r.state.first.variant, false);
+  // Б: вибір сам по собі не йде в точність, але зараховує крок
+  r = recordVariant(SIM_FRESH, 'variant', 'B', undefined, 1);
+  assert.equal(r.accuracy, undefined);
+  assert.equal(r.state.res.variant, true);
+  assert.equal('variant' in r.state.first, false);
+  // відповідь на питання — у точність; вірна — не знижує
+  const ok = recordVariant(r.state, 'variant', 'B', true, 2);
+  assert.deepEqual(ok.accuracy, { ok: true, isFirst: true });
+  const bad = recordVariant(r.state, 'variant', 'B', false, 2);
+  assert.deepEqual(bad.accuracy, { ok: false, isFirst: true });
+  assert.equal(bad.state.res.variant, true, 'хибна відповідь на питання Б не блокує зарахування');
+  // збитковий підсумок Б (−₴150) сам по собі не помилка
+  assert.equal(VARIANTS[1].result, '−₴150');
+  assert.equal(VARIANTS[1].good, true);
+  // питання: правильна відповідь — уся точка збору заявки
+  assert.equal(VARIANT_B_CHECK.q, 'Що змінює варіант Б?');
+  assert.match(VARIANT_B_CHECK.options[VARIANT_B_CHECK.answer], /точку збору заявки.*форму.*шлях.*сигнал/);
+  // пояснення Б до відповіді не видає відповідь
+  assert.ok(!/точку збору|шлях людини/.test(VARIANTS[1].pre ?? ''));
+  // повтор з розбору: перша спроба лишається, результат кроку оновлюється
+  const again = recordVariant(recordVariant(SIM_FRESH, 'variant', 'C', undefined, 1).state, 'variant', 'A', undefined, 3);
+  assert.equal(again.state.first.variant, false);
+  assert.equal(again.state.res.variant, true);
+  assert.equal(again.accuracy?.isFirst, false);
+});
+
+test('006-1.3: MET-06, MET-07, VRT-07 — у «Базі» українською, у SIM_KB, привʼязані до кроків 5, 6, 11, 12; у MET-06 позначка «14–24%»', () => {
+  for (const id of ['MET-06', 'MET-07', 'VRT-07']) {
+    const a = kbGet(id, 'uk');
+    assert.ok(a && !a.fallback, id);
+    assert.ok(SIM_KB.includes(id), id);
+  }
+  const kbOf = (id: string) => SIM_STEPS[at(id)].kb ?? [];
+  // нумерація кроків — як у сценарії (коментарі «// 5.», «// 6.», «// 11.», «// 12.»)
+  assert.ok(kbOf('conversion').includes('MET-06'));
+  assert.ok(kbOf('levels').includes('MET-07'));
+  assert.ok(kbOf('next').includes('VRT-07'));
+  assert.ok(kbOf('variant').includes('MET-06'));
+  const m6 = kbGet('MET-06', 'uk')!;
+  assert.ok(m6.body.includes('14–24% (*підказка кабінету Ads Manager, перевірено 16.11.2026*)'));
+  assert.match(m6.body, /обіцянка щодо ціни заявки, а не щодо оплачуваного результату/);
+  assert.deepEqual(m6.labels, ['ads-manager-hint']);
 });

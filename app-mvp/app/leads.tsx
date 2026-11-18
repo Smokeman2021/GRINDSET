@@ -19,7 +19,7 @@ import { haptic } from '../src/telegram/webapp';
 import { scaleCoins } from '../src/economy';
 import { shuffleQuestion } from '../src/data/shuffle';
 import { branchReward } from '../src/data/branchRules';
-import { gradeCriteria, recordStep, SIM_FRESH } from '../src/data/simLeadsRules';
+import { gradeCriteria, recordStep, recordVariant, simPassed, SIM_FRESH } from '../src/data/simLeadsRules';
 import { ADS, AD1_FIXED, CRITERIA, LANDING, REASONS, SIM_KB, SIM_LEADS_ID, SIM_STEPS, SLICE_D3, SLICE_D6, VARIANTS, type SimView } from '../src/data/simLeads';
 import { kbGet } from '../src/data/kb';
 import { BundleStep, MatchStep, MultiStep, NumericStep, type Resolution } from '../src/components/steps';
@@ -168,13 +168,20 @@ function StepView({ idx }: { idx: number }) {
           {s.kind === 'variant' && (
             <VariantStep
               seen={st.variants}
-              onPick={(v) => {
+              onView={(v) => {
                 const now = useStore.getState().simLeads ?? SIM_FRESH;
-                // перший вибір іде в точність; далі можна подивитися інші варіанти
-                const first = recordStep(now, s.id, v.good, Date.now());
-                setSim({ ...first.state, variants: now.variants.includes(v.id) ? now.variants : [...now.variants, v.id] });
-                if (first.isFirst) recordAnswers([{ lessonId: SIM_LEADS_ID, idx, ok: v.good }], { rated: true });
-                setPicked(true);
+                if (!now.variants.includes(v.id)) setSim({ ...now, variants: [...now.variants, v.id], at: Date.now() });
+              }}
+              onDecide={(v, check) => {
+                // рішення кроку (APPROVED п. 6): А — вірно, В — помилка, Б — у точність іде відповідь на перевірочне питання
+                const now = useStore.getState().simLeads ?? SIM_FRESH;
+                const r = recordVariant(now, s.id, v.id, check, Date.now());
+                setSim(r.state);
+                if (r.accuracy?.isFirst) recordAnswers([{ lessonId: SIM_LEADS_ID, idx, ok: r.accuracy.ok }], { rated: true });
+                if (r.accuracy) {
+                  playSfx(r.accuracy.ok ? 'correct' : 'wrong');
+                  setPicked(true);
+                }
               }}
             />
           )}
@@ -201,7 +208,7 @@ function StepView({ idx }: { idx: number }) {
         </ScrollView>
         {s.kind !== 'goals' && (
           <View style={{ paddingTop: 10, paddingBottom: insets.bottom + 12 }}>
-            <Button title={st.back && res ? 'До розбору' : isTeach ? 'Почати' : 'Далі'} disabled={!canGo} onPress={go} />
+            <Button title={st.back && (res || picked) ? 'До розбору' : isTeach ? 'Почати' : 'Далі'} disabled={!canGo} onPress={go} />
           </View>
         )}
       </>
@@ -217,10 +224,14 @@ function Review({ alreadyDone }: { alreadyDone: boolean }) {
     const setSim = useStore((x) => x.setSimLeads);
     const st = useStore((x) => x.simLeads) ?? SIM_FRESH;
     const grades = gradeCriteria(CRITERIA, st.res);
+    // зарахування — лише за обовʼязковими критеріями (APPROVED п. 5); розбір відкривається завжди
+    const passed = simPassed(CRITERIA, st.res);
+    const allOk = grades.every((g) => g.ok);
     const firsts = Object.values(st.first);
     const correct = firsts.filter(Boolean).length;
     const errors = firsts.length - correct;
     const finish = () => {
+      if (!passed && !alreadyDone) return;
       const s = useStore.getState();
       const r = branchReward({ kind: 'final', passed: true, alreadyDone, base: { coins: 40 + correct * 3, xp: 50 + correct * 2 } });
       s.spendEnergy(ENERGY_PER_LESSON);
@@ -237,9 +248,15 @@ function Review({ alreadyDone }: { alreadyDone: boolean }) {
     return (
       <>
         <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
-          <GrindykSay text={grades.every((g) => g.ok) ? 'Вісім із восьми. Тепер ти знаєш, за що тобі платять.' : 'Розбір чесний: де мимо — повернись до кроку й перерахуй.'} pose={grades.every((g) => g.ok) ? "cheer" : "think"} height={90} />
+          <GrindykSay
+            text={allOk ? 'Вісім із восьми. Тепер ти знаєш, за що тобі платять.' : passed ? 'Головне зроблено. Решта пунктів — не на залік, але глянь, де мимо.' : 'Обовʼязкові пункти ще мимо. Повернись до кроку, перерахуй — і назад сюди.'}
+            pose={allOk ? 'cheer' : 'think'}
+            height={90}
+          />
           <Text style={styles.title}>Розбір · {grades.filter((g) => g.ok).length} з 8</Text>
-          <Text style={styles.muted}>Критерії — зворотний звʼязок за кейсом. Очки ліги за них не нараховуються.</Text>
+          <Text style={styles.muted}>
+            {passed ? 'Обовʼязкові критерії виконано.' : 'Щоб зарахувати тренажер, виправ обовʼязкові критерії (позначка «обовʼязковий»).'} Решта — зворотний звʼязок. Очки ліги за критерії не нараховуються.
+          </Text>
           {CRITERIA.map((c, i) => {
             const g = grades[i];
             const retryIdx = g.retry ? SIM_STEPS.findIndex((x) => x.id === g.retry) : -1;
@@ -248,6 +265,7 @@ function Review({ alreadyDone }: { alreadyDone: boolean }) {
                 <Text style={styles.critTxt}>
                   {g.ok ? '✓' : '✕'} {c.n}. {c.text}
                 </Text>
+                {g.mandatory && <Text style={[styles.mand, { color: g.ok ? C.accentTxt : C.redTxt }]}>обовʼязковий</Text>}
                 {!g.ok && retryIdx >= 0 && (
                   <Pressable onPress={() => setSim({ ...st, step: retryIdx, back: true, at: Date.now() })} style={styles.linkBtn}>
                     <Text style={styles.link}>Пройти крок ще раз: {SIM_STEPS[retryIdx].stage} →</Text>
@@ -266,7 +284,8 @@ function Review({ alreadyDone }: { alreadyDone: boolean }) {
           </View>
         </ScrollView>
         <View style={{ paddingTop: 10, paddingBottom: insets.bottom + 12, gap: 8 }}>
-          <Button title={alreadyDone ? 'Завершити (без нагороди)' : 'Завершити тренажер'} onPress={finish} />
+          <Button title={alreadyDone ? 'Завершити (без нагороди)' : passed ? 'Завершити тренажер' : 'Виправ обовʼязкові критерії'} disabled={!passed && !alreadyDone} onPress={finish} />
+          {!passed && !alreadyDone && <Button title="Вийти, продовжити пізніше" ghost onPress={() => router.dismissTo(HUB)} />}
           {alreadyDone && <Button title="Пройти тренажер ще раз (без нагороди)" ghost onPress={again} />}
         </View>
       </>
@@ -345,5 +364,6 @@ const makeStyles = (C: Theme) =>
     crit: { backgroundColor: C.panel, borderRadius: 12, borderWidth: 2, borderBottomWidth: 4, padding: 10, marginBottom: 8 },
     critTxt: { color: C.txt, fontSize: 14, lineHeight: 20 },
     linkBtn: { marginTop: 6 },
+    mand: { fontSize: 11, fontWeight: '900', letterSpacing: 0.5, marginTop: 4 },
     link: { color: C.blueTxt, fontWeight: '800', fontSize: 13 },
   });

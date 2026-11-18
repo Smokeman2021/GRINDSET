@@ -23,8 +23,12 @@ const LANGS = ['uk', 'ru', 'en'];
 export const FORBIDDEN = ['fb-killa', 'research-private', 'Внутрішній реєстр', 'Редакторський реєстр', 'Джерела для редактора', 'ftvclub'];
 const ALLOWED_STATUS = new Set(['ready', 'method', 'exercise', 'self-report', 'branch-editorial']);
 
-const read = (rel) => fs.readFileSync(path.join(SRC, rel), 'utf8').replace(/\r\n/g, '\n');
-const exists = (rel) => fs.existsSync(path.join(SRC, rel));
+// Матеріали, написані або перекладені CC (ТЗ 006: MET-06, MET-07, VRT-07, гайди GDE, CASE-13 UA) — content/kb-extra/, комітиться.
+// У kb-include.json шлях з префіксом «extra:»; manifest пакета для них не потрібен, перевірка заборонених рядків та сама.
+const EXTRA = path.join(ROOT, 'content', 'kb-extra');
+const abs = (rel) => (rel.startsWith('extra:') ? path.join(EXTRA, rel.slice(6)) : path.join(SRC, rel));
+const read = (rel) => fs.readFileSync(abs(rel), 'utf8').replace(/\r\n/g, '\n');
+const exists = (rel) => fs.existsSync(abs(rel));
 
 export function stripFrontmatter(s) {
   return s.replace(/^---\n[\s\S]*?\n---\n+/, '');
@@ -153,7 +157,7 @@ export function runImport({ write = true } = {}) {
     for (const lang of LANGS) {
       const rel = it.file.replace('{lang}', lang);
       if (!exists(rel)) continue;
-      const st = statusOf.get(rel);
+      const st = rel.startsWith('extra:') ? 'ready' : statusOf.get(rel);
       if (!st) throw new Error(`${it.id}: ${rel} немає в manifest.json`);
       if (!ALLOWED_STATUS.has(st)) throw new Error(`${it.id}: статус ${st} не допускається в бандл`);
       const raw = stripFrontmatter(read(rel));
