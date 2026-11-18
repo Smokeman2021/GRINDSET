@@ -26,9 +26,21 @@ test('склад білого списку — максимум за ТЗ: ус�
   for (const id of ['GEO-01', 'M22-01', 'M22-02', 'M22-03', 'SUP-01', 'SUP-02', 'SUP-03', 'SUP-04', 'SUP-05', 'SUP-06', 'EX17-SRV', 'EX17-INF', 'FBK-020', 'FBK-021']) assert.ok(ids.has(id), id);
   for (const v of ['TOV', 'SRV', 'INF', 'NUT', 'DAT', 'GAM', 'CRY', 'ADT']) assert.ok(ids.has(`VERT-${v}`));
   for (const id of ['FBK-020', 'FBK-021']) assert.deepEqual(kbMeta(id)!.labels, ['self-report']);
-  // гайди 014–016 до «переклад UA прийнято» і BR-TOV-FINAL у бандл не йдуть
-  for (const id of ['GDE-01', 'INS-01', 'CASE-13']) assert.equal(kbMeta(id), undefined);
+  // REVIEW-CONTENT-b26 §3 (ТЗ 006): GDE-01–04, 06–11, CASE-13, INS-02/03/07/08 — у бандлі; GDE-05 і INS-01/04/05/06/09/10 — ні
+  for (const id of ['GDE-01', 'GDE-04', 'GDE-06', 'GDE-11', 'CASE-13', 'INS-02', 'INS-03', 'INS-07', 'INS-08']) assert.ok(kbMeta(id), id);
+  for (const id of ['GDE-05', 'INS-01', 'INS-04', 'INS-05', 'INS-06', 'INS-09', 'INS-10']) assert.equal(kbMeta(id), undefined, id);
   assert.ok(!genText.includes('BR-TOV-FINAL'));
+  // каталоги софту 014-03, 015-03, 016-03 і довідка 016-02 не включаються
+  assert.ok(!/SOFTWARE_UKRAINE|AI_SOFTWARE|INSTRUMENTS_AND_POLICY/.test(genText));
+  // теги: PAY-02/03 також для дейтингу й адалту; SUP-03 — методичка без мітки «навчальні дані»; CASE-13 — uk/ru
+  for (const id of ['PAY-02', 'PAY-03']) for (const v of ['dat', 'adt'] as const) assert.ok(kbMeta(id)!.verticals.includes(v), `${id} ${v}`);
+  assert.deepEqual(kbMeta('SUP-03')!.labels, []);
+  assert.deepEqual(kbMeta('CASE-13')!.langs, ['uk', 'ru']);
+  // CASE-13: ключ відокремлено від умови; INS-02/03 ведуть до наявних калькуляторів, INS-07/08 — без обіцянки окремого інструмента
+  const c13 = kbGet('CASE-13', 'uk')!;
+  assert.ok(c13.solution?.includes('$6,67') && !c13.body.includes('$6,67'));
+  assert.ok(kbGet('INS-02', 'uk')!.body.includes('«Гранична вартість ліда»') && kbGet('INS-03', 'uk')!.body.includes('«Беззбитковість і ROI»'));
+  for (const id of ['INS-07', 'INS-08']) assert.ok(kbGet(id, 'uk')!.body.includes('окремого інструмента немає'), id);
 });
 
 test('заборонені рядки й редакторські вставки відсутні в даних бандла', () => {
@@ -44,8 +56,8 @@ test('мови: спільні ID; немає перекладу → украї�
   const geoEn = kbGet('GEO-01', 'en')!;
   assert.equal(geoEn.lang, 'uk');
   assert.equal(geoEn.fallback, true);
-  // MET-06, MET-07, VRT-07 (ТЗ 006): переклад CC з RU, EN — після передачі перекладачу
-  const EXTRA_UK_RU = new Set(['MET-06', 'MET-07', 'VRT-07']);
+  // MET-06, MET-07, VRT-07, CASE-13 (ТЗ 006): EN немає — після передачі перекладачу
+  const EXTRA_UK_RU = new Set(['MET-06', 'MET-07', 'VRT-07', 'CASE-13']);
   for (const id of kbIds().filter((i) => /^(ECO|TRK|EXP|VRT|PAY|SUB|NUT|RSK|MET|FB|FBR|TOOL|OPS|CASE)-/.test(i) && !EXTRA_UK_RU.has(i))) assert.deepEqual(kbMeta(id)!.langs, ['uk', 'ru', 'en'], id);
   for (const id of EXTRA_UK_RU) assert.deepEqual(kbMeta(id)!.langs, ['uk', 'ru'], id);
 });

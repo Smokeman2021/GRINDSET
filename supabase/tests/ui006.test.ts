@@ -21,9 +21,9 @@ test('006-3.1: кожна з 8 гілок — 8 сцен (вступ, 5 урок
     assert.deepEqual(sc.map((s) => s.stage), ['intro', 'lesson', 'lesson', 'lesson', 'lesson', 'lesson', 'practice', 'final'], b.code);
     for (const s of sc) assert.ok(new RegExp(`\\n  ${s.locId}: \\{`).test(LEVELS), `${b.code}: ${s.locId} є в LOCS`);
     assert.equal(sc[0].locId, INTRO_LOC);
-    // «модуль» подорожі не спадає: околиця → перші гроші → свій рух → Печерськ
+    // «модуль» подорожі не спадає: околиця → перші гроші → свій рух
     for (let i = 1; i < sc.length; i++) assert.ok(sc[i].moduleNo >= sc[i - 1].moduleNo);
-    assert.equal(sc[7].moduleNo, 9, 'фінал — Печерськ');
+    assert.equal(sc[7].moduleNo, 8, 'фінал — «Свій рух» (Печерськ — після рішення щодо карти)');
   }
   assert.equal(branchScene('TOV', 'BR-SRV-L01'), null, 'чужа одиниця — немає сцени');
 });
