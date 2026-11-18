@@ -12,7 +12,8 @@ export type CloudUser = {
 // wrong — хибний нік/код (однакова відповідь, щоб не підказувати, чи існує нік); locked — забагато хибних спроб;
 // blocked — доступ вимкнено; too_many — забагато спроб з однієї адреси
 // not_linked — Telegram ще не привʼязано до тестера (треба один раз ввести нік і код)
-export type LoginFailure = 'wrong' | 'locked' | 'blocked' | 'too_many' | 'not_linked' | 'error';
+// tg_invalid: вхід лише через Telegram, а сервер не прийняв підпис initData (застарів, підроблений, чужий бот)
+export type LoginFailure = 'wrong' | 'locked' | 'blocked' | 'too_many' | 'not_linked' | 'tg_invalid' | 'error';
 // Два способи: нік + код, або лише initData Telegram Mini App (вхід без коду для вже привʼязаного Telegram-акаунта).
 // initData, надіслане разом із кодом, привʼязує Telegram до тестера (один раз).
 export type LoginInput = { username?: string; code?: string; initData?: string };

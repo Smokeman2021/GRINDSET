@@ -10,9 +10,13 @@
     <meta name="robots" content="noindex, nofollow" />
     <title>GRINDSET</title>
     <!-- Telegram Mini App: скрипт підтягуємо ЛИШЕ коли застосунок відкрито з Telegram (у hash є tgWebAppData / клієнт Telegram).
-         У звичайному браузері зовнішній скрипт не вантажиться. Синхронно, до основного бандла, щоб Telegram.WebApp був готовий. -->
+         У звичайному браузері зовнішній скрипт не вантажиться. Синхронно, до основного бандла, щоб Telegram.WebApp був готовий.
+         Після переходу між екранами роутер прибирає hash, тож при перезавантаженні всередині Mini App (оновлення збірки за version.json)
+         tgWebAppData в адресі вже немає: тоді орієнтуємось на збережені самим Telegram-скриптом параметри (__telegram__initParams). -->
     <script>
-      if (/tgWebApp(Data|Version|Platform)/.test(location.hash + location.search) || /Telegram/i.test(navigator.userAgent)) {
+      var tgSaved = false;
+      try { tgSaved = !!sessionStorage.getItem('__telegram__initParams'); } catch (e) {}
+      if (/tgWebApp(Data|Version|Platform)/.test(location.hash + location.search) || /Telegram/i.test(navigator.userAgent) || tgSaved) {
         document.write('<script src="https://telegram.org/js/telegram-web-app.js"><\/script>');
       }
     </script>

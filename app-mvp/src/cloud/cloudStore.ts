@@ -5,6 +5,7 @@ import { CLOUD_MODE } from './config';
 import { startProgressSync, stopProgressSync } from './progressSync';
 import { telegramInitData } from '../telegram/webapp';
 import type { CloudMode, CloudUser, LoginFailure, LoginInput } from './types';
+import { loginReason } from './loginView';
 
 // off — хмара вимкнена (застосунок без входу); loading — перевіряємо сеанс; signedOut — потрібен вхід;
 // denied — доступ вимкнено (заблоковано); replaced — вхід виконано з іншого пристрою; signedIn — усе добре
@@ -72,7 +73,7 @@ export const useCloud = create<CloudState>((set, get) => {
       if (res.ok) return enter(res.user);
       set({
         status: DENIED.includes(res.reason) ? 'denied' : 'signedOut',
-        reason: res.reason,
+        reason: loginReason(input, res.reason),
         detail: { attemptsLeft: res.attemptsLeft, lockedSeconds: res.lockedSeconds },
         user: null,
       });

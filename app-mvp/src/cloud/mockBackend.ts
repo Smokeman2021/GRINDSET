@@ -16,15 +16,16 @@ const toSim = (p: Db['progress'][string]): SimRow => ({ state: p.state, rev: p.r
 const SID_KEY = 'grindset-mock-sid';
 const UID_KEY = 'grindset-mock-uid';
 
-type Row = InviteRow & { display_name: string; is_admin: boolean; active_sid: string | null; telegram_id?: number | null; last_login_at?: number | null; invite_issued_at?: number | null };
+type Row = InviteRow & { display_name: string; is_admin: boolean; is_service?: boolean; active_sid: string | null; telegram_id?: number | null; last_login_at?: number | null; invite_issued_at?: number | null };
 type Db = { mode?: 'legacy' | 'v2'; epochs?: Record<string, number>; archive?: { run: string; user: string; epoch: number; row: unknown }[]; allowed: Row[]; progress: Record<string, { state: Record<string, unknown>; updated_at: number; rev?: number; core?: Core; rewarded?: string[]; journal?: Record<string, OpStatus> }>; feedback?: FeedbackRow[]; events?: EventRow[] };
 
 // Тестові облікові записи імітації та їхні коди (лише для розробки; справжні коди видає автор через SQL issue_invite)
-export const MOCK_ACCOUNTS: { username: string; name: string; code: string; status: Row['status']; admin?: boolean }[] = [
+export const MOCK_ACCOUNTS: { username: string; name: string; code: string; status: Row['status']; admin?: boolean; service?: boolean }[] = [
   { username: 'admin_me', name: 'Адмін (я)', code: 'ADMN-2222-3333', status: 'active', admin: true },
   { username: 'tester_one', name: 'Тестер Один', code: 'TEST-ONE2-4444', status: 'invited' },
   { username: 'tester_two', name: 'Тестер Два', code: 'TEST-TWO3-5555', status: 'invited' },
   { username: 'blocked_guy', name: 'Заблокований', code: 'BLCK-6666-7777', status: 'blocked' },
+  { username: 'preview_check', name: 'Перевірка preview', code: 'PRVW-CHCK-8888', status: 'invited', service: true },
 ];
 
 const memDb: { v: Db | null } = { v: null };
@@ -39,6 +40,7 @@ async function seed(): Promise<Db> {
       display_name: a.name,
       status: a.status,
       is_admin: !!a.admin,
+      is_service: !!a.service,
       invite_salt: salt,
       invite_hash: await hashInvite(salt, normalizeInviteCode(a.code)),
       failed_attempts: 0,
@@ -77,6 +79,20 @@ function writeDb(db: Db) {
   memDb.v = db;
 }
 
+// Лише для режиму mock (веб-превʼю): справжній підпис тут не перевіряється
+export function mockTelegramId(initData: string | undefined): number | null {
+  if (!initData) return null;
+  if (initData.startsWith('mock:')) return Number(initData.slice(5)) || null;
+  const p = new URLSearchParams(initData);
+  if (p.get('hash') !== 'mock') return null;
+  try {
+    const id = Number((JSON.parse(p.get('user') ?? '{}') as { id?: unknown }).id);
+    return Number.isSafeInteger(id) && id > 0 ? id : null;
+  } catch {
+    return null;
+  }
+}
+
 const toUser = (row: Row): CloudUser => ({ id: row.id, username: row.username, name: row.display_name || row.username, isAdmin: row.is_admin });
 
 export class MockBackend implements CloudBackend {
@@ -91,10 +107,11 @@ export class MockBackend implements CloudBackend {
 
   async login(input: LoginInput): Promise<LoginResult> {
     const db = await readDb();
-    // імітація Telegram: initData виду "mock:<id>" (справжній підпис перевіряє Edge Function)
-    const tgId = input.initData?.startsWith('mock:') ? Number(input.initData.slice(5)) : null;
+    // імітація Telegram (справжній підпис перевіряє Edge Function): initData виду "mock:<id>" або рядок Telegram із hash=mock
+    const tgId = mockTelegramId(input.initData);
     if (!input.username && !input.code) {
-      const tgRow = tgId ? db.allowed.find((r) => r.telegram_id === tgId) : null;
+      if (!tgId) return { ok: false, reason: 'wrong' }; // як сервер: недійсний підпис → wrong (клієнт покаже tg_invalid)
+      const tgRow = db.allowed.find((r) => r.telegram_id === tgId);
       if (!tgRow) return { ok: false, reason: 'not_linked' };
       if (tgRow.status === 'blocked') return { ok: false, reason: 'blocked' };
       const sid = newSid();
@@ -251,7 +268,8 @@ export class MockBackend implements CloudBackend {
     const me = await this.mustBeActive();
     const db = await readDb();
     return accuracyBoard(
-      db.allowed.map((r) => {
+      // службові учітки (preview_check) у рейтингу не беруть участі — як leaderboard_accuracy() після 0010
+      db.allowed.filter((r) => !r.is_service).map((r) => {
         const st = db.progress[r.id]?.state ?? {};
         return { name: r.display_name || r.username, status: r.status, isAdmin: r.is_admin, correct: Number(st.answersCorrect) || 0, total: Number(st.answersTotal) || 0, isMe: r.id === me.id };
       })

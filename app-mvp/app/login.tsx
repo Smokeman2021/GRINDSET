@@ -7,6 +7,7 @@ import { CLOUD_MODE } from '../src/cloud/config';
 import { useCloud } from '../src/cloud/cloudStore';
 import { formatInviteCode, normalizeInviteCode } from '../src/cloud/shared/access';
 import { localKv } from '../src/cloud/storage';
+import { loginView } from '../src/cloud/loginView';
 import { isTelegram, telegramInitData } from '../src/telegram/webapp';
 import { Theme, useStyles, useTheme } from '../src/theme';
 
@@ -45,24 +46,9 @@ export default function Login() {
     void login({ username, code });
   };
 
-  let title = 'Вхід для запрошених';
-  let text = 'Це закритий тест. Введи свій @нік і персональний код, який тобі надіслали.';
-  let error: string | null = null;
-  if (status === 'denied') {
-    title = 'Доступ вимкнено';
-    text = 'Твій доступ до тесту вимкнено. Якщо це помилка, напиши тому, хто тебе запросив.';
-  } else if (status === 'replaced') {
-    title = 'Вхід виконано з іншого пристрою';
-    text = 'Один акаунт може бути активним лише на одному пристрої. Увійди ще раз, якщо хочеш продовжити тут.';
-  } else if (status === 'signedOut' && reason) {
-    if (reason === 'not_linked') {
-      title = 'Привʼяжи Telegram';
-      text = 'Один раз введи свій @нік і персональний код: далі Telegram входитиме в тест сам, без коду.';
-    } else if (reason === 'wrong') error = `Нік або код не збігаються.${detail?.attemptsLeft != null ? ` Лишилось спроб: ${detail.attemptsLeft}.` : ''}`;
-    else if (reason === 'locked') error = `Забагато хибних спроб. Спробуй за ${Math.max(1, Math.ceil((detail?.lockedSeconds ?? 900) / 60))} хв.`;
-    else if (reason === 'too_many') error = 'Забагато спроб з цієї адреси. Зачекай кілька хвилин.';
-    else error = 'Не вдалося звʼязатись із сервером. Спробуй ще раз за хвилину.';
-  }
+  // Повторний вхід через Telegram (без коду) — лише кнопкою, не автоматично: інакше два пристрої витісняли б один одного по колу
+  const tgLogin = () => void login({ initData: telegramInitData() });
+  const { title, text, error, tgButton, form } = loginView(status, reason, detail, isTelegram());
 
   return (
     <ScrollView
@@ -82,8 +68,14 @@ export default function Login() {
         <View style={{ width: '100%', marginTop: 20 }}>
           <Button title="Спробувати іншим акаунтом" onPress={retry} />
         </View>
-      ) : (
+      ) : !form ? null : (
         <View style={styles.box}>
+          {tgButton && (
+            <View style={{ marginBottom: 10 }}>
+              <Button title="Увійти через Telegram" onPress={tgLogin} />
+              <Text style={styles.or}>або @нік і код</Text>
+            </View>
+          )}
           <Text style={styles.label}>Твій @нік</Text>
           <TextInput
             style={styles.input}
@@ -159,6 +151,7 @@ const makeStyles = (C: Theme) =>
     label: { color: C.muted, fontSize: 12, fontWeight: '800', marginTop: 4 },
     input: { backgroundColor: C.panel, borderColor: C.line, borderWidth: 2, borderRadius: 14, padding: 13, color: C.txt, fontSize: 17, fontWeight: '700' },
     codeInput: { letterSpacing: 2, textAlign: 'center' },
+    or: { color: C.muted, fontSize: 12, fontWeight: '700', textAlign: 'center', marginTop: 10 },
     error: { color: C.redTxt, fontSize: 13, fontWeight: '700', marginTop: 4 },
     small: { color: C.muted, fontSize: 10, textAlign: 'center', marginTop: 24, opacity: 0.8 },
     mock: { marginTop: 18, padding: 10, borderRadius: 12, borderWidth: 1, borderColor: C.line, backgroundColor: C.panel2, gap: 6 },
