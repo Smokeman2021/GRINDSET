@@ -111,3 +111,21 @@ test('006-5.1: GAM — канал у фіналі, L01 як непідтверд
   for (const b of BRANCHES) assert.ok(!JSON.stringify(b).includes('Напиши рішення редактора'), b.code);
   assert.ok(all.includes('Прийми рішення редактора'));
 });
+
+test('006-5.6: експорт для перекладу — 8 гілок і kb-extra, стабільні ID, ключ і розбір окремими рядками', () => {
+  for (const b of BRANCHES) {
+    const f = read(`report/004-translate-${b.code}.uk.md`);
+    for (const u of [`BR-${b.code}-SC`, ...b.lessons.map((l) => l.id), b.practice.id]) assert.ok(f.includes(`\`${u}.title\``), `${b.code}: ${u}`);
+    assert.ok(f.includes('`ui.check`') && f.includes('`ui.policyPending`'), `${b.code}: кнопки й підписи`);
+    // кожен вибір має рядок-ключ, а текст розбору не стоїть у рядку умови
+    const rows = f.split('\n').filter((l) => l.startsWith('| `'));
+    const keyRows = rows.filter((l) => l.includes('**ключ**'));
+    assert.ok(keyRows.length > 5, `${b.code}: ключі окремими рядками`);
+    assert.ok(!rows.some((l) => /\.src`/.test(l)), 'службові формулювання 023 не експортуються');
+    for (const l of rows.filter((x) => / \| умова \| /.test(x))) assert.ok(!/^\| `[^`]+\.(answer|explain|ok|no)`/.test(l), l.slice(0, 60));
+  }
+  assert.ok(read('report/004-translate-TOV.uk.md').includes('`BR-TOV-FINAL.variantB.answer`'), 'тренажер «Ліди» у файлі TOV');
+  const kb = read('report/004-translate-kb-extra.uk.md');
+  for (const id of ['MET-06', 'MET-07', 'VRT-07', 'SUP-01', 'SUP-06', 'EX17-SRV', 'EX17-INF', 'CASE-13', 'INS-07']) assert.ok(kb.includes(`\`${id}.title\``), id);
+  assert.ok(kb.includes('`SUP-01.etalon` | еталон | після спроби'), 'еталон вправи — після спроби');
+});
