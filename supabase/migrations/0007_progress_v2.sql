@@ -250,7 +250,10 @@ $$;
 -- Операції застосовуються незалежно від p_base_rev; клієнтський знімок пишеться лише коли p_base_rev = поточній rev
 -- (інакше client_state_conflict, знімок не пишеться). Суми XP і монет передає клієнт: сервер тут захищає від втрат і повторів,
 -- але НЕ перевіряє розмір нагороди.
-create or replace function public.save_progress_v2(p_base_rev bigint, p_ops jsonb, p_client_state jsonb) returns jsonb
+-- p_epoch (ТЗ 005 / 007): епоха прогресу. Тут не використовується (епохи ще немає); перевірку додає 0009. Параметр є вже тут, щоб
+-- нова збірка могла писати між кроками «v2» і «0009» вікна, не чекаючи міграції.
+drop function if exists public.save_progress_v2(bigint, jsonb, jsonb);
+create or replace function public.save_progress_v2(p_base_rev bigint, p_ops jsonb, p_client_state jsonb, p_epoch int default null) returns jsonb
 language plpgsql security definer set search_path = public as $$
 declare
   uid       uuid := public.my_allowed_id();
@@ -527,8 +530,8 @@ update public.progress p
  where p.rev = 0;
 
 -- ───────── Права ─────────
-revoke execute on function public.save_progress_v2(bigint, jsonb, jsonb), public.load_progress_v2(), public.set_progress_write_mode(text),
+revoke execute on function public.save_progress_v2(bigint, jsonb, jsonb, int), public.load_progress_v2(), public.set_progress_write_mode(text),
   public.save_progress(jsonb) from public, anon;
-grant execute on function public.save_progress_v2(bigint, jsonb, jsonb), public.load_progress_v2(), public.save_progress(jsonb) to authenticated;
+grant execute on function public.save_progress_v2(bigint, jsonb, jsonb, int), public.load_progress_v2(), public.save_progress(jsonb) to authenticated;
 revoke execute on function public.set_progress_write_mode(text) from authenticated;
 grant execute on function public.set_progress_write_mode(text) to service_role;
