@@ -22,6 +22,7 @@ export type TravelProps = {
   xpGain: number;
   coinGain: number;
   onDone: () => void;
+  caption?: { skill: string; opened: string }; // гілки (ТЗ 006, 3.1): який навик освоєно й що відкрилось
 };
 
 // ───────── процедурне місто: смуга будинків, що повторюється ─────────
@@ -93,7 +94,7 @@ function useCount(target: number, delay: number, dur: number) {
   return v;
 }
 
-export function Travel({ from, to, mode, act, actChanged, xpGain, coinGain, onDone }: TravelProps) {
+export function Travel({ from, to, mode, act, actChanged, xpGain, coinGain, onDone, caption }: TravelProps) {
   const { width, height } = useWindowDimensions();
   const weather = useSceneState();
   const night = weather?.part === 'night';
@@ -218,6 +219,12 @@ export function Travel({ from, to, mode, act, actChanged, xpGain, coinGain, onDo
         <View pointerEvents="none" style={styles.dest}>
           <Text style={styles.kick}>У ДОРОЗІ · {TRAVEL_LABEL[mode].toUpperCase()}</Text>
           <LessonTitle text={to.loc.title} variant="pop" maxWidth={width - 40} />
+          {caption && (
+            <View style={styles.capBox}>
+              <Text style={styles.capSkill}>✓ {caption.skill}</Text>
+              <Text style={styles.capOpen}>{caption.opened}</Text>
+            </View>
+          )}
           {actChanged && (
             <View style={styles.actBox}>
               <Text style={styles.actKick}>АКТ {act.n} · {act.title.toUpperCase()}</Text>
@@ -302,6 +309,9 @@ const styles = StyleSheet.create({
   actBox: { marginTop: 14, backgroundColor: 'rgba(247,241,228,0.96)', borderRadius: 16, padding: 12, borderWidth: 2, borderBottomWidth: 4, borderColor: '#d9ceb4', maxWidth: 340 },
   actKick: { color: '#1c8f4f', fontWeight: '900', fontSize: 11, letterSpacing: 1.4 },
   actTxt: { color: '#2a2418', fontWeight: '800', fontSize: 15, marginTop: 3 },
+  capBox: { marginTop: 10, backgroundColor: 'rgba(13,15,20,0.78)', borderRadius: 14, paddingVertical: 8, paddingHorizontal: 12, alignSelf: 'flex-start', maxWidth: '100%' },
+  capSkill: { color: '#36e27a', fontWeight: '900', fontSize: 14 },
+  capOpen: { color: '#ffffff', fontWeight: '700', fontSize: 13, marginTop: 2 },
   gainBar: { position: 'absolute', top: 14, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 18 },
   gainTxt: { color: '#fff', fontWeight: '900', fontSize: 20, textShadowColor: 'rgba(0,0,0,0.7)', textShadowRadius: 6 },
   drip: { position: 'absolute', top: 0, paddingHorizontal: 11, paddingVertical: 5, borderRadius: 14, borderWidth: 2, borderColor: '#fff' },

@@ -57,7 +57,7 @@ export function labelText(l: string): string {
   if (l === 'self-report') return 'Самозвіт автора';
   if (l === 'our-calc') return 'Наш розрахунок';
   if (l === 'geo-tiers') return 'Тири GEO — за класифікаціями рекламних мереж';
-  if (l === 'ads-manager-hint') return '«14–24%» — підказка кабінету Ads Manager, перевірено 16.11.2026; це обіцянка щодо ціни заявки, а не оплачуваного результату';
+  if (l === 'ads-manager-hint') return '«14–24%» — підказка кабінету Ads Manager, перевірено 16.11.2026';
   if (l.startsWith('benchmark:')) return `Опублікований бенчмарк · ${l.slice(10)}`;
   return l;
 }

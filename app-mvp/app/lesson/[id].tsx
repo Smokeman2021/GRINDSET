@@ -318,7 +318,7 @@ export default function LessonScreen() {
     }
     setIdx(idx + 1);
     // зберегти місце: наступний крок і відповіді до нього (і для самоперевірки — ТЗ 006, 2.2)
-    const pl = lessonPlace({ id: lsn.id, idx: idx + 1, total, results: [...resultsRef.current], chosen: { ...chosenRef.current }, correct, errors, title: `${ref?.branch.title} · ${lsn.title}` }, Date.now());
+    const pl = lessonPlace({ id: lsn.id, idx: idx + 1, total, results: [...resultsRef.current], chosen: { ...chosenRef.current }, correct, errors, title: kind === 'selfcheck' ? `${ref?.branch.title} · Самоперевірка` : `${ref?.branch.title} · ${lsn.title}` }, Date.now());
     if (pl) setPlace(pl, code);
     setHintOpen(false);
     setNote('');

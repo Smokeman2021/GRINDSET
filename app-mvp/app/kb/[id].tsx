@@ -231,7 +231,7 @@ const makeStyles = (C: Theme) =>
     title: { color: C.txt, fontWeight: '900', fontSize: 22, marginTop: 4, marginBottom: 10 },
     fallback: { color: C.goldTxt, fontSize: 13, marginBottom: 10 },
     labels: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
-    label: { borderWidth: 1.5, borderColor: C.gold, borderRadius: 10, paddingVertical: 3, paddingHorizontal: 8 },
+    label: { borderWidth: 1.5, borderColor: C.gold, borderRadius: 10, paddingVertical: 3, paddingHorizontal: 8, maxWidth: '100%' }, // довга мітка переноситься (ТЗ 006)
     labelTxt: { color: C.txt, fontSize: 12, fontWeight: '700' },
     box: { backgroundColor: C.panel, borderRadius: 16, borderWidth: 2, borderBottomWidth: 4, borderColor: C.line, padding: 14, marginTop: 12, gap: 6 },
     boxTitle: { color: C.txt, fontWeight: '900', fontSize: 15, marginTop: 6, marginBottom: 4 },

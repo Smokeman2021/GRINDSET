@@ -71,6 +71,7 @@ type State = {
   branchProg: Record<string, BranchProg>; // гілки вертикалей (ТЗ 004, C1)
   placeBox: PlaceBox; // «Продовжити» (ТЗ 004, E): останнє місце й остання гілка, на пристрої й у клієнтському знімку
   simLeads: SimLeadsState; // тренажер «Ліди» (ТЗ 004, D): крок і відповіді, на пристрої й у клієнтському знімку
+  seenScenes: string[]; // переглянуті сцени й переїзди гілок (ТЗ 006, 3.1): scene:<ID>, travel:<ID>
   quiz: QuizAnswers;
 
   // бустери з магазину
@@ -170,6 +171,7 @@ type State = {
   finishDiagnostic: (perfect: boolean, skipTo: string[]) => void;
   setBranchProg: (code: string, patch: Partial<BranchProg>) => void;
   setSimLeads: (next: SimLeadsState) => void;
+  markSeen: (key: string) => void;
   setPlace: (place: Place | null, lastBranch?: string | null) => void;
   reset: () => void;
 };
@@ -345,6 +347,7 @@ const FRESH = {
   completed: [] as string[],
   placeBox: PLACE_FRESH,
   simLeads: SIM_FRESH,
+  seenScenes: [] as string[],
   branchProg: {} as Record<string, BranchProg>, // гілки вертикалей: самоперевірка, практика, прогалини фіналу (уроки — лише в completed)
   quiz: {} as QuizAnswers,
   comboShields: 0,
@@ -774,6 +777,7 @@ export const useStore = create<State>()(
       },
 
       setSimLeads: (next) => set({ simLeads: next }),
+      markSeen: (key) => set((s) => (s.seenScenes.includes(key) ? {} : { seenScenes: [...s.seenScenes, key].slice(-200) })),
       setPlace: (place, lastBranch) => set((s) => ({ placeBox: { place, lastBranch: lastBranch === undefined ? s.placeBox?.lastBranch ?? null : lastBranch, at: Date.now() } })),
       setBranchProg: (code, patch) => set((s) => ({ branchProg: { ...s.branchProg, [code]: { ...s.branchProg[code], ...patch } } })),
 

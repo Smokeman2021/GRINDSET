@@ -175,7 +175,7 @@ export default function Results() {
     );
   }
   return (
-    <View style={[styles.screen, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20 }]}>
+    <View style={[styles.screen, { paddingTop: insets.top + 56, paddingBottom: insets.bottom + 20 }]}>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 8 }} showsVerticalScrollIndicator={false}>
       <View style={styles.center}>
         <View style={{ width: '100%', marginBottom: 6 }}>

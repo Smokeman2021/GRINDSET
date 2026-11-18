@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, TextInput } from 'react-native';
 import { Theme, useStyles, useTheme } from '../theme';
 import { Button } from './Button';
+import { allPaired, assignPair, matchOk, pairNoOfRight, unpairRight, type Assign } from '../data/matchRules';
 import type { Question } from '../data/lessons';
 
 // null = ще не відповіли; { correct } = відповіли (або вичерпано час: тоді показуємо розв’язок)
@@ -228,6 +229,8 @@ export function OrderStep({ step, resolution, onResolve }: Props<'order'>) {
 }
 
 // ─── З’єднати пари ───
+// Пари у дві колонки (ТЗ 006, 3.4): ліва колонка в порядку завдання, права — перемішана. Торкнись елемента зліва, потім пари справа.
+// Обидві картки пари отримують однаковий номер; повторний дотик до правої картки знімає пару. Довгі назви переносяться всередині карток.
 export function MatchStep({ step, resolution, onResolve }: Props<'match'>) {
   const C = useTheme();
   const styles = useStyles(makeStyles);
@@ -235,64 +238,67 @@ export function MatchStep({ step, resolution, onResolve }: Props<'match'>) {
     () => shuffled(step.pairs.map((p) => p[1]), (a) => a.every((v, i) => v === step.pairs[i][1])),
     [step]
   );
-  const [assign, setAssign] = useState<Record<number, number>>({}); // ліва позиція -> індекс у rights
+  const [assign, setAssign] = useState<Assign>({}); // ліва позиція -> індекс у rights
   const [active, setActive] = useState<number | null>(null);
   const done = resolution !== null;
-  const usedRights = Object.values(assign);
 
   const pickRight = (ri: number) => {
-    if (done || active === null) return;
-    setAssign((a) => {
-      const next: Record<number, number> = {};
-      for (const [l, r] of Object.entries(a)) if (r !== ri) next[Number(l)] = r;
-      next[active] = ri;
-      return next;
-    });
+    if (done) return;
+    if (active === null) {
+      setAssign((a) => unpairRight(a, ri));
+      return;
+    }
+    setAssign((a) => assignPair(a, active, ri));
     setActive(null);
   };
-  const allAssigned = Object.keys(assign).length === step.pairs.length;
-  const check = () => onResolve(step.pairs.every((p, li) => rights[assign[li]] === p[1]));
+  const check = () => onResolve(matchOk(step.pairs, rights, assign));
 
   return (
     <View>
-      <Text style={styles.hint}>Торкнись елемента зліва, потім його пари внизу</Text>
-      {step.pairs.map((p, li) => {
-        const chosen = assign[li] !== undefined ? rights[assign[li]] : null;
-        const ok = done && chosen === p[1];
-        const bad = done && chosen !== p[1];
-        return (
-          <Pressable
-            key={li}
-            disabled={done}
-            onPress={() => setActive((a) => (a === li ? null : li))}
-            style={[styles.opt, styles.matchCard, active === li && styles.optSel, ok && styles.optOk, bad && styles.optNo]}
-          >
-            <Text style={styles.matchLeft}>{p[0]}</Text>
-            <Text style={[styles.matchRight, !chosen && { color: C.muted }]}>
-              {chosen ?? 'обери пару…'}
-              {bad ? `\n✓ ${p[1]}` : ''}
-            </Text>
-          </Pressable>
-        );
-      })}
-      {!done && (
-        <View style={{ marginTop: 6 }}>
-          {rights.map((r, ri) => {
-            const used = usedRights.includes(ri);
+      <Text style={styles.hint}>{active === null ? 'Торкнись елемента зліва, потім його пари справа' : 'Тепер обери пару справа'}</Text>
+      <View style={styles.matchCols}>
+        <View style={styles.matchCol}>
+          {step.pairs.map((p, li) => {
+            const ri = assign[li];
+            const chosen = ri !== undefined ? rights[ri] : null;
+            const ok = done && chosen === p[1];
+            const bad = done && chosen !== p[1];
             return (
               <Pressable
-                key={ri}
-                disabled={used && active === null}
-                onPress={() => pickRight(ri)}
-                style={({ pressed }) => [styles.chip, used && styles.chipUsed, pressed && styles.optPressed]}
+                key={li}
+                disabled={done}
+                onPress={() => setActive((a) => (a === li ? null : li))}
+                accessibilityRole="button"
+                accessibilityLabel={`${p[0]}${chosen ? `, пара: ${chosen}` : ''}`}
+                style={({ pressed }) => [styles.matchItem, active === li && styles.optSel, ok && styles.optOk, bad && styles.optNo, pressed && !done && styles.optPressed]}
               >
-                <Text style={styles.optTxt}>{r}</Text>
+                {ri !== undefined && <Text style={styles.pairNo}>{li + 1}</Text>}
+                <Text style={styles.matchTxt}>{p[0]}</Text>
+                {bad && <Text style={styles.matchFix}>✓ {p[1]}</Text>}
               </Pressable>
             );
           })}
-          <Button title="Перевірити" disabled={!allAssigned} onPress={check} />
         </View>
-      )}
+        <View style={styles.matchCol}>
+          {rights.map((r, ri) => {
+            const no = pairNoOfRight(assign, ri);
+            return (
+              <Pressable
+                key={ri}
+                disabled={done}
+                onPress={() => pickRight(ri)}
+                accessibilityRole="button"
+                accessibilityLabel={`${r}${no ? `, пара ${no}` : ''}`}
+                style={({ pressed }) => [styles.matchItem, styles.matchItemR, no !== null && styles.matchPaired, pressed && !done && styles.optPressed]}
+              >
+                {no !== null && <Text style={styles.pairNo}>{no}</Text>}
+                <Text style={styles.matchTxt}>{r}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+      {!done && <Button title="Перевірити" disabled={!allPaired(assign, step.pairs.length)} onPress={check} />}
     </View>
   );
 }
@@ -373,9 +379,14 @@ const makeStyles = (C: Theme) => StyleSheet.create({
   box: { color: C.txt, fontSize: 18, fontWeight: '900', minWidth: 22, textAlign: 'center' },
   num: { color: C.accentTxt, fontSize: 16, fontWeight: '900', minWidth: 22, textAlign: 'center' },
   wrong: { color: C.redTxt, fontSize: 18, fontWeight: '900' },
-  matchCard: { flexDirection: 'column', alignItems: 'flex-start', gap: 4 },
-  matchLeft: { color: C.txt, fontSize: 16, fontWeight: '800' },
-  matchRight: { color: C.accentTxt, fontSize: 14 },
+  matchCols: { flexDirection: 'row', gap: 8, marginBottom: 6 },
+  matchCol: { flex: 1, minWidth: 0 },
+  matchItem: { backgroundColor: C.panel, borderColor: C.line, borderWidth: 2, borderBottomWidth: 5, borderRadius: 14, paddingVertical: 11, paddingHorizontal: 10, marginBottom: 8, minHeight: 56, justifyContent: 'center' },
+  matchItemR: { backgroundColor: C.panel2 },
+  matchPaired: { borderColor: C.blue, borderBottomColor: C.blueEdge },
+  matchTxt: { color: C.txt, fontSize: 14, lineHeight: 19, fontWeight: '700', flexShrink: 1 },
+  matchFix: { color: C.accentTxt, fontSize: 12, lineHeight: 17, marginTop: 4 },
+  pairNo: { alignSelf: 'flex-start', color: C.blueTxt, backgroundColor: C.blueTint, fontSize: 11, fontWeight: '900', borderRadius: 8, paddingHorizontal: 6, paddingVertical: 1, marginBottom: 4, overflow: 'hidden' },
   chip: {
     backgroundColor: C.panel2,
     borderRadius: 14,

@@ -178,12 +178,13 @@ test('старий курс не імпортується жодним екра�
       }
       if (!/\.tsx?$/.test(e.name)) continue;
       const rel = path.relative(path.join(ROOT, 'app-mvp'), p).replace(/\\/g, '/');
-      if (OLD.some((o) => rel === `src/data/${o}.ts`) || /^src\/art\/(Journey|JourneyMap|StopScene|stops)\./.test(rel)) continue;
+      // StopScene (сцена закладу) з ТЗ 006 використовується гілками: сам він курсу не імпортує (лише import type JStop) — тож його імпорти теж перевіряються
+      if (OLD.some((o) => rel === `src/data/${o}.ts`) || /^src\/art\/(Journey|JourneyMap|stops)\./.test(rel)) continue;
       for (const line of fs.readFileSync(p, 'utf8').split('\n')) {
         if (/^import\s+type\b/.test(line)) continue;
         const m = /from\s+'([^']+)'/.exec(line);
         if (m && OLD.some((o) => new RegExp(`(^|/)data/${o}$|^\\./${o}$`).test(m[1]))) offenders.push(`${rel}: ${m[1]}`);
-        if (m && /art\/(Journey|JourneyMap|StopScene|stops)$/.test(m[1])) offenders.push(`${rel}: ${m[1]}`);
+        if (m && /art\/(Journey|JourneyMap|stops)$|^\.\/(Journey|JourneyMap|stops)$/.test(m[1])) offenders.push(`${rel}: ${m[1]}`);
       }
     }
   };

@@ -20,7 +20,7 @@ export default function Unavailable() {
   const router = useRouter();
   const { why } = useLocalSearchParams<{ why?: string }>();
   return (
-    <View style={[styles.root, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 16 }]}>
+    <View style={[styles.root, { paddingTop: insets.top + 60, paddingBottom: insets.bottom + 16 }]}>
       <GrindykSay text="Посилання веде в нікуди. Буває. Вертаймось туди, де є що вчити." pose="think" height={100} />
       <Text style={styles.h1}>Посилання не відкривається</Text>
       <Text style={styles.txt}>{WHY[why ?? ''] ?? WHY.route} Твій прогрес на місці.</Text>

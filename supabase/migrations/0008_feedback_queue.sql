@@ -17,6 +17,13 @@ alter table public.feedback add column if not exists sim_step int check (sim_ste
 alter table public.feedback drop constraint if exists feedback_screen_len;
 alter table public.feedback add constraint feedback_screen_len check (screen is null or char_length(screen) <= 80);
 
+-- Відгуки, надіслані збіркою b26+ ДО цієї міграції (старий формат, ТЗ 006, 4.1): гілка й крок тренажера були лише в тексті
+-- «… (гілка TOV, тренажер, крок 14)». Переносимо їх у нові колонки; вид, текст і решту колонок не чіпаємо. Повторний запуск нічого не змінює.
+update public.feedback set branch = coalesce(substring(body from '\(гілка ([A-Z]{3})[,)]'), substring(lesson_id from '^BR-([A-Z]{3})-'))
+  where branch is null and (body ~ '\(гілка [A-Z]{3}[,)]' or lesson_id ~ '^BR-[A-Z]{3}-');
+update public.feedback set sim_step = (substring(body from 'тренажер, крок ([0-9]{1,3})\)'))::int - 1
+  where sim_step is null and body ~ 'тренажер, крок [0-9]{1,3}\)' and (substring(body from 'тренажер, крок ([0-9]{1,3})\)'))::int between 1 and 1000;
+
 -- ───────── 2. Тестер бачить лише свої відгуки ─────────
 drop policy if exists feedback_own_read on public.feedback;
 create policy feedback_own_read on public.feedback for select to authenticated

@@ -44,6 +44,10 @@ export type StopSceneProps = {
   offerAdapt: boolean;
   onDismissAdapt: () => void;
   completedCount: number;
+  // гілки (ТЗ 006, 3.1): власний підпис над назвою закладу й сцена без швидких входів курсу (завдання дня, симулятор, тренування, ціль дня)
+  kicker?: string;
+  minimal?: boolean;
+  enterTitle?: string;
 };
 
 export function StopScene(p: StopSceneProps) {
@@ -113,7 +117,7 @@ export function StopScene(p: StopSceneProps) {
   const npcH = gh * 0.97;
 
   const goalPct = Math.min(1, p.goal.xp / Math.max(1, p.goal.target));
-  const kicker = stop.isChest ? `МОДУЛЬ ${String(stop.moduleNo).padStart(2, '0')} · СКРИНЯ ЗОЛОТА` : `МОДУЛЬ ${String(stop.moduleNo).padStart(2, '0')} · УРОК ${stop.lesson.code}`;
+  const kicker = p.kicker ? p.kicker : stop.isChest ? `МОДУЛЬ ${String(stop.moduleNo).padStart(2, '0')} · СКРИНЯ ЗОЛОТА` : `МОДУЛЬ ${String(stop.moduleNo).padStart(2, '0')} · УРОК ${stop.lesson.code}`;
   const chestKey: ArtKey = 'cutout/objects/chest_closed';
   const chest = art(chestKey);
   const chestH = Math.max(70, plateH * 0.17);
@@ -226,6 +230,7 @@ export function StopScene(p: StopSceneProps) {
       </View>
 
       {/* швидкі входи: іконки в куті, не плашки */}
+      {!p.minimal && (
       <View style={[styles.side, { top: insets.top + 50 }]}>
         <Pressable onPress={() => setQuestsOpen((o) => !o)} style={[styles.sideBtn, p.claimable > 0 && { borderColor: '#36e27a' }]} accessibilityLabel="Завдання дня">
           <Text style={styles.sideIco}>🌟</Text>
@@ -241,6 +246,7 @@ export function StopScene(p: StopSceneProps) {
           </Pressable>
         )}
       </View>
+      )}
       {questsOpen && (
         <View style={[styles.quests, { top: insets.top + 50, maxHeight: area.h * 0.6 }]}>
           <Pressable onPress={() => setQuestsOpen(false)} style={styles.questsClose} hitSlop={10}>
@@ -253,6 +259,7 @@ export function StopScene(p: StopSceneProps) {
       )}
 
       {/* смуга цілі дня + буст над карткою */}
+      {!p.minimal && (
       <View pointerEvents="none" style={[styles.goalWrap, { bottom: cardH + 4 }]}>
         <View style={styles.goalBar}>
           <View style={[styles.goalFill, { width: `${goalPct * 100}%` }]} />
@@ -261,6 +268,7 @@ export function StopScene(p: StopSceneProps) {
           Ціль дня · {p.goal.label} · {Math.min(p.goal.xp, p.goal.target)}/{p.goal.target} XP
         </Text>
       </View>
+      )}
       <View style={[styles.boost, { bottom: cardH + 34 }]} pointerEvents="none">
         <BoostBanner />
       </View>
@@ -292,7 +300,7 @@ export function StopScene(p: StopSceneProps) {
             {p.allDone ? 'Усі доступні модулі пройдено. Нові скоро. Повтори пройдене на карті.' : stop.lesson.title}
           </Text>
           <View style={{ marginTop: 10 }}>
-            {p.allDone ? <Button title="Відкрити карту" onPress={p.onMap} /> : <Button title={stop.isChest ? 'Відкрити скриню' : 'Увійти'} onPress={() => void enter(stop.lesson.id)} />}
+            {p.allDone ? <Button title="Відкрити карту" onPress={p.onMap} /> : <Button title={p.enterTitle ?? (stop.isChest ? 'Відкрити скриню' : 'Увійти')} onPress={() => void enter(stop.lesson.id)} />}
           </View>
         </View>
       </View>

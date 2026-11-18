@@ -1,6 +1,7 @@
 // Гілка вертикалі (ТЗ 004, C1): вступ, два входи («Почати з основ» / «Перевірити себе»), результат самоперевірки,
 // практика, уроки й фінал. Пропущені уроки лишаються непройденими; фінал зараховується й нагороджується один раз.
 import React from 'react';
+import { sceneKey, shouldShow } from '../../src/data/branchScenes';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -50,6 +51,8 @@ export default function BranchScreen() {
       return;
     }
     useStore.getState().setBranchProg(b.code, { started: true });
+    // сцена подорожі перед одиницею (ТЗ 006, 3.1): перший раз; повторно — одразу завдання
+    if (shouldShow(useStore.getState().seenScenes, sceneKey(id))) return router.push({ pathname: '/scene/[id]', params: { id } });
     // фінал товарки — тренажер «Ліди» (етап D): власний екран
     if (id === b.final?.id && b.final.sim === 'leads') return router.push('/leads');
     router.push(`/lesson/${id}`);

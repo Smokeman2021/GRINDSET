@@ -1,6 +1,9 @@
 // Карта Києва гілки (ТЗ 004, етап E): кожна одиниця гілки — точка в закладі Києва. Гріндік стоїть на наступному завданні.
 // Після уроку (?done=<id>) — смуга «Пройдено … · Відкрилось …». Малюнок карти — той самий, що в подорожі Києвом (src/art/JourneyMap.tsx).
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { sceneKey, shouldShow, travelCaption, travelKey } from '../../src/data/branchScenes';
+import { Travel } from '../../src/art/Travel';
+import { branchStop, branchTravel } from '../../src/art/branchStop';
 import { Animated, Easing, Image, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Path, Rect, Stop, Text as SvgText } from 'react-native-svg';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -64,6 +67,8 @@ export default function BranchMap() {
   const strictEnergy = useStore((s) => s.strictEnergy);
   const simStep = useStore((s) => s.simLeads?.step ?? 0);
   const [sel, setSel] = useState<string | null>(null);
+  // переїзд після одиниці (ТЗ 006, 3.1): перший раз — дорога до наступного закладу з підписом «Освоєно · Відкрилось»; повторно — одразу карта
+  const [travelOn, setTravelOn] = useState(() => !!done && shouldShow(useStore.getState().seenScenes, travelKey(String(done))));
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const scroll = useRef<ScrollView>(null);
   const bob = useRef(new Animated.Value(0)).current;
@@ -106,6 +111,7 @@ export default function BranchMap() {
   const open = (id: string) => {
     if (strictEnergy && energy < ENERGY_PER_LESSON && !completed.includes(id)) return router.navigate('/shop');
     useStore.getState().setBranchProg(b.code, { started: true });
+    if (shouldShow(useStore.getState().seenScenes, sceneKey(id))) return router.push({ pathname: '/scene/[id]', params: { id } });
     if (id === b.final?.id && b.final.sim === 'leads') return router.push('/leads');
     router.push(`/lesson/${id}`);
   };
@@ -246,6 +252,23 @@ export default function BranchMap() {
         </View>
       )}
       <FeedbackSheet visible={feedbackOpen} onClose={() => setFeedbackOpen(false)} context={{ screen: `map/${b.code}` }} />
+      {travelOn && done && (() => {
+        const from = branchStop(b.code, String(done), titleOf(String(done)));
+        const toId = nextPin?.id ?? String(done);
+        const to = branchStop(b.code, toId, titleOf(toId));
+        if (!from || !to) return null;
+        const t = branchTravel(from, to);
+        const cap = travelCaption(titleOf(String(done)), opened.map((o) => titleOf(o.id)), nextPin ? titleOf(nextPin.id) : null);
+        const end = () => {
+          useStore.getState().markSeen(travelKey(String(done)));
+          setTravelOn(false);
+        };
+        return (
+          <View style={StyleSheet.absoluteFill}>
+            <Travel from={from} to={to} mode={t.mode} act={t.act} actChanged={t.actChanged} xpGain={0} coinGain={0} onDone={end} caption={cap} />
+          </View>
+        );
+      })()}
     </View>
   );
 }

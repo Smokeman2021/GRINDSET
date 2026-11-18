@@ -261,6 +261,7 @@ export function mergeClientState(local: Record<string, unknown>, server: Record<
   out.mistakes = byKey(arr(local.mistakes), arr(server.mistakes), (m) => `${m.lessonId}|${m.idx}`).slice(0, 80);
   out.campaigns = byKey(arr(local.campaigns), arr(server.campaigns), (c) => String(c.id));
   out.unlocked = union(texts(local.unlocked), texts(server.unlocked));
+  out.seenScenes = union(texts(local.seenScenes), texts(server.seenScenes)).slice(-200); // ТЗ 006, 3.1
   if (local.questsDate === server.questsDate) out.questsClaimed = union(texts(local.questsClaimed), texts(server.questsClaimed));
   const obj = (v: unknown) => (v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {});
   out.srs = { ...obj(server.srs), ...obj(local.srs) };

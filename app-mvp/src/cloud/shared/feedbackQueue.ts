@@ -68,6 +68,12 @@ export type QueueRow = {
 };
 
 // Експорт черги «в черзі для Claude» у Markdown: відгук, контекст, помітка власника — для передачі Ревізору
+// Експорт відгуків у CSV (адмінка): ті самі колонки для рядків до й після 0008 (ТЗ 006, 4.1)
+export const FEEDBACK_CSV_HEADER = ['id', 'час', 'нік', 'вид', 'екран', 'гілка', 'урок', 'крок', 'крок тренажера', 'збірка', 'текст', 'статус', 'корисний', 'помітка'];
+export function feedbackCsvRows(rows: QueueRow[]): (string | number | null | undefined)[][] {
+  return rows.map((f) => [f.id, new Date(f.createdAt).toISOString(), f.username, kindLabel(f.kind), f.screen, f.branch ?? '', f.lessonId, f.stepIdx, f.simStep ?? '', f.build, f.body, STATUS_LABEL[f.status ?? 'new'], f.useful ? 'так' : '', f.note ?? '']);
+}
+
 export function queueMarkdown(rows: QueueRow[], now: Date = new Date()): string {
   const q = rows.filter((r) => r.status === 'queued').sort((a, b) => a.createdAt - b.createdAt);
   const out = [`# Черга відгуків для Claude`, '', `Вивантажено: ${now.toISOString().slice(0, 16).replace('T', ' ')} UTC · у черзі: ${q.length}`, ''];

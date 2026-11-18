@@ -10,7 +10,9 @@ import { useCloud, useCloudBoot } from '../src/cloud/cloudStore';
 import { useWebVersionGuard } from '../src/webVersion';
 import { initTelegram, isTelegram, syncTelegramColors, useTelegramInsets, useTgBackButton } from '../src/telegram/webapp';
 import { useGlobalSearchParams, usePathname, useRouter } from 'expo-router';
+import { useWindowDimensions } from 'react-native';
 import { FeedbackFab } from '../src/components/FeedbackSheet';
+import { fabPlace } from '../src/data/fabPlace';
 import { captureInitialLink } from '../src/data/deepLink';
 
 // Пряме посилання / перезавантаження (ТЗ 006, 2.3): адресу старту запамʼятовуємо до перенаправлення на вхід;
@@ -42,6 +44,7 @@ const PROTECTED_ROUTES = [
   'leads',
   'map/[code]',
   'unavailable',
+  'scene/[id]',
 ];
 
 // Веб: фон сторінки й колір адресного рядка = фон поточної теми, щоб ніде не світилась біла смуга (за межами колонки на десктопі, під адресним рядком)
@@ -75,13 +78,15 @@ function TelegramBridge({ bg }: { bg: string }) {
 // Відгук на кожному екрані (ТЗ 004, E2): екрани з власною 🐞 у шапці мають свою кнопку, решта — плаваюча кнопка звідси.
 // Контекст — з маршруту: екран, для результату — ID одиниці, для статті — ID статті.
 const OWN_FEEDBACK = ['/lesson/', '/branch/', '/map/', '/leads', '/profile', '/login'];
+// Розміщення кнопки — src/data/fabPlace.ts (ТЗ 006, 4.2)
 function GlobalFeedback() {
   const pathname = usePathname();
   const params = useGlobalSearchParams<{ id?: string }>();
+  const { width } = useWindowDimensions();
   if (pathname === '/' || OWN_FEEDBACK.some((p) => pathname.startsWith(p))) return null;
   const screen = pathname.slice(1) || 'home';
   const lessonId = pathname === '/results' && typeof params.id === 'string' ? params.id : undefined;
-  return <FeedbackFab context={{ screen, lessonId }} />;
+  return <FeedbackFab context={{ screen, lessonId }} place={fabPlace(pathname, width, Platform.OS === 'web')} />;
 }
 
 export default function RootLayout() {

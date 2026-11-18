@@ -7,6 +7,7 @@ import { CLOUD_MODE } from '../cloud/config';
 import type { FeedbackKind } from '../cloud/types';
 import { FB_KINDS, contextLine, feedbackContext, type FbContext } from '../cloud/shared/feedbackQueue';
 import { UI_BUILD } from '../version';
+import type { FabPlace } from '../data/fabPlace';
 import { Theme, useStyles, useTheme } from '../theme';
 
 const MAX = 2000;
@@ -89,24 +90,41 @@ export function FeedbackSheet({ visible, onClose, context }: { visible: boolean;
   );
 }
 
-// Кнопка відгуку для екранів без власної шапки з 🐞: невелика плаваюча кнопка в правому верхньому куті
-export function FeedbackFab({ context, top = 8 }: { context: FbContext; top?: number }) {
+// Кнопка відгуку для екранів без власної шапки з 🐞 (ТЗ 006, 4.2): завжди в межах колонки застосунку (на широкому вебі — теж),
+// суцільна картка з контрастною рамкою (C.muted до фону: ніч ≈ 6:1, день ≈ 4,4:1 — не нижче 3:1).
+// placement 'bottom' — над нижньою панеллю вкладок (вгорі там показники й бульбашка Гріндіка), 'top' — для екранів без вкладок.
+export function FeedbackFab({ context, place }: { context: FbContext; place?: FabPlace }) {
+  const C = useTheme();
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
   if (CLOUD_MODE === 'off') return null;
+  const p: FabPlace = place ?? { placement: 'top', offset: 8, column: { left: 0, maxWidth: 600 } };
+  const pos = p.placement === 'top' ? { top: insets.top + p.offset } : { bottom: insets.bottom + p.offset };
   return (
     <>
-      <Pressable onPress={() => setOpen(true)} hitSlop={8} accessibilityRole="button" accessibilityLabel="Відгук про цей екран" style={[fab.btn, { top: insets.top + top }]}>
-        <Text style={fab.txt}>🐞</Text>
-      </Pressable>
+      <View pointerEvents="box-none" style={[fab.lane, pos, { left: p.column.left }]}>
+        <View pointerEvents="box-none" style={[fab.col, { maxWidth: p.column.maxWidth }]}>
+          <Pressable
+            onPress={() => setOpen(true)}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Відгук про цей екран"
+            style={({ pressed }) => [fab.btn, { backgroundColor: C.panel, borderColor: C.muted, borderBottomColor: C.muted }, pressed && { transform: [{ translateY: 2 }], borderBottomWidth: 2 }]}
+          >
+            <Text style={fab.txt}>🐞</Text>
+          </Pressable>
+        </View>
+      </View>
       <FeedbackSheet visible={open} onClose={() => setOpen(false)} context={context} />
     </>
   );
 }
 
 const fab = StyleSheet.create({
-  btn: { position: 'absolute', right: 10, width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(13,15,20,0.45)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)', zIndex: 50 },
-  txt: { fontSize: 17 },
+  lane: { position: 'absolute', right: 0, alignItems: 'center', zIndex: 50 },
+  col: { width: '100%', alignItems: 'flex-end', paddingRight: 12 },
+  btn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderBottomWidth: 4 },
+  txt: { fontSize: 18 },
 });
 
 const makeStyles = (C: Theme) =>

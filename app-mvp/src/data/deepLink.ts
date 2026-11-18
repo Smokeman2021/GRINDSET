@@ -26,10 +26,14 @@ export function resolveDeepLink(rawPath: string, ctx: LinkCtx): LinkResult {
   if (NEVER.has(p)) return { kind: 'none' };
   if (STATIC.has(p)) return { kind: 'open', href: p };
   if (p === '/admin') return ctx.isAdmin ? { kind: 'open', href: p } : { kind: 'invalid', why: 'route' };
-  const m = /^\/(kb|lesson|branch|map|numbers)\/([^/]+)$/.exec(p);
+  const m = /^\/(kb|lesson|scene|branch|map|numbers)\/([^/]+)$/.exec(p);
   if (!m) return { kind: 'invalid', why: 'route' };
   const [, type, id] = m;
-  if (!ID_RE.test(id)) return { kind: 'invalid', why: type === 'kb' ? 'kb' : type === 'lesson' ? 'lesson' : 'route' };
+  if (!ID_RE.test(id)) return { kind: 'invalid', why: type === 'kb' ? 'kb' : type === 'lesson' || type === 'scene' ? 'lesson' : 'route' };
+  if (type === 'scene') {
+    const u = ctx.unit(id);
+    return u && u.ready ? { kind: 'open', href: `/scene/${id}` } : { kind: 'invalid', why: 'lesson' };
+  }
   if (type === 'kb') return ctx.kbExists(id) ? { kind: 'open', href: `/kb/${id}` } : { kind: 'invalid', why: 'kb' };
   if (type === 'lesson') {
     const u = ctx.unit(id);

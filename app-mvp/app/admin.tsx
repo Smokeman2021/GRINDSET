@@ -12,7 +12,7 @@ import { toCsv } from '../src/cloud/shared/csv';
 import { summarizeEvents } from '../src/cloud/shared/analytics';
 import { copyText, saveCsv, saveText } from '../src/cloud/exportFile';
 import type { EventRow, FeedbackRow, FeedbackStatus, TesterRow } from '../src/cloud/types';
-import { STATUS_LABEL as FB_STATUS, contextLine, contributors, kindIcon, kindLabel, queueMarkdown } from '../src/cloud/shared/feedbackQueue';
+import { FEEDBACK_CSV_HEADER, STATUS_LABEL as FB_STATUS, contextLine, contributors, feedbackCsvRows, kindIcon, kindLabel, queueMarkdown } from '../src/cloud/shared/feedbackQueue';
 
 const fmt = (ms: number | null) => (ms ? new Date(ms).toLocaleString('uk-UA', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—');
 const STATUS_LABEL: Record<TesterRow['status'], string> = { invited: 'запрошений', active: 'активний', blocked: 'заблокований' };
@@ -124,10 +124,7 @@ export default function Admin() {
   const exportFeedback = () =>
     saveCsv(
       'grindset-feedback.csv',
-      toCsv(
-        ['id', 'час', 'нік', 'вид', 'екран', 'гілка', 'урок', 'крок', 'крок тренажера', 'збірка', 'текст', 'статус', 'корисний', 'помітка'],
-        (feedback ?? []).map((f) => [f.id, new Date(f.createdAt).toISOString(), f.username, kindLabel(f.kind), f.screen, f.branch ?? '', f.lessonId, f.stepIdx, f.simStep ?? '', f.build, f.body, FB_STATUS[f.status ?? 'new'], f.useful ? 'так' : '', f.note ?? ''])
-      )
+      toCsv(FEEDBACK_CSV_HEADER, feedbackCsvRows(feedback ?? []))
     );
 
   const exportTesters = () =>
@@ -156,20 +153,23 @@ export default function Admin() {
     </View>
   ) : (
     <>
-      <View style={styles.tabs}>
-        <Pressable onPress={() => setTab('feedback')} style={[styles.tab, tab === 'feedback' && styles.tabOn]}>
-          <Text style={[styles.tabTxt, tab === 'feedback' && { color: C.onAccent }]}>Відгуки{feedback ? ` · ${feedback.length}` : ''}</Text>
-        </Pressable>
-        <Pressable onPress={() => setTab('testers')} style={[styles.tab, tab === 'testers' && styles.tabOn]}>
-          <Text style={[styles.tabTxt, tab === 'testers' && { color: C.onAccent }]}>Тестери{testers ? ` · ${testers.length}` : ''}</Text>
-        </Pressable>
-        <Pressable onPress={() => setTab('events')} style={[styles.tab, tab === 'events' && styles.tabOn]}>
-          <Text style={[styles.tabTxt, tab === 'events' && { color: C.onAccent }]}>Події</Text>
-        </Pressable>
-        <Pressable onPress={() => setTab('team')} style={[styles.tab, tab === 'team' && styles.tabOn]}>
-          <Text style={[styles.tabTxt, tab === 'team' && { color: C.onAccent }]}>Внесок</Text>
-        </Pressable>
-      </View>
+      {/* вкладки в один рядок без перенесення підписів; на вузькому екрані — горизонтальна прокрутка (ТЗ 006, 4.3) */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsScroll} contentContainerStyle={styles.tabs}>
+        {(
+          [
+            ['feedback', `Відгуки${feedback ? ` ${feedback.length}` : ''}`],
+            ['testers', `Тестери${testers ? ` ${testers.length}` : ''}`],
+            ['events', 'Події'],
+            ['team', 'Внесок'],
+          ] as const
+        ).map(([k, label]) => (
+          <Pressable key={k} onPress={() => setTab(k)} style={[styles.tab, tab === k && styles.tabOn]} accessibilityRole="tab" accessibilityState={{ selected: tab === k }}>
+            <Text numberOfLines={1} style={[styles.tabTxt, tab === k && { color: C.onAccent }]}>
+              {label}
+            </Text>
+          </Pressable>
+        ))}
+      </ScrollView>
 
       {msg && <Text style={styles.err}>{msg}</Text>}
       {loading && <ActivityIndicator color={C.accent} style={{ marginVertical: 12 }} />}
@@ -377,8 +377,9 @@ const makeStyles = (C: Theme) =>
     back: { alignSelf: 'flex-start', paddingVertical: 6, marginBottom: 6 },
     backTxt: { color: C.accentTxt, fontWeight: '800', fontSize: 15 },
     title: { color: C.txt, fontSize: 22, fontWeight: '900', marginBottom: 12 },
-    tabs: { flexDirection: 'row', gap: 8, marginBottom: 12 },
-    tab: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 12, borderWidth: 2, borderColor: C.line, backgroundColor: C.panel2 },
+    tabsScroll: { flexGrow: 0, marginBottom: 12 },
+    tabs: { flexDirection: 'row', gap: 8, flexGrow: 1 },
+    tab: { flexGrow: 1, flexShrink: 0, alignItems: 'center', paddingVertical: 10, paddingHorizontal: 14, borderRadius: 12, borderWidth: 2, borderBottomWidth: 4, borderColor: C.line, backgroundColor: C.panel2 },
     tabOn: { backgroundColor: C.accent, borderColor: C.accentEdge },
     tabTxt: { color: C.txt, fontWeight: '800', fontSize: 14 },
     box: { marginTop: 8, backgroundColor: C.panel2, borderRadius: 14, padding: 14, borderWidth: 2, borderColor: C.line },
