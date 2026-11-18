@@ -79,6 +79,8 @@ test('репетиція вікна: копія → 0007 → нова збірк
   // 2. 0007: режим legacy, старі збірки зберігають із захистом
   await db.applyMigration('0007_progress_v2.sql');
   assert.equal((await loadV2(a)).mode, 'legacy');
+  // ТЗ 007: зайве типове право Supabase (revoke_user_sessions для authenticated) закрито вже кроком 0007
+  assert.equal((await db.admin.query("select has_function_privilege('authenticated', 'public.revoke_user_sessions(uuid)', 'execute') p")).rows[0].p, false);
   await legacy(b, snap([], 0, 0)); // стара збірка з порожнім знімком: захист не дає затерти
   await legacy(c, snap(['l1', 'l2', 'l3', 'l4'], 40, 80)); // стара збірка проходить урок у legacy
   await noLoss('після 0007');

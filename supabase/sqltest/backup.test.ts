@@ -74,6 +74,11 @@ test('SQL повного відкату повертає дані продакш
   // після відкату нові відгуки отримують нові id (послідовність зсунуто), тригер автора знову працює
   await db.rpc(users[2], "insert into public.feedback (kind, body, screen) values ('idea', 'після відкату', 'home')");
   assert.equal(Number((await db.admin.query("select count(*) n from public.feedback where body = 'після відкату' and user_id = $1", [users[2].id])).rows[0].n), 1);
+  // текст тестера з «лапками» тегу не може вийти за межі даних у SQL відкату
+  const evil: Backup = { ...backup, tables: { ...backup.tables, feedback: [...backup.tables.feedback, { ...backup.tables.feedback[0], id: 999, body: "$grindset_backup_x$; drop table public.events; --" }] } };
+  const sqlEvil = rollbackSql(evil);
+  const tag = /\$(grindset_backup_[0-9a-f]+)\$/.exec(sqlEvil)![1];
+  assert.ok(!JSON.stringify(evil.tables).includes(tag), 'тег лапок не трапляється в даних');
   // файли з даними — лише поза репозиторієм і папкою власника
   assert.equal(outsideRepo(path.join(os.homedir(), 'GRINDSET-backups', '2026-11-18', 'rollback.sql')), true);
   assert.equal(outsideRepo(path.join(here, 'rollback.sql')), false);

@@ -56,6 +56,11 @@ test('права: reset_progress / restore_progress — лише власник;
     const r = (await db.admin.query(`select has_table_privilege('authenticated', 'public.${t}', 'truncate') a`)).rows[0];
     assert.equal(r.a, false, `${t}: truncate`);
   }
+  // 0009 не застосовується «тихо»: якщо визначення save_progress інше, міграція зупиняється
+  const sql0009 = (await import('node:fs')).readFileSync(new URL('../migrations/0009_progress_epoch_reset.sql', import.meta.url), 'utf8');
+  assert.ok(sql0009.includes("raise exception 'save_progress_patch_failed"));
+  const def = (await db.admin.query("select pg_get_functiondef('public.save_progress(jsonb)'::regprocedure) d")).rows[0].d as string;
+  assert.ok(def.includes('progress_legacy_blocked'), 'стара save_progress має перевірку скинутих учёток');
   // помилки вводу
   await assert.rejects(() => reset('empty-run', []), /empty_list/);
   await assert.rejects(() => reset('bad run id!', [u.id]), /bad_run_id/);

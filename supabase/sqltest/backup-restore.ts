@@ -73,7 +73,11 @@ export async function restoreRows(c: pg.Client, b: Backup): Promise<void> {
 // SQL повного відкату даних до копії (для продакшна, SQL Editor). Містить дані — лише в приватну папку поза репозиторієм.
 export function rollbackSql(b: Backup): string {
   const present = ORDER.filter((t) => Array.isArray(b.tables[t]));
-  const tag = 'grindset_backup_' + Math.random().toString(36).slice(2, 8);
+  // дані копії писали тестери (тексти відгуків): тег лапок не повинен траплятися в них, інакше текст закрив би лапки й став SQL
+  const body = JSON.stringify(b.tables);
+  let tag = '';
+  do tag = 'grindset_backup_' + crypto.randomUUID().replace(/-/g, '');
+  while (body.includes(tag));
   const lines = [
     `-- Повний відкат даних до копії від ${b.exported_at}. Таблиці: ${present.join(', ')}. Виконувати лише за рішенням власника.`,
     'begin;',

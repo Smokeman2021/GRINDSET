@@ -534,4 +534,8 @@ revoke execute on function public.save_progress_v2(bigint, jsonb, jsonb, int), p
   public.save_progress(jsonb) from public, anon;
 grant execute on function public.save_progress_v2(bigint, jsonb, jsonb, int), public.load_progress_v2(), public.save_progress(jsonb) to authenticated;
 revoke execute on function public.set_progress_write_mode(text) from authenticated;
+-- ТЗ 007 (звірка зі знімком продакшна): типові права Supabase дали authenticated EXECUTE на revoke_user_sessions (видалення сеансів
+-- будь-якого користувача) і тригерні функції. Закриваємо вже тут — на кроці 2 вікна, а не лише в 0009.
+revoke execute on function public.revoke_user_sessions(uuid) from public, anon, authenticated;
+revoke execute on function public.events_fill(), public.feedback_fill() from public, anon, authenticated;
 grant execute on function public.set_progress_write_mode(text) to service_role;

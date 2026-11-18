@@ -296,6 +296,10 @@ begin
       '     where not exists (select 1 from public.events e where e.user_id = uid and e.name = ''client_outdated'' and e.created_at > now() - interval ''10 minutes'');' || chr(10) ||
       '    return 0;' || chr(10) ||
       '  end if;');
+    -- захист від тихого пропуску: якщо рядок перевірки сеансу не знайдено (визначення відрізняється), міграція зупиняється
+    if position('progress_legacy_blocked' in src) = 0 then
+      raise exception 'save_progress_patch_failed: визначення save_progress не таке, як у 0007; 0009 не застосовано';
+    end if;
     execute src;
   end if;
 end
