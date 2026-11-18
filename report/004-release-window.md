@@ -2,7 +2,9 @@
 
 **Кандидат:** гілка `tester-update`, збірка **b28**. Остаточний SHA — у `report/007-reset-backup-b28.md` (розділ «Кандидат»). Не запушено.
 
-**Статус плану:** нічого не виконано. Виконується лише після погодження власника, одним вікном. Ціль — 30–40 хвилин від кроку 2 до кроку 9. Скидання (крок 9) — **окрема команда власника** зі списком, який він затвердив.
+**Статус плану (18.11.2026): ВИКОНАНО в задачі 008 зі збіркою b29 (`18a27d6`)** — підсумок і числа в `report/008-window-b29.md`. Відмінності від цього плану: одразу після 0007 застосовано 0010 (службові учітки поза рейтингом); `preview_check` позначено `is_service`; SQL-файли міграцій вставлялись у SQL Editor із локального файла зі звіркою SHA-256 з репозиторієм; колонка режиму — `write_mode` (виправлено нижче).
+
+**Статус до виконання:** виконується лише після погодження власника, одним вікном. Ціль — 30–40 хвилин від кроку 2 до кроку 9. Скидання (крок 9) — **окрема команда власника** зі списком, який він затвердив.
 
 **Де відрепетирувано.** Локальний Postgres із типовими правами Supabase:
 - `supabase/sqltest/rehearsal.test.ts`: копія → 0007 → нова збірка → v2 → 0008 → відкат → повернення → 0009 → скидання за списком → архів = видаленому → відновлення одної учётки;
@@ -40,7 +42,7 @@
 
 | Дія | Хто | Що бачить тестер | Ознаки зупинки | Відкат |
 |---|---|---|---|---|
-| SQL Editor → увесь `supabase/migrations/0007_progress_v2.sql` з гілки → Run. Перевірка: `select has_function_privilege('authenticated', 'public.revoke_user_sessions(uuid)', 'execute');` → `false` (зайве типове право Supabase закрито вже тут) | В | b24 працює як раніше (із захистом від затирання) | помилка міграції; `select mode from public.progress_settings` ≠ `legacy`; рядків `progress` менше, ніж у копії | міграція аддитивна: старі збірки її не помічають; дані — з копії (повний відкат, кінець плану) |
+| SQL Editor → увесь `supabase/migrations/0007_progress_v2.sql` з гілки → Run. Перевірка: `select has_function_privilege('authenticated', 'public.revoke_user_sessions(uuid)', 'execute');` → `false` (зайве типове право Supabase закрито вже тут) | В | b24 працює як раніше (із захистом від затирання) | помилка міграції; `select write_mode from public.progress_settings` ≠ `legacy`; рядків `progress` менше, ніж у копії | міграція аддитивна: старі збірки її не помічають; дані — з копії (повний відкат, кінець плану) |
 
 ## 3. Push і preview — лише тестовою учёткою
 
@@ -59,7 +61,7 @@
 
 | Дія | Хто | Що бачить тестер | Ознаки зупинки | Відкат |
 |---|---|---|---|---|
-| SQL Editor: `select public.set_progress_write_mode('v2');` → `changed: true`; `select mode from public.progress_settings` → `v2` | В | уроки з черги доходять на сервер; стара збірка нічого не пише (`client_outdated`) | масові `sync_error`; рядків `progress` менше, ніж у копії | `select public.set_progress_write_mode('legacy');` + Instant Rollback на b24 |
+| SQL Editor: `select public.set_progress_write_mode('v2');` → `changed: true`; `select write_mode from public.progress_settings` → `v2` | В | уроки з черги доходять на сервер; стара збірка нічого не пише (`client_outdated`) | масові `sync_error`; рядків `progress` менше, ніж у копії | `select public.set_progress_write_mode('legacy');` + Instant Rollback на b24 |
 
 ## 6. Міграція 0008 — відгуки
 
