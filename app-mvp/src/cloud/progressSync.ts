@@ -12,8 +12,9 @@ import { useStore } from '../store';
 import { levelForXp } from '../data/levels';
 import { POINTS_PER_LEVEL } from '../data/stats';
 import { setOpSink } from './opBus';
-import { legacyOps, mergeClientState, replay, staleInfo, syncQueue } from './shared/progressOps';
-import type { Op, SyncBase, SyncState } from './shared/progressOps';
+import { addDead, legacyOps, mergeClientState, normalizeDead, replay, reviveOnUpdate, staleInfo, syncQueue } from './shared/progressOps';
+import type { DeadOp, Op, SyncBase, SyncState } from './shared/progressOps';
+import { UI_BUILD } from '../version';
 import { localKv } from './storage';
 import type { CloudBackend, CloudUser } from './types';
 
@@ -57,6 +58,10 @@ function whenHydrated(): Promise<void> {
 // Готовність прогресу після входу: стартовий екран чекає на неї, щоб чистий пристрій не відкрив онбординг як новий користувач,
 // коли на сервері вже є прогрес (ТЗ 004, CS2). Без мережі або при довгій відповіді готовність настає за READY_TIMEOUT_MS.
 export const useSyncReady = create<{ ready: boolean }>(() => ({ ready: false }));
+
+// Статус для учня (ТЗ 006, 2.1): скільки операцій відкладено на пристрої через ліміт розміру (показує UnsyncedNote)
+export const useSyncStatus = create<{ unsynced: DeadOp[] }>(() => ({ unsynced: [] }));
+let deadAll: DeadOp[] = []; // збережені відкладені операції з позначкою збірки
 const READY_TIMEOUT_MS = 8000;
 let readyTimer: ReturnType<typeof setTimeout> | null = null;
 function markReady() {
@@ -173,7 +178,11 @@ export async function flush(): Promise<void> {
     });
     if (ctx !== my || S !== live) return; // вийшли з акаунта, поки запит був у дорозі: черга лишилась на пристрої, повтор безпечний
     if (out.quarantined) {
-      await localKv.set(deadKey(uid), JSON.stringify(live.dead)).catch(() => undefined);
+      // у цій збірці не повторюються; повтор — після оновлення клієнта (reviveOnUpdate при старті)
+      deadAll = addDead(deadAll, live.dead, UI_BUILD);
+      live.dead = [];
+      useSyncStatus.setState({ unsynced: deadAll });
+      await localKv.set(deadKey(uid), JSON.stringify(deadAll)).catch(() => undefined);
       event('sync_error', 'quarantine', { code: 'op_too_large', ops: out.quarantined }, 5 * 60 * 1000);
     }
     if (out.status === 'not_active') {
@@ -231,8 +240,16 @@ export async function startProgressSync(backend: CloudBackend, user: CloudUser, 
     queue: await readJson<Op[]>(queueKey(user.id), []),
     rev: meta.rev,
     base: meta.base,
-    dead: await readJson<Op[]>(deadKey(user.id), []),
+    dead: [],
   };
+  // відкладені операції: збірка новіша за ту, де їх відхилено, — повертаємо в чергу один раз; інші лишаються позначеними
+  {
+    const { revive, keep } = reviveOnUpdate(normalizeDead(await readJson<unknown>(deadKey(user.id), [])), UI_BUILD);
+    for (const op of revive) if (!S.queue.some((q) => q.opId === op.opId)) S.queue.push(op);
+    deadAll = keep;
+    useSyncStatus.setState({ unsynced: deadAll });
+    if (revive.length) await localKv.set(deadKey(user.id), JSON.stringify(deadAll)).catch(() => undefined);
+  }
   dirty = meta.dirty;
   migrated = meta.migrated;
   if (mine && preLogin.length) S.queue.push(...preLogin);
@@ -320,6 +337,8 @@ export async function stopProgressSync(flushFirst = false): Promise<void> {
   }
   ctx = null;
   S = { queue: [], rev: 0, base: null, dead: [] };
+  deadAll = [];
+  useSyncStatus.setState({ unsynced: [] });
   dirty = false;
   migrated = false;
   again = false;

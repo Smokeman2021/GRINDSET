@@ -11,6 +11,11 @@ import { useWebVersionGuard } from '../src/webVersion';
 import { initTelegram, isTelegram, syncTelegramColors, useTelegramInsets, useTgBackButton } from '../src/telegram/webapp';
 import { useGlobalSearchParams, usePathname, useRouter } from 'expo-router';
 import { FeedbackFab } from '../src/components/FeedbackSheet';
+import { captureInitialLink } from '../src/data/deepLink';
+
+// Пряме посилання / перезавантаження (ТЗ 006, 2.3): адресу старту запамʼятовуємо до перенаправлення на вхід;
+// стартовий екран (app/index.tsx) відкриє її після входу й завантаження прогресу
+if (Platform.OS === 'web' && typeof window !== 'undefined') captureInitialLink(window.location);
 
 // Усі маршрути застосунку, окрім login: за закритого тесту доступні лише після входу. Новий файл у app/ ОБОВʼЯЗКОВО додати сюди,
 // інакше він лишиться відкритим для всіх (перевіряє scripts/check-routes-protected.mjs).
@@ -36,6 +41,7 @@ const PROTECTED_ROUTES = [
   'branch/[code]',
   'leads',
   'map/[code]',
+  'unavailable',
 ];
 
 // Веб: фон сторінки й колір адресного рядка = фон поточної теми, щоб ніде не світилась біла смуга (за межами колонки на десктопі, під адресним рядком)

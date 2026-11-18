@@ -56,7 +56,7 @@ test('E1: без тупиків — завжди є наступна точка,
   assert.ok(all.every((p) => p.state === 'done'));
 });
 
-test('E2: урок зберігає крок і відповіді; відкривається з того самого кроку; самоперевірку не зберігаємо', () => {
+test('E2: урок зберігає крок і відповіді; відкривається з того самого кроку (самоперевірку теж — ТЗ 006, 2.2)', () => {
   const pl = lessonPlace({ id: 'BR-GAM-FINAL', idx: 2, total: 5, results: [{ lessonId: 'BR-GAM-FINAL', idx: 1, ok: false }], chosen: { 1: 2 }, correct: 0, errors: 1, title: 'Гемблінг · Самостійна практика' }, 100)!;
   assert.equal(pl.kind, 'lesson');
   const box: PlaceBox = { place: pl, lastBranch: 'GAM', at: 100 };
@@ -66,7 +66,7 @@ test('E2: урок зберігає крок і відповіді; відкри
   assert.equal(r.results.length, 1, 'відповіді до кроку зберігаються: фінал не можна пройти, пропустивши кроки');
   assert.equal(resumeFor(box, 'BR-GAM-L01', 5), null, 'інший урок — з початку');
   assert.equal(resumeFor(box, 'BR-GAM-FINAL', 2), null, 'крок поза уроком — з початку');
-  assert.equal(lessonPlace({ ...pl, id: 'BR-GAM-SC' }, 1), null);
+  assert.equal(lessonPlace({ ...pl, id: 'BR-GAM-SC' }, 1)?.id, 'BR-GAM-SC');
   assert.equal(lessonPlace({ ...pl, idx: 0 }, 1), null);
 });
 

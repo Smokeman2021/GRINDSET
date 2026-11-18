@@ -9,6 +9,7 @@ import { continueTarget } from '../../src/data/place';
 import { GOAL_XP, useStore } from '../../src/store';
 import { homeSay } from '../../src/data/phrases';
 import { GrindykSay } from '../../src/components/GrindykSay';
+import { UnsyncedNote } from '../../src/components/UnsyncedNote';
 import { Theme, useStyles, useTheme } from '../../src/theme';
 
 export default function Home() {
@@ -50,6 +51,7 @@ export default function Home() {
     <View style={styles.root}>
       <ScrollView contentContainerStyle={{ padding: 16, paddingTop: insets.top + 12, paddingBottom: insets.bottom + 32, gap: 12 }}>
         <GrindykSay text={talk.text} pose={talk.pose} height={110} />
+        <UnsyncedNote />
         {cont && (
           <Pressable onPress={goContinue} style={({ pressed }) => [styles.cont, pressed && { transform: [{ translateY: 2 }], borderBottomWidth: 2 }]} accessibilityRole="button" accessibilityLabel={`Продовжити: ${cont.label}`}>
             <Text style={styles.contKick}>▶ ПРОДОВЖИТИ</Text>

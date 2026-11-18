@@ -30,6 +30,7 @@ import { FeedbackSheet } from '../../src/components/FeedbackSheet';
 import { CharacterView } from '../../src/components/CharacterView';
 import { SHOW_LEGACY_AVATARS } from '../../src/flags';
 import { StageGlow } from '../../src/art/StageGlow';
+import { UnsyncedNote } from '../../src/components/UnsyncedNote';
 
 function lessonTitle(id: string): string {
   if (id === 'mistakes') return 'Надолуження помилок';
@@ -83,6 +84,7 @@ export default function Profile() {
       <Glow />
       <TopBar title={t('titleProfile')} />
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 40 }}>
+        <UnsyncedNote />
         <View style={styles.hero}>
           {SHOW_BUILD && (
             <View style={styles.build}>

@@ -356,6 +356,30 @@ export function nextBatch(queue: Op[], maxOps: number = BATCH_MAX_OPS, maxBytes:
   return out;
 }
 
+// ───────── Відкладені операції (ТЗ 006, 2.1) ─────────
+// Операція, яку сервер відхилив за лімітом розміру, лишається на пристрої з позначкою збірки, у якій її відхилено.
+// Повторюється один раз — лише після оновлення клієнта (новіша збірка); у тій самій збірці не повторюється.
+export type DeadOp = { op: Op; build: number };
+export function normalizeDead(raw: unknown): DeadOp[] {
+  if (!Array.isArray(raw)) return [];
+  const out: DeadOp[] = [];
+  for (const x of raw) {
+    if (!x || typeof x !== 'object') continue;
+    // формат b26: голий масив операцій — збірка невідома (0), тож новий клієнт повторить їх один раз
+    const d = 'op' in (x as object) ? (x as DeadOp) : { op: x as Op, build: 0 };
+    if (d.op && typeof d.op.opId === 'string' && !out.some((o) => o.op.opId === d.op.opId)) out.push({ op: d.op, build: typeof d.build === 'number' ? d.build : 0 });
+  }
+  return out;
+}
+export function reviveOnUpdate(dead: DeadOp[], build: number): { revive: Op[]; keep: DeadOp[] } {
+  return { revive: dead.filter((d) => d.build < build).map((d) => d.op), keep: dead.filter((d) => d.build >= build) };
+}
+export function addDead(dead: DeadOp[], ops: Op[], build: number): DeadOp[] {
+  const out = dead.filter((d) => !ops.some((o) => o.opId === d.op.opId));
+  for (const op of ops) out.push({ op, build });
+  return out;
+}
+
 export type SyncBase = { core: Core; rewarded: string[]; pristine: boolean };
 // queue: черга на пристрої; dead: операції, які сервер не може прийняти через ліміт (відкладені, щоб не блокувати чергу)
 export type SyncState = { queue: Op[]; rev: number; base: SyncBase | null; dead: Op[] };

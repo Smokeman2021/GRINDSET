@@ -88,7 +88,7 @@ export default function LessonScreen() {
   const [note, setNote] = useState(''); // «твоє пояснення»: не оцінюється, показується поруч з еталоном
   // «Продовжити» (етап E): той самий урок відкривається з кроку, на якому гравець вийшов, разом із відповідями до нього
   const setPlace = useStore((s) => s.setPlace);
-  const [resume] = useState(() => resumeFor(useStore.getState().placeBox, id ?? '', steps.length));
+  const [resume, setResume] = useState(() => resumeFor(useStore.getState().placeBox, id ?? '', steps.length));
   const chosenRef = useRef<Record<number, number>>(resume?.chosen ?? {});
 
   const [idx, setIdx] = useState(resume?.idx ?? 0);
@@ -224,10 +224,25 @@ export default function LessonScreen() {
     record(ok);
   }
 
+  // «Почати заново» (ТЗ 006, 2.2): скинути збережене місце й відповіді; нагород і зарахування це не дає
+  function restart() {
+    resultsRef.current = [];
+    chosenRef.current = {};
+    setWrongSteps([]);
+    setCorrect(0);
+    setErrors(0);
+    setIdx(0);
+    setResume(null);
+    setPlace(null, code);
+    setSelected(null);
+    setExtCorrect(null);
+    setAnswered(false);
+  }
+
   function onContinue() {
     if (idx + 1 >= total) {
       // одиницю завершено: місця немає, «Продовжити» поведе до наступної одиниці цієї гілки
-      if (kind !== 'selfcheck') setPlace(null, code);
+      setPlace(null, code);
       // Точність (leaderboard_accuracy): усі перевірювані завдання гілок, самоперевірки, практики й фіналів
       recordAnswers(resultsRef.current, { rated: true });
       track('lesson_complete', { lesson: lsn.id, correct, errors });
@@ -302,7 +317,7 @@ export default function LessonScreen() {
       return;
     }
     setIdx(idx + 1);
-    // зберегти місце: наступний крок і відповіді до нього (самоперевірку не зберігаємо)
+    // зберегти місце: наступний крок і відповіді до нього (і для самоперевірки — ТЗ 006, 2.2)
     const pl = lessonPlace({ id: lsn.id, idx: idx + 1, total, results: [...resultsRef.current], chosen: { ...chosenRef.current }, correct, errors, title: `${ref?.branch.title} · ${lsn.title}` }, Date.now());
     if (pl) setPlace(pl, code);
     setHintOpen(false);
@@ -375,7 +390,14 @@ export default function LessonScreen() {
           : `${ref?.branch.emoji} ${ref?.branch.title.toUpperCase()} · ${lsn.title}`}
       </Text>
 
-      {resume && idx === resume.idx && <Text style={[styles.mode, { color: C.accentTxt }]}>↩ Продовжуємо з кроку {resume.idx + 1} з {total}</Text>}
+      {resume && idx === resume.idx && !answered && (
+        <View style={styles.resumeBox}>
+          <Text style={[styles.mode, { color: C.accentTxt, flex: 1 }]}>↩ Продовжуємо з кроку {resume.idx + 1} з {total}</Text>
+          <Pressable onPress={restart} hitSlop={8} accessibilityRole="button" accessibilityLabel="Почати заново">
+            <Text style={styles.restart}>Почати заново</Text>
+          </Pressable>
+        </View>
+      )}
       {limit > 0 && <TimerRow key={idx} leftRef={leftRef} limit={limit} answered={answered} />}
 
       <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
@@ -589,6 +611,8 @@ const makeStyles = (C: Theme) => StyleSheet.create({
   timerFill: { height: '100%', borderRadius: 6 },
   combo: { color: C.fireTxt, fontWeight: '800', fontSize: 15 },
   mode: { color: C.blueTxt, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginBottom: 4 },
+  resumeBox: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
+  restart: { color: C.blueTxt, fontSize: 12, fontWeight: '800', textDecorationLine: 'underline' },
   layer: { color: C.blueTxt, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginVertical: 8 },
   qRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   q: { color: C.txt, fontSize: 20, fontWeight: '700', flex: 1, marginTop: 4 },

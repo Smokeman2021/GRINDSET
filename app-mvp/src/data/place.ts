@@ -1,6 +1,6 @@
 // «Продовжити» (ТЗ 004, етап E): останнє місце гравця — урок і крок, крок тренажера, стаття «Бази» з поверненням.
 // Місце живе на пристрої (persist) і в клієнтському знімку; між пристроями перемагає новіший запис. Чисті функції — під автотести.
-import { branchCodeOf, nextUnit, unitKind, type BranchProg } from './branchRules.ts';
+import { branchCodeOf, nextUnit, type BranchProg } from './branchRules.ts';
 
 export type LessonPlace = {
   kind: 'lesson';
@@ -32,9 +32,9 @@ export function mergePlace(local: unknown, server: unknown): PlaceBox {
   return l.at >= s.at ? l : s;
 }
 
-// Збереження кроку уроку. Самоперевірку не зберігаємо: вона з двох завдань і без нагороди
+// Збереження кроку уроку, практики, фіналу й самоперевірки (ТЗ 006, 2.2: самоперевірка теж — гілка, питання й відповіді).
+// Нагород і зарахування місце не дає: їх рахує лише завершення одиниці.
 export function lessonPlace(p: Omit<LessonPlace, 'kind' | 'at'>, now: number): LessonPlace | null {
-  if (unitKind(p.id) === 'selfcheck') return null;
   if (p.idx <= 0 || p.idx >= p.total) return null;
   return { kind: 'lesson', ...p, at: now };
 }
