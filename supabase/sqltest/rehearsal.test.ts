@@ -147,4 +147,29 @@ test('репетиція вікна: копія → 0007 → нова збірк
   assert.ok(fin.out.events.rows >= copy.out.events.rows);
   assert.equal(fin.out.feedback.rows, 3, 'відгуки до й після 0008 пережили відкат і повернення');
   assert.equal(fin.out.progress.rows, copy.out.progress.rows + 1);
+
+  // 9. 0009 і скидання за затвердженим списком (ТЗ 005 / 007): a і d скидаються, b і c — ні
+  await db.applyMigration('0009_progress_epoch_reset.sql');
+  await db.applyMigration('0009_progress_epoch_reset.sql');
+  const pre9 = await backup();
+  const opsBefore = Number((await db.admin.query('select count(*) n from public.progress_ops where user_id = any($1::uuid[])', [[a.id, d.id]])).rows[0].n);
+  const res = (await db.admin.query('select public.reset_progress($1, $2::uuid[]) r', ['rehearsal-1', [a.id, d.id]])).rows[0].r as { accounts: { archived_progress: number; deleted_progress: number; archived_ops: number; deleted_ops: number }[] };
+  const sum = (k: 'archived_progress' | 'deleted_progress' | 'archived_ops' | 'deleted_ops') => res.accounts.reduce((s, x) => s + x[k], 0);
+  assert.deepEqual([sum('archived_progress'), sum('deleted_progress')], [2, 2], 'рядків прогресу в архіві = видаленим');
+  assert.deepEqual([sum('archived_ops'), sum('deleted_ops')], [opsBefore, opsBefore], 'журнал в архіві = видаленому');
+  const post9 = await backup();
+  assert.equal(post9.out.progress.rows, pre9.out.progress.rows - 2);
+  assert.equal(post9.out.allowed_users.rows, pre9.out.allowed_users.rows, 'учётки на місці');
+  assert.equal(post9.out.feedback.sha, pre9.out.feedback.sha, 'відгуки не змінені');
+  assert.ok(post9.out.events.rows >= pre9.out.events.rows, 'події на місці');
+  assert.equal((await loadV2(a)).exists, false);
+  assert.deepEqual((await loadV2(b)).core.completed, ['l1', 'l5'], 'учётка поза списком не зачеплена');
+  // старі пристрої a: нова збірка зі старою епохою й стара збірка — нічого не повертають
+  assert.equal((await v2(a, 0, [{ opId: 'a-l9', kind: 'lesson', lessonId: 'l9', xp: 10, coins: 20 }])).status, 'epoch_mismatch');
+  await legacy(a, snap(['l1', 'l2', 'l3'], 30, 60));
+  assert.equal((await loadV2(a)).exists, false);
+  // відкат одної учётки з архіву
+  const rest = (await db.admin.query("select public.restore_progress('rehearsal-1', $1::uuid) r", [a.id])).rows[0].r as { epoch_to: number };
+  assert.equal(rest.epoch_to, 2);
+  assert.deepEqual((await loadV2(a)).core.completed, ['l1', 'l2', 'l3']);
 });

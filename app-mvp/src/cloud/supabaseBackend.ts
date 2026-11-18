@@ -109,19 +109,22 @@ export class SupabaseBackend implements CloudBackend {
       if (!this.missing(error)) this.fail(error);
       const old = await this.loadProgress(); // лише читання старим способом; запису старим способом у новій збірці немає
       const core = coreOf(old?.state);
-      return { mode: 'legacy', exists: !!old, rev: 0, core, rewarded: [...core.completed], state: old?.state ?? null };
+      return { mode: 'legacy', epoch: 0, exists: !!old, rev: 0, core, rewarded: [...core.completed], state: old?.state ?? null };
     }
-    const d = data as { mode: string; exists: boolean; rev: number; core: Core; rewarded: string[]; state: Record<string, unknown> | null };
-    return { mode: d.mode === 'v2' ? 'v2' : 'legacy', exists: !!d.exists, rev: Number(d.rev), core: d.core, rewarded: d.rewarded ?? [], state: d.state ?? null };
+    const d = data as { mode: string; epoch?: number; exists: boolean; rev: number; core: Core; rewarded: string[]; state: Record<string, unknown> | null };
+    // epoch (ТЗ 005): до міграції 0009 її немає — 0
+    return { mode: d.mode === 'v2' ? 'v2' : 'legacy', epoch: Number(d.epoch ?? 0) || 0, exists: !!d.exists, rev: Number(d.rev), core: d.core, rewarded: d.rewarded ?? [], state: d.state ?? null };
   }
 
-  async saveProgressV2(baseRev: number, ops: Op[], clientState: Record<string, unknown> | null): Promise<SaveV2> {
-    const { data, error } = await this.client.rpc('save_progress_v2', { p_base_rev: baseRev, p_ops: ops, p_client_state: clientState });
+  async saveProgressV2(baseRev: number, ops: Op[], clientState: Record<string, unknown> | null, epoch: number): Promise<SaveV2> {
+    // p_epoch є в save_progress_v2 з 0007 (там ігнорується), перевіряється з 0009
+    const { data, error } = await this.client.rpc('save_progress_v2', { p_base_rev: baseRev, p_ops: ops, p_client_state: clientState, p_epoch: epoch });
     if (error) {
       if (this.missing(error)) return { status: 'not_active' };
       this.fail(error);
     }
-    const d = data as { status: string; rev: number; core: Core; rewarded: string[]; client_state: Record<string, unknown>; client_state_status: string; ops: OpResult[] };
+    const d = data as { status: string; epoch?: number; rev: number; core: Core; rewarded: string[]; client_state: Record<string, unknown>; client_state_status: string; ops: OpResult[] };
+    if (d.status === 'epoch_mismatch') return { status: 'epoch_mismatch', epoch: Number(d.epoch ?? 0) || 0 };
     if (d.status !== 'ok') return { status: 'not_active' };
     const cs = d.client_state_status;
     return {

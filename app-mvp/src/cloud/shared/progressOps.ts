@@ -77,8 +77,9 @@ export type Op = {
   item?: string;
   lessons?: string[];
   state?: Record<string, unknown>;
+  epoch?: number; // перенесення (ТЗ 005): епоха локальних даних; не та на сервері → rejected_epoch
 };
-export type OpStatus = 'applied' | 'already_rewarded' | 'rejected_no_coins' | 'rejected_invalid' | 'rejected_exists';
+export type OpStatus = 'applied' | 'already_rewarded' | 'rejected_no_coins' | 'rejected_invalid' | 'rejected_exists' | 'rejected_epoch';
 export type OpResult = { opId: string | null; status: OpStatus; duplicate: boolean };
 
 export function newOpId(prefix = 'op'): string {
@@ -216,23 +217,33 @@ export function staleInfo(queue: Op[], now: number): { stale: boolean; ops: numb
 }
 
 // ───────── Відповіді сервера ─────────
-export type LoadV2 = { mode: 'legacy' | 'v2'; exists: boolean; rev: number; core: Core; rewarded: string[]; state: Record<string, unknown> | null };
+// epoch (ТЗ 005): епоха прогресу учётки на сервері; до міграції 0009 — 0
+export type LoadV2 = { mode: 'legacy' | 'v2'; epoch: number; exists: boolean; rev: number; core: Core; rewarded: string[]; state: Record<string, unknown> | null };
 export type SaveV2 =
   | { status: 'not_active' } // старий спосіб ще активний (або міграції ще немає): операції лишаються в черзі
+  | { status: 'epoch_mismatch'; epoch: number } // прогрес учётки скинуто: локальні дані й черга належать минулій епосі, нічого не записано
   | { status: 'ok'; rev: number; core: Core; rewarded: string[]; clientState: Record<string, unknown>; clientStateStatus: 'none' | 'saved' | 'client_state_conflict' | 'rejected_invalid'; ops: OpResult[] };
+
+// ───────── Епоха прогресу (ТЗ 005) ─────────
+// Локальні дані й черга учётки мають позначку епохи (немає позначки — 0). Інша епоха на сервері → прогрес учётки скинуто або
+// відновлено з архіву: локальний прогрес і чергу саме цієї учётки очищаємо й беремо серверний стан. Перенесення старих даних — ні.
+export function epochGate(localEpoch: number | null | undefined, serverEpoch: number | null | undefined): 'ok' | 'wipe' {
+  return (localEpoch ?? 0) === (serverEpoch ?? 0) ? 'ok' : 'wipe';
+}
 
 // ───────── Перенесення даних, створених до оновлення (розділ 3 ТЗ) ─────────
 // ownerId: чия мітка стоїть на локальних даних. Без мітки або з чужою міткою нічого не переноситься й не відправляється.
 // Сервер порожній → одна операція legacy-init:<учётка> (початковий стан створюється один раз: другий пристрій отримає той самий підсумок).
 // Далі для кожного локально пройденого уроку операція legacy:<учётка>:<урок> з нагородою з локальної історії (перше проходження);
 // немає запису в історії → урок переноситься без нагороди. Постійні opId: два пристрої однієї учётки не нарахують нагороду двічі.
-export function legacyOps(userId: string, ownerId: string | null, local: Record<string, unknown>, server: { exists: boolean; core: Core }, now: number): Op[] {
+// epoch: епоха локальних даних — іде в кожну операцію перенесення (сервер відхилить, якщо учётку вже скинуто)
+export function legacyOps(userId: string, ownerId: string | null, local: Record<string, unknown>, server: { exists: boolean; core: Core }, now: number, epoch = 0): Op[] {
   if (!ownerId || ownerId !== userId) return [];
   const mine = coreOf(local);
   const ops: Op[] = [];
   if (!server.exists) {
     if (mine.completed.length === 0 && mine.xp === 0 && mine.coins === 0 && mine.answersTotal === 0) return [];
-    ops.push({ opId: `legacy-init:${userId}`, kind: 'init', at: now, state: { ...mine } });
+    ops.push({ opId: `legacy-init:${userId}`, kind: 'init', at: now, epoch, state: { ...mine } });
   }
   const history = Array.isArray(local.history) ? (local.history as { id?: unknown; xp?: unknown; coins?: unknown }[]) : [];
   for (const lessonId of mine.completed) {
@@ -240,7 +251,7 @@ export function legacyOps(userId: string, ownerId: string | null, local: Record<
     if (!/^[A-Za-z0-9_:.-]{1,64}$/.test(lessonId)) continue;
     let first: { xp?: unknown; coins?: unknown } | null = null;
     for (const h of history) if (h && h.id === lessonId) first = h; // історія йде від нових до старих: останній збіг = перше проходження
-    ops.push({ opId: `legacy:${userId}:${lessonId}`, kind: 'lesson', at: now, lessonId, xp: int(first?.xp, 0, 0, 10000), coins: int(first?.coins, 0, 0, 100000) });
+    ops.push({ opId: `legacy:${userId}:${lessonId}`, kind: 'lesson', at: now, epoch, lessonId, xp: int(first?.xp, 0, 0, 10000), coins: int(first?.coins, 0, 0, 100000) });
   }
   return ops;
 }
@@ -278,14 +289,16 @@ export function mergeClientState(local: Record<string, unknown>, server: Record<
 // ───────── Імітація сервера (режим mock і автотести клієнтської логіки) ─────────
 export type SimRow = { state: Record<string, unknown>; rev: number; core: Core; rewarded: string[]; journal: Record<string, OpStatus> };
 
-export function simLoad(mode: 'legacy' | 'v2', row: SimRow | null): LoadV2 {
-  if (!row) return { mode, exists: false, rev: 0, core: coreOf({}), rewarded: [], state: null };
+export function simLoad(mode: 'legacy' | 'v2', row: SimRow | null, epoch = 0): LoadV2 {
+  if (!row) return { mode, epoch, exists: false, rev: 0, core: coreOf({}), rewarded: [], state: null };
   const core = mode === 'v2' ? row.core : coreOf(row.state);
-  return { mode, exists: true, rev: row.rev, core, rewarded: mode === 'v2' ? row.rewarded : union(row.rewarded, core.completed), state: row.state };
+  return { mode, epoch, exists: true, rev: row.rev, core, rewarded: mode === 'v2' ? row.rewarded : union(row.rewarded, core.completed), state: row.state };
 }
 
-export function simSave(mode: 'legacy' | 'v2', row: SimRow | null, baseRev: number, ops: Op[], clientState: Record<string, unknown> | null): { row: SimRow | null; res: SaveV2 } {
+// epoch — епоха із запиту клієнта, serverEpoch — епоха учётки (дзеркало перевірки в 0009)
+export function simSave(mode: 'legacy' | 'v2', row: SimRow | null, baseRev: number, ops: Op[], clientState: Record<string, unknown> | null, epoch: number | null = 0, serverEpoch = 0): { row: SimRow | null; res: SaveV2 } {
   if (mode !== 'v2') return { row, res: { status: 'not_active' } };
+  if ((epoch ?? 0) !== serverEpoch) return { row, res: { status: 'epoch_mismatch', epoch: serverEpoch } };
   const pristine = !row;
   const cur: SimRow = row ? { ...row, journal: { ...row.journal } } : { state: {}, rev: 0, core: coreOf({}), rewarded: [], journal: {} };
   let changed = false;
@@ -300,7 +313,7 @@ export function simSave(mode: 'legacy' | 'v2', row: SimRow | null, baseRev: numb
       results.push({ opId: op.opId, status: prev, duplicate: true });
       continue;
     }
-    const r = applyOp(cur.core, cur.rewarded, op, pristine && !changed);
+    const r = 'epoch' in op && op.epoch !== undefined && op.epoch !== serverEpoch ? { core: cur.core, rewarded: cur.rewarded, status: 'rejected_epoch' as OpStatus } : applyOp(cur.core, cur.rewarded, op, pristine && !changed);
     cur.core = r.core;
     cur.rewarded = r.rewarded;
     cur.journal[op.opId] = r.status;
@@ -390,7 +403,8 @@ export type SyncIo = {
   afterPortion?(): Promise<void> | void; // після кожної прийнятої порції: зберегти чергу й показати нове ядро
 };
 export type SyncOutcome = {
-  status: 'done' | 'not_active';
+  status: 'done' | 'not_active' | 'epoch_mismatch';
+  epoch?: number; // епоха сервера при epoch_mismatch
   portions: number;
   snapshot: 'none' | 'saved' | 'conflict' | 'too_large';
   conflictState: Record<string, unknown> | null;
@@ -438,6 +452,12 @@ export async function syncQueue(st: SyncState, io: SyncIo): Promise<SyncOutcome>
     }
     if (res.status === 'not_active') {
       out.status = 'not_active';
+      return out;
+    }
+    if (res.status === 'epoch_mismatch') {
+      // прогрес учётки скинуто: черга належить минулій епосі — нічого не записано; очищення робить progressSync
+      out.status = 'epoch_mismatch';
+      out.epoch = res.epoch;
       return out;
     }
     out.portions += 1;

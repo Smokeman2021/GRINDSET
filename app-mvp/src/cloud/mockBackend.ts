@@ -17,7 +17,7 @@ const SID_KEY = 'grindset-mock-sid';
 const UID_KEY = 'grindset-mock-uid';
 
 type Row = InviteRow & { display_name: string; is_admin: boolean; active_sid: string | null; telegram_id?: number | null; last_login_at?: number | null; invite_issued_at?: number | null };
-type Db = { mode?: 'legacy' | 'v2'; allowed: Row[]; progress: Record<string, { state: Record<string, unknown>; updated_at: number; rev?: number; core?: Core; rewarded?: string[]; journal?: Record<string, OpStatus> }>; feedback?: FeedbackRow[]; events?: EventRow[] };
+type Db = { mode?: 'legacy' | 'v2'; epochs?: Record<string, number>; archive?: { run: string; user: string; epoch: number; row: unknown }[]; allowed: Row[]; progress: Record<string, { state: Record<string, unknown>; updated_at: number; rev?: number; core?: Core; rewarded?: string[]; journal?: Record<string, OpStatus> }>; feedback?: FeedbackRow[]; events?: EventRow[] };
 
 // Тестові облікові записи імітації та їхні коди (лише для розробки; справжні коди видає автор через SQL issue_invite)
 export const MOCK_ACCOUNTS: { username: string; name: string; code: string; status: Row['status']; admin?: boolean }[] = [
@@ -160,15 +160,15 @@ export class MockBackend implements CloudBackend {
     const row = await this.mustBeActive();
     const db = await readDb();
     const p = db.progress[row.id];
-    return simLoad(db.mode ?? 'v2', p ? { state: p.state, rev: p.rev ?? 1, core: p.core ?? coreOf(p.state), rewarded: p.rewarded ?? coreOf(p.state).completed, journal: p.journal ?? {} } : null);
+    return simLoad(db.mode ?? 'v2', p ? { state: p.state, rev: p.rev ?? 1, core: p.core ?? coreOf(p.state), rewarded: p.rewarded ?? coreOf(p.state).completed, journal: p.journal ?? {} } : null, db.epochs?.[row.id] ?? 0);
   }
 
-  async saveProgressV2(baseRev: number, ops: Op[], clientState: Record<string, unknown> | null): Promise<SaveV2> {
+  async saveProgressV2(baseRev: number, ops: Op[], clientState: Record<string, unknown> | null, epoch: number): Promise<SaveV2> {
     const row = await this.mustBeActive();
     const db = await readDb();
     const p = db.progress[row.id];
     const cur = p ? { state: p.state, rev: p.rev ?? 1, core: p.core ?? coreOf(p.state), rewarded: p.rewarded ?? coreOf(p.state).completed, journal: p.journal ?? {} } : null;
-    const out = simSave(db.mode ?? 'v2', cur, baseRev, ops, clientState);
+    const out = simSave(db.mode ?? 'v2', cur, baseRev, ops, clientState, epoch, db.epochs?.[row.id] ?? 0);
     if (out.row) {
       db.progress[row.id] = { ...out.row, updated_at: Date.now() };
       writeDb(db);
@@ -191,10 +191,46 @@ export class MockBackend implements CloudBackend {
     writeDb(db);
   }
 
+  // Скидання прогресу (ТЗ 005, дзеркало reset_progress): лише v2; прогрес → архів, видалення, епоха + 1. ids — id або ніки учёток.
+  async mockReset(run: string, ids: string[]): Promise<{ account: string; epoch_to: number; archived: boolean }[]> {
+    const db = await readDb();
+    if ((db.mode ?? 'v2') !== 'v2') throw new Error('reset_requires_v2');
+    if (!ids.length) throw new Error('empty_list');
+    db.epochs = db.epochs ?? {};
+    db.archive = db.archive ?? [];
+    const out: { account: string; epoch_to: number; archived: boolean }[] = [];
+    for (const key of ids) {
+      const r = db.allowed.find((a) => a.id === key || a.username === key);
+      if (!r) throw new Error(`account_not_found: ${key}`);
+      const was = db.epochs[r.id] ?? 0;
+      const p = db.progress[r.id];
+      if (p) db.archive.push({ run, user: r.id, epoch: was, row: p });
+      delete db.progress[r.id];
+      db.epochs[r.id] = was + 1;
+      out.push({ account: r.id, epoch_to: was + 1, archived: !!p });
+    }
+    writeDb(db);
+    return out;
+  }
+
+  // Відновлення з архіву (дзеркало restore_progress): прогрес запуску → назад, епоха + 1
+  async mockRestore(run: string, id: string): Promise<{ epoch_to: number }> {
+    const db = await readDb();
+    const r = db.allowed.find((a) => a.id === id || a.username === id);
+    const a = (db.archive ?? []).filter((x) => x.run === run && x.user === r?.id).pop();
+    if (!r || !a) throw new Error('not_in_archive');
+    db.progress[r.id] = { ...(a.row as Db['progress'][string]), updated_at: Date.now() };
+    db.epochs = { ...(db.epochs ?? {}), [r.id]: (db.epochs?.[r.id] ?? 0) + 1 };
+    writeDb(db);
+    return { epoch_to: db.epochs[r.id] };
+  }
+
   // Те, що робила стара збірка: зберегти весь стан одним знімком (правила захищеної save_progress). У режимі v2 нічого не пише.
+  // Скинута учётка (епоха > 0) — нічого не пише в жодному режимі (як progress_legacy_blocked у 0009).
   async mockLegacySave(state: Record<string, unknown>): Promise<{ written: boolean }> {
     const row = await this.mustBeActive();
     const db = await readDb();
+    if ((db.epochs?.[row.id] ?? 0) > 0) return { written: false };
     const p = db.progress[row.id];
     const out = simLegacySave(db.mode ?? 'v2', p ? toSim(p) : null, state);
     if (out.written && out.row) {

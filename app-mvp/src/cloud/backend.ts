@@ -17,6 +17,9 @@ export function getBackend(): CloudBackend | null {
           mode: () => mock.mockMode(),
           setMode: (m: 'legacy' | 'v2') => mock.mockSetMode(m),
           legacySaveLocal: () => mock.mockLegacySaveLocal(),
+          // скидання й відновлення (ТЗ 005): __grindsetMock.reset('run-1', ['tester_one']), __grindsetMock.restore('run-1', 'tester_one')
+          reset: (run: string, ids: string[]) => mock.mockReset(run, ids),
+          restore: (run: string, id: string) => mock.mockRestore(run, id),
         };
       }
     } else {

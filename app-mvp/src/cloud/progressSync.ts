@@ -12,7 +12,7 @@ import { useStore } from '../store';
 import { levelForXp } from '../data/levels';
 import { POINTS_PER_LEVEL } from '../data/stats';
 import { setOpSink } from './opBus';
-import { addDead, legacyOps, mergeClientState, normalizeDead, replay, reviveOnUpdate, staleInfo, syncQueue } from './shared/progressOps';
+import { addDead, epochGate, legacyOps, mergeClientState, normalizeDead, replay, reviveOnUpdate, staleInfo, syncQueue } from './shared/progressOps';
 import type { DeadOp, Op, SyncBase, SyncState } from './shared/progressOps';
 import { UI_BUILD } from '../version';
 import { localKv } from './storage';
@@ -23,8 +23,9 @@ const queueKey = (uid: string) => `grindset-opq:${uid}`;
 const deadKey = (uid: string) => `grindset-opq-dead:${uid}`; // операції, які сервер не може прийняти через ліміт розміру
 const syncKey = (uid: string) => `grindset-sync:${uid}`;
 
-type SyncMeta = { rev: number; dirty: boolean; migrated: boolean; base: SyncBase | null };
-const FRESH_META: SyncMeta = { rev: 0, dirty: false, migrated: false, base: null };
+// epoch (ТЗ 005): епоха прогресу, до якої належать локальний стан і черга цієї учётки (немає позначки — 0)
+type SyncMeta = { rev: number; dirty: boolean; migrated: boolean; base: SyncBase | null; epoch?: number };
+const FRESH_META: SyncMeta = { rev: 0, dirty: false, migrated: false, base: null, epoch: 0 };
 
 async function readJson<T>(key: string, def: T): Promise<T> {
   try {
@@ -76,6 +77,7 @@ let ctx: Ctx | null = null;
 let S: SyncState = { queue: [], rev: 0, base: null, dead: [] };
 let dirty = false; // клієнтський знімок змінився й ще не збережений на сервері
 let migrated = false;
+let epoch = 0; // епоха локальних даних поточної учётки
 let busy = false;
 let again = false;
 let applying = false; // ми самі пишемо у стор: це не зміна від гравця
@@ -94,7 +96,7 @@ function persistQueue(uid: string): Promise<void> {
   return next;
 }
 const persistMeta = (uid: string) => {
-  const meta: SyncMeta = { rev: S.rev, dirty, migrated, base: S.base };
+  const meta: SyncMeta = { rev: S.rev, dirty, migrated, base: S.base, epoch };
   return localKv.set(syncKey(uid), JSON.stringify(meta)).catch(() => undefined);
 };
 
@@ -163,7 +165,7 @@ export async function flush(): Promise<void> {
     if (st.stale) event('sync_queue_stale', 'stale', { ops: st.ops, minutes: st.oldestMin }, 10 * 60 * 1000);
     let seq = stateSeq;
     const out = await syncQueue(live, {
-      send: (baseRev, ops, clientState) => my.backend.saveProgressV2(baseRev, ops, clientState),
+      send: (baseRev, ops, clientState) => my.backend.saveProgressV2(baseRev, ops, clientState, epoch),
       snapshot: () => {
         if (!dirty || ctx !== my) return null;
         seq = stateSeq;
@@ -187,6 +189,19 @@ export async function flush(): Promise<void> {
     }
     if (out.status === 'not_active') {
       schedule(60000);
+      return;
+    }
+    if (out.status === 'epoch_mismatch') {
+      // прогрес учётки скинуто (або відновлено з архіву): локальне й черга — минула епоха; очищаємо лише цю учётку й беремо серверне
+      await wipeLocal(uid, out.epoch ?? 0);
+      const srv = await my.backend.loadProgressV2();
+      if (ctx !== my) return;
+      epoch = srv.epoch;
+      S.base = { core: srv.core, rewarded: srv.rewarded, pristine: !srv.exists };
+      S.rev = srv.rev;
+      applyVisible(srv.state);
+      await persistMeta(uid);
+      event('sync_error', 'epoch', { code: 'epoch_reset' }, 60 * 1000);
       return;
     }
     if (out.snapshot === 'conflict' && out.conflictState) {
@@ -252,6 +267,7 @@ export async function startProgressSync(backend: CloudBackend, user: CloudUser, 
   }
   dirty = meta.dirty;
   migrated = meta.migrated;
+  epoch = meta.epoch ?? 0;
   if (mine && preLogin.length) S.queue.push(...preLogin);
   ctx = my;
   setOpSink(enqueue);
@@ -265,10 +281,14 @@ export async function startProgressSync(backend: CloudBackend, user: CloudUser, 
   try {
     const srv = await backend.loadProgressV2();
     if (ctx !== my) return;
+    // епоха (ТЗ 005): інша на сервері → прогрес учётки скинуто; локальний стан і черга (у тому числі старі дані до оновлення) — геть,
+    // перенесення не робимо. Інші учётки на пристрої (свої ключі черги) не чіпаємо.
+    if (epochGate(epoch, srv.epoch) === 'wipe') await wipeLocal(user.id, srv.epoch);
+    epoch = srv.epoch;
     if (!migrated) {
       // один раз на учётку й пристрій: перенесення даних, створених до оновлення
       if (S.queue.length === 0) {
-        const ops = legacyOps(user.id, owner, snapshot(), srv, Date.now());
+        const ops = legacyOps(user.id, owner, snapshot(), srv, Date.now(), epoch);
         if (ops.length) {
           S.queue.push(...ops);
           await persistQueue(user.id);
@@ -341,5 +361,28 @@ export async function stopProgressSync(flushFirst = false): Promise<void> {
   useSyncStatus.setState({ unsynced: [] });
   dirty = false;
   migrated = false;
+  epoch = 0;
   again = false;
+}
+
+// Очищення після скидання (ТЗ 005): локальний прогрес, черга й відкладені операції ЛИШЕ цієї учётки; стан застосунку — з нуля
+// (онбординг і вибір персонажа знову). Мова й тема лишаються. Перенесення старих даних після цього не виконується.
+async function wipeLocal(uid: string, newEpoch: number): Promise<void> {
+  S.queue = [];
+  S.dead = [];
+  S.base = null;
+  deadAll = [];
+  useSyncStatus.setState({ unsynced: [] });
+  applying = true;
+  try {
+    useStore.getState().reset();
+  } finally {
+    applying = false;
+  }
+  dirty = false;
+  migrated = true;
+  epoch = newEpoch;
+  await persistQueue(uid).catch(() => undefined);
+  await localKv.set(deadKey(uid), '[]').catch(() => undefined);
+  await persistMeta(uid);
 }
