@@ -50,9 +50,19 @@ try {
     diff('обмеження', keyed(prod.constraints, (r) => `${r.table}.${r.name}`), keyed(local.constraints, (r) => `${r.table}.${r.name}`), out);
     diff('політика', keyed(prod.policies, (r) => `${r.table}.${r.name}`), keyed(local.policies, (r) => `${r.table}.${r.name}`), out);
     diff('тригер', keyed(prod.triggers, (r) => `${r.table}.${r.name}`), keyed(local.triggers, (r) => `${r.table}.${r.name}`), out);
-    // права на функції (acl) у Supabase мають власних власників ролей: порівнюємо лише тіло й підпис
-    const fn = (s: Snap) => new Map((s.functions ?? []).map((f) => [`${f.name}(${f.args})`, norm(f.def)] as [string, string]));
+    // тіло й підпис функції без SQL-коментарів (SQL Editor Supabase зберігає визначення без них)
+    const noComments = (d: string) => d.replace(/--[^\r\n]*/g, '').replace(/\s+/g, '');
+    const fn = (s: Snap) => new Map((s.functions ?? []).map((f) => [`${f.name}(${f.args})`, norm(noComments(f.def))] as [string, string]));
     diff('функція', fn(prod), fn(local), out);
+    // права (ТЗ 007): хто може викликати функцію й що дозволено на таблицях — тут була реальна розбіжність (типові права Supabase)
+    const acl = (s: Snap) => new Map((s.functions ?? []).map((f) => [`${f.name}(${f.args})`, norm((f.acl ?? '').replace(/[{}]/g, '').split(',').sort().join(','))] as [string, string]));
+    diff('права функції', acl(prod), acl(local), out);
+    const grants = (s: Snap) => {
+      const m = new Map<string, string[]>();
+      for (const g of s.table_grants ?? []) m.set(`${g.table} → ${g.grantee}`, [...(m.get(`${g.table} → ${g.grantee}`) ?? []), g.priv]);
+      return new Map([...m].map(([k, v]) => [k, v.sort().join(',')] as [string, string]));
+    };
+    diff('права таблиці', grants(prod), grants(local), out);
     console.log(`Postgres: продакшн ${prod.pg_version}, локально ${local.pg_version}`);
     console.log(out.length ? out.join('\n') : 'структура збігається');
     process.exitCode = out.length ? 2 : 0;

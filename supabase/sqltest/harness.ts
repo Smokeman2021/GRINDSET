@@ -28,6 +28,11 @@ create function auth.uid() returns uuid language sql stable as $$
   select nullif(nullif(current_setting('request.jwt.claims', true), '')::json ->> 'sub', '')::uuid $$;
 create function auth.role() returns text language sql stable as $$
   select nullif(current_setting('request.jwt.claims', true), '')::json ->> 'role' $$;
+-- Типові права Supabase (ТЗ 007, звірка зі знімком продакшна): нові таблиці й функції схеми public отримують ВСІ права для anon,
+-- authenticated і service_role. Міграції мають явно відкликати зайве — інакше локальні тести не побачать того, що є на продакшні.
+alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
+alter default privileges in schema public grant execute on functions to anon, authenticated, service_role;
 `;
 
 export type TestUser = { id: string; authId: string; sid: string; username: string };
