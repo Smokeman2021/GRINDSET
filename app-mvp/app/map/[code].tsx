@@ -66,6 +66,7 @@ export default function BranchMap() {
   const energy = useStore((s) => s.energy);
   const strictEnergy = useStore((s) => s.strictEnergy);
   const simStep = useStore((s) => s.simLeads?.step ?? 0);
+  const seenScenes = useStore((s) => s.seenScenes);
   const [sel, setSel] = useState<string | null>(null);
   // переїзд після одиниці (ТЗ 006, 3.1): перший раз — дорога до наступного закладу з підписом «Освоєно · Відкрилось»; повторно — одразу карта
   const [travelOn, setTravelOn] = useState(() => !!done && shouldShow(useStore.getState().seenScenes, travelKey(String(done))));
@@ -247,6 +248,12 @@ export default function BranchMap() {
                 title={selPin.state === 'done' ? 'Повторити (без нагороди)' : selPin.kind === 'final' && b.final?.sim && simStep > 0 ? `Продовжити з кроку ${simStep + 1}` : selPin.state === 'next' ? 'Їхати сюди' : 'Відкрити'}
                 onPress={() => open(selPin.id)}
               />
+              {/* повторний перегляд сцени закладу (ТЗ 007, п. 4): перший раз вона відкривається сама, далі — за бажанням */}
+              {!shouldShow(seenScenes, sceneKey(selPin.id)) && (
+                <Pressable onPress={() => router.push({ pathname: '/scene/[id]', params: { id: selPin.id } })} style={styles.sceneAgain} accessibilityRole="button">
+                  <Text style={styles.sceneAgainTxt}>🎬 Переглянути сцену закладу</Text>
+                </Pressable>
+              )}
             </>
           )}
         </View>
@@ -289,6 +296,8 @@ const styles = StyleSheet.create({
   sheetKick: { color: '#1c8f4f', fontWeight: '900', fontSize: 10, letterSpacing: 1.3 },
   sheetTitle: { color: '#2a2418', fontWeight: '900', fontSize: 16 },
   sheetTxt: { color: '#4a4232', fontSize: 13, marginTop: 6, fontWeight: '600' },
+  sceneAgain: { alignSelf: 'center', marginTop: 10, paddingVertical: 6 },
+  sceneAgainTxt: { color: '#2b6cb0', fontSize: 13, fontWeight: '800' },
   thumb: { width: 64, height: 44, borderRadius: 8 },
   close: { color: '#6b604a', fontWeight: '900', fontSize: 16, paddingHorizontal: 4 },
 });

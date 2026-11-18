@@ -26,6 +26,7 @@ import { CLOUD_MODE } from '../../src/cloud/config';
 import { track } from '../../src/cloud/analytics';
 import { haptic, useTgMainButton } from '../../src/telegram/webapp';
 import { BundleStep, MatchStep, MultiStep, NumericStep, OrderStep, StoryStep } from '../../src/components/steps';
+import { MAIN_TITLE, mainButton } from '../../src/data/lessonFlow';
 
 const SECONDS_L1 = 20;
 const SECONDS_L2 = 30;
@@ -86,6 +87,7 @@ export default function LessonScreen() {
   }, [lesson]);
   const [hintOpen, setHintOpen] = useState(false);
   const [note, setNote] = useState(''); // «твоє пояснення»: не оцінюється, показується поруч з еталоном
+  const [noteOpen, setNoteOpen] = useState(false); // поле пояснення згорнуте, розкривається за дотиком (ТЗ 007, п. 3)
   // «Продовжити» (етап E): той самий урок відкривається з кроку, на якому гравець вийшов, разом із відповідями до нього
   const setPlace = useStore((s) => s.setPlace);
   const [resume, setResume] = useState(() => resumeFor(useStore.getState().placeBox, id ?? '', steps.length));
@@ -156,13 +158,14 @@ export default function LessonScreen() {
   const isReflect = step.type === 'reflect';
   const isChoiceLike = step.type === 'choice' || step.type === 'fill';
   const isCorrect = step.type === 'teach' || step.type === 'reflect' ? false : isChoiceLike ? selected === step.answer : extCorrect === true;
-  const canContinue = isTeach || isReflect || answered;
   const needsCheck = isChoiceLike && !answered;
 
+  // Головна кнопка (src/data/lessonFlow.ts): у завдань із власною «Перевірити» (пари, порядок, поля…) до перевірки її немає — обійти не можна.
   // У Telegram головна кнопка екрана це MainButton Telegram (власну тоді ховаємо)
-  const mainTitle = isTeach ? (isQuiz && idx === 0 ? 'Старт' : 'Зрозумів') : needsCheck ? 'Перевірити' : idx + 1 >= total ? 'Завершити' : 'Далі';
-  const mainDisabled = needsCheck ? selected === null : !canContinue;
-  const tgMain = useTgMainButton({ text: mainTitle, onPress: needsCheck ? onCheck : onContinue, enabled: !mainDisabled, visible: true });
+  const main = mainButton({ type: step.type, answered, selected: selected !== null, last: idx + 1 >= total, quizStart: isQuiz && idx === 0 });
+  const mainTitle = main.kind === 'hidden' ? '' : MAIN_TITLE[main.kind];
+  const mainDisabled = main.kind === 'hidden' || !main.enabled;
+  const tgMain = useTgMainButton({ text: mainTitle || 'Далі', onPress: needsCheck ? onCheck : onContinue, enabled: !mainDisabled, visible: main.kind !== 'hidden' });
 
   function refFor(i: number) {
     return { lessonId: id, idx: i };
@@ -322,6 +325,7 @@ export default function LessonScreen() {
     if (pl) setPlace(pl, code);
     setHintOpen(false);
     setNote('');
+    setNoteOpen(false);
     setSelected(null);
     setExtCorrect(null);
     setAnswered(false);
@@ -529,13 +533,19 @@ export default function LessonScreen() {
                 <NumericStep key={`${idx}`} step={step} resolution={answered ? { correct: isCorrect } : null} onResolve={onExternal} />
               )}
             </View>
-            {(kind === 'lesson' || kind === 'final') && !answered && (
+            {(kind === 'lesson' || kind === 'final') && !answered && !noteOpen && (
+              <Pressable onPress={() => setNoteOpen(true)} hitSlop={6} accessibilityRole="button" style={styles.noteToggle}>
+                <Text style={styles.noteToggleTxt}>✍️ Додати своє пояснення (необовʼязково)</Text>
+              </Pressable>
+            )}
+            {(kind === 'lesson' || kind === 'final') && !answered && noteOpen && (
               <TextInput
                 value={note}
                 onChangeText={setNote}
                 placeholder="Твоє пояснення (необовʼязково, не оцінюється)"
                 placeholderTextColor={C.muted}
                 multiline
+                autoFocus
                 maxLength={500}
                 style={styles.noteInput}
               />
@@ -562,13 +572,12 @@ export default function LessonScreen() {
         </Pop>
       )}
 
-      <View style={{ paddingTop: 12, paddingBottom: insets.bottom + 12, display: tgMain ? 'none' : 'flex' }}>
-        <Button
-          title={isTeach ? (isQuiz && idx === 0 ? 'Старт' : 'Зрозумів') : needsCheck ? 'Перевірити' : idx + 1 >= total ? 'Завершити' : 'Далі'}
-          onPress={needsCheck ? onCheck : onContinue}
-          disabled={needsCheck ? selected === null : !canContinue}
-        />
-      </View>
+      {main.kind !== 'hidden' && (
+        <View style={{ paddingTop: 12, paddingBottom: insets.bottom + 12, display: tgMain ? 'none' : 'flex' }}>
+          <Button title={mainTitle} onPress={needsCheck ? onCheck : onContinue} disabled={mainDisabled} />
+        </View>
+      )}
+      {main.kind === 'hidden' && <View style={{ height: insets.bottom + 8 }} />}
       <FeedbackSheet visible={feedbackOpen} onClose={() => setFeedbackOpen(false)} context={{ screen: 'lesson', lessonId: id, stepIdx: idx }} />
       <Watermark />
     </View>
@@ -589,7 +598,9 @@ const makeStyles = (C: Theme) => StyleSheet.create({
   pbar: { flex: 1, height: 16, flexDirection: 'row', gap: 2, borderRadius: 10, overflow: 'hidden' },
   seg: { flex: 1, backgroundColor: C.track },
   fill: { height: '100%', backgroundColor: C.accent, borderRadius: 10 },
-  noteInput: { marginTop: 14, minHeight: 56, borderRadius: 12, borderWidth: 2, borderColor: C.line, backgroundColor: C.panel, color: C.txt, padding: 10, fontSize: 14, textAlignVertical: 'top' },
+  noteToggle: { marginTop: 10, alignSelf: 'flex-start', paddingVertical: 6 },
+  noteToggleTxt: { color: C.blueTxt, fontSize: 13, fontWeight: '800' },
+  noteInput: { marginTop: 10, minHeight: 56, borderRadius: 12, borderWidth: 2, borderColor: C.line, backgroundColor: C.panel, color: C.txt, padding: 10, fontSize: 14, textAlignVertical: 'top' },
   hintBtn: { alignSelf: 'flex-start', backgroundColor: C.panel2, borderRadius: 12, paddingVertical: 7, paddingHorizontal: 12, borderWidth: 2, borderColor: C.gold, marginTop: 6 },
   hintTxt: { color: C.goldTxt, fontWeight: '800', fontSize: 13 },
   shield: { color: C.blueTxt, fontWeight: '800', fontSize: 13, marginTop: 6 },
