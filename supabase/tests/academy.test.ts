@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { ACADEMY } from '../../app-mvp/src/data/academy/courses.ts';
+import { expansionContent } from '../../app-mvp/src/data/academy/expansionContent.ts';
 import { branchCrowns, canOpenBranchUnit, finalOpen, gradeFinal, lessonIds, mergeBranchProg, nextUnit } from '../../app-mvp/src/data/branchRules.ts';
 import { branchPins } from '../../app-mvp/src/data/branchMap.ts';
 import { branchScene } from '../../app-mvp/src/data/branchScenes.ts';
@@ -9,14 +10,14 @@ import { resolveDeepLink } from '../../app-mvp/src/data/deepLink.ts';
 import { kbGet } from '../../app-mvp/src/data/kb.ts';
 import { continueTarget, mergePlace, resumeFor, type LessonPlace } from '../../app-mvp/src/data/place.ts';
 
-test('Academy routes, questions and references exist for all 86 units', () => {
+test('Academy routes, questions and references exist for every module and added lesson', () => {
   assert.equal(ACADEMY.length, 9);
   const ids = ACADEMY.flatMap((branch) => readyLessonIds(branch));
-  assert.equal(new Set(ids).size, 86);
+  assert.equal(new Set(ids).size, 86 + expansionContent.length);
   for (const b of ACADEMY) {
     assert.equal(getBranch(b.code), b);
     assert.deepEqual(readyLessonIds(b), lessonIds(b.code));
-    assert.equal(b.lessons.length, b.code === 'STA-A1' ? 6 : 10);
+    assert.equal(new Set(b.lessons.map(l => l.module?.id)).size, b.code === 'STA-A1' ? 6 : 10);
     assert.equal(b.selfcheck.length, b.code === 'STA-A1' ? 3 : 2);
     assert.ok(kbGet(b.kbCard, 'uk'), b.kbCard);
     for (const lesson of b.lessons) {
@@ -31,6 +32,20 @@ test('Academy routes, questions and references exist for all 86 units', () => {
   }
   assert.equal(unitById('BR-STA-A1-FINAL'), undefined);
   assert.equal(unitById('BR-TOV-L10'), undefined);
+});
+
+test('added lessons stay in their own modules and preserve an already passed Academy final', () => {
+  for (const lesson of expansionContent) {
+    const [code, module] = lesson.module.split('-');
+    const id = `BR-${code}-A1-${lesson.key.split('-').slice(1).join('-')}`;
+    const registered = unitById(id);
+    assert.equal(registered?.unit.module?.id, lesson.module);
+    const order = lessonIds(`${code}-A1`);
+    assert.ok(order.indexOf(id) > order.indexOf(`BR-${code}-A1-L${module.slice(1)}`), id);
+  }
+  const final = 'BR-TOV-A1-FINAL';
+  assert.equal(finalOpen('TOV-A1', [final], undefined), true);
+  assert.equal(nextUnit('TOV-A1', [final], { sc: 'pass', practice: 'pass' }, lessonIds('TOV-A1'), true), 'BR-TOV-A1-L01');
 });
 
 test('legacy completion and diagnostics do not open the new final', () => {

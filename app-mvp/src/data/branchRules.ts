@@ -1,7 +1,7 @@
 // Правила гілок: тип одиниці, нагорода й відкриття фіналу.
 // (supabase/tests/branches.test.ts). Сервер (save_progress_v2) окремо гарантує «один урок — одна нагорода» за lessonId.
 
-import { academyLessonCount, isAcademyCode } from './academyIds.ts';
+import { academyModuleCount, academyUnits, isAcademyCode, moduleLessonId, moduleOverviewId } from './academyIds.ts';
 
 export type UnitKind = 'selfcheck' | 'practice' | 'lesson' | 'final';
 export type FinalPart = 'decision' | 'data' | 'next';
@@ -10,7 +10,7 @@ export const PART_LABEL: Record<FinalPart, string> = { decision: 'Рішення
 
 // Версія в ID відокремлює нові зарахування від історичних одиниць.
 export function unitKind(id: string): UnitKind | null {
-  const m = /^BR-([A-Z]{3}(?:-A1)?)-(SC|PR|L\d{2}|FINAL)$/.exec(id);
+  const m = /^BR-([A-Z]{3}(?:-A1)?)-(SC|PR|(?:M\d{2}-)?L\d{2}|FINAL)$/.exec(id);
   if (!m) return null;
   const [, code, suffix] = m;
   if (code.endsWith('-A1') && !isAcademyCode(code)) return null;
@@ -18,13 +18,16 @@ export function unitKind(id: string): UnitKind | null {
   if (suffix === 'SC') return 'selfcheck';
   if (suffix === 'PR') return 'practice';
   if (suffix === 'FINAL') return 'final';
-  const n = Number(suffix.slice(1));
-  return n > 0 && n <= (isAcademyCode(code) ? academyLessonCount(code) : 5) ? 'lesson' : null;
+  return lessonIds(code).includes(id) ? 'lesson' : null;
 }
 export const branchCodeOf = (id: string): string | null => /^BR-([A-Z]{3}(?:-A1)?)-/.exec(id)?.[1] ?? null;
-export const lessonIds = (code: string): string[] =>
-  Array.from({ length: isAcademyCode(code) ? academyLessonCount(code) : 5 }, (_, index) =>
-    `BR-${code}-L${String(index + 1).padStart(2, '0')}`);
+export function lessonIds(code: string): string[] {
+  if (!isAcademyCode(code)) return Array.from({ length: 5 }, (_, index) => moduleOverviewId(code, index));
+  return Array.from({ length: academyModuleCount(code) }, (_, index) => [
+    moduleOverviewId(code, index),
+    ...academyUnits(code, index).map((lesson) => moduleLessonId(code, lesson.key)),
+  ]).flat();
+}
 
 // Нагорода за одиницю гілки. Чотири правила (рішення 17.11):
 // 1) запис, де не відрізнити пропуск від проходження (урок уже є в completed без нашого проходження), — 0 XP і 0 монет;
@@ -72,6 +75,7 @@ export function gradeFinal(steps: GradableStep[], ok: (i: number) => boolean, ch
 
 // Фінал відкрито після уроків цієї редакції або зарахованої практики цієї редакції.
 export function finalOpen(code: string, completed: string[], prog: BranchProg | undefined): boolean {
+  if (isAcademyCode(code) && completed.includes(`BR-${code}-FINAL`)) return true;
   if (prog?.practice === 'pass' && (!isAcademyCode(code) || prog.sc === 'pass')) return true;
   return lessonIds(code).every((id) => completed.includes(id));
 }
@@ -84,12 +88,12 @@ export function canOpenBranchUnit(code: string, kind: UnitKind, completed: strin
 
 // Наступна одиниця для кнопки «Далі» в гілці
 export function nextUnit(code: string, completed: string[], prog: BranchProg | undefined, readyLessons: string[], hasFinal: boolean): string | null {
-  for (const id of lessonIds(code)) if (readyLessons.includes(id) && !completed.includes(id)) {
-    if (prog?.practice === 'pass') break; // після практики головна дія — фінал
-    return id;
-  }
-  if (hasFinal && finalOpen(code, completed, prog) && !completed.includes(`BR-${code}-FINAL`)) return `BR-${code}-FINAL`;
-  return null;
+  const pending = lessonIds(code).find((id) => readyLessons.includes(id) && !completed.includes(id));
+  const finalId = `BR-${code}-FINAL`;
+  const openFinal = hasFinal && !completed.includes(finalId) && finalOpen(code, completed, prog);
+  if (openFinal && (prog?.practice === 'pass' || !pending)) return finalId;
+  if (pending && (isAcademyCode(code) || prog?.practice !== 'pass')) return pending;
+  return openFinal ? finalId : null;
 }
 
 // Злиття прогресу гілок двох пристроїв: зарахування «pass» не відкочується; решта — свіжіше локальне

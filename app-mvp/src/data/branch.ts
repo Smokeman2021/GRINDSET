@@ -20,6 +20,7 @@ export type BStep = Step & StepExtra;
 export type Unit = {
   id: string;
   title: string;
+  module?: { id: string; title: string };
   steps: BStep[];
   kb: string[]; // картки «Бази» за ID
   ready: boolean; // конвертовано у форми з перевіркою

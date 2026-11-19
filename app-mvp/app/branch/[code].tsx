@@ -41,6 +41,7 @@ export default function BranchScreen() {
   }
 
   const ready = readyLessonIds(b);
+  const expanded = b.lessons.some((lesson, index) => lesson.module && lesson.module.id === b.lessons[index - 1]?.module?.id);
   const academy = isAcademyCode(b.code);
   const foundation = b.code === 'STA-A1';
   const started = !!prog?.started || [...b.lessons.map((l) => l.id), b.practice.id].some((id) => completed.includes(id));
@@ -181,9 +182,11 @@ export default function BranchScreen() {
         {b.lessons.map((l, i) => {
           const done = completed.includes(l.id);
           const isNext = next === l.id;
+          const firstInModule = expanded && l.module && (i === 0 || b.lessons[i - 1].module?.id !== l.module.id);
           return (
+            <React.Fragment key={l.id}>
+            {firstInModule && <Text style={styles.section}>{l.module?.title}</Text>}
             <Pressable
-              key={l.id}
               disabled={!l.ready}
               onPress={() => open(l.id)}
               style={[styles.row, !l.ready && styles.rowGrey, isNext && { borderColor: C.accent }]}
@@ -191,9 +194,10 @@ export default function BranchScreen() {
               accessibilityState={{ disabled: !l.ready }}
             >
               <Text style={[styles.rowNum, done && { color: C.accentTxt }]}>{done ? '✓' : i + 1}</Text>
-              <Text style={[styles.rowTxt, !l.ready && { color: C.disabledTxt }]}>{l.title}</Text>
+              <Text style={[styles.rowTxt, !l.ready && { color: C.disabledTxt }]}>{firstInModule ? 'Огляд модуля' : l.title}</Text>
               {done && <Text style={styles.rowTag}>🔁</Text>}
             </Pressable>
+            </React.Fragment>
           );
         })}
         {b.practice.ready && prog?.sc === 'pass' && (

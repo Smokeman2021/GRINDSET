@@ -81,7 +81,7 @@ export default function BranchMap() {
     x: [0.22, 0.52, 0.75, 0.49][i % 4],
     y: 0.93 - 0.82 * i / (pins.length - 1),
   })), [pins.length]);
-  const H = Math.round(W * (positions.length > PINS.length ? 2.65 : 1.7));
+  const H = Math.round(W * (positions.length > PINS.length ? Math.max(2.65, pins.length * 0.19) : 1.7));
   // що відкрилось після щойно пройденої одиниці
   const opened = useMemo(() => {
     if (!b || !done) return [];
