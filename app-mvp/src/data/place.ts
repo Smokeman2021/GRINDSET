@@ -43,7 +43,7 @@ export function lessonPlace(p: Omit<LessonPlace, 'kind' | 'at'>, now: number): L
 export function resumeFor(box: PlaceBox | undefined, id: string, total: number): LessonPlace | null {
   const p = box?.place;
   if (!p || p.kind !== 'lesson' || p.id !== id) return null;
-  if (p.idx <= 0 || p.idx >= total) return null;
+  if (p.idx < 0 || p.idx >= total) return null;
   return p;
 }
 

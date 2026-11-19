@@ -4,7 +4,8 @@ import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BRANCHES, getBranch, readyLessonIds, unitById, volumeLabel } from '../../src/data/branches';
+import { getBranch, readyLessonIds, unitById, volumeLabel } from '../../src/data/branches';
+import { ACADEMY } from '../../src/data/academy/courses';
 import { continueTarget } from '../../src/data/place';
 import { GOAL_XP, useStore } from '../../src/store';
 import { homeSay } from '../../src/data/phrases';
@@ -40,7 +41,7 @@ export default function Home() {
     if (!cont) return;
     if (cont.kind === 'sim') return router.push('/leads');
     if (cont.kind === 'kb') return router.push({ pathname: '/kb/[id]', params: { id: cont.id, ret: '1' } });
-    if (cont.kind === 'branch') return router.push({ pathname: '/map/[code]', params: { code: cont.code } });
+    if (cont.kind === 'branch') return router.push({ pathname: '/branch/[code]', params: { code: cont.code } });
     const r = unitById(cont.id);
     if (r?.unit.sim === 'leads') return router.push('/leads');
     router.push(`/lesson/${cont.id}`);
@@ -65,11 +66,11 @@ export default function Home() {
             {cont.kind === 'branch' ? <Text style={styles.contSub}>гілку пройдено · карта Києва</Text> : null}
           </Pressable>
         )}
-        <Text style={styles.h1}>Обери вертикаль</Text>
-        <Text style={styles.muted}>Кожна гілка: вступ, самоперевірка, уроки й фінал. Можна почати з основ або перевірити себе.</Text>
+        <Text style={styles.h1}>Академія</Text>
+        <Text style={styles.muted}>Пройди «Старт» або одразу обери вертикаль.</Text>
         <View style={styles.grid}>
-          {BRANCHES.map((b) => {
-            const units = [...b.lessons.map((l) => l.id), b.practice.id, `BR-${b.code}-FINAL`];
+          {ACADEMY.map((b) => {
+            const units = [...readyLessonIds(b), ...(b.final ? [b.final.id] : [])];
             const done = units.filter((id) => completed.includes(id)).length;
             return (
               <Pressable

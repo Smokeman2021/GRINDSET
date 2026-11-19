@@ -58,7 +58,7 @@ export default function Profile() {
   const stats = statsOf(s);
   const acc = s.totalCorrect + s.totalErrors > 0 ? Math.round((s.totalCorrect / (s.totalCorrect + s.totalErrors)) * 100) : 0;
   const unlocked = useMemo(() => new Set(s.unlocked), [s.unlocked]);
-  const stage = avatarStage(branchCrowns(s.completed, BRANCHES.map((b) => b.code)));
+  const stage = avatarStage(branchCrowns(s.completed, BRANCHES.map((b) => b.code), s.branchProg));
   const t = useT();
 
   // Фото стискаємо до 320 px і зберігаємо як data-uri: так воно переживає перезапуск і працює на вебі

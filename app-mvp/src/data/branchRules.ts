@@ -1,19 +1,30 @@
-// Правила гілок (ТЗ 004, C1): тип одиниці, нагорода, відкриття фіналу. Чиста логіка без імпортів, перевіряється автотестами
+// Правила гілок: тип одиниці, нагорода й відкриття фіналу.
 // (supabase/tests/branches.test.ts). Сервер (save_progress_v2) окремо гарантує «один урок — одна нагорода» за lessonId.
+
+import { academyLessonCount, isAcademyCode } from './academyIds.ts';
 
 export type UnitKind = 'selfcheck' | 'practice' | 'lesson' | 'final';
 export type FinalPart = 'decision' | 'data' | 'next';
 export const FINAL_PARTS: FinalPart[] = ['decision', 'data', 'next'];
 export const PART_LABEL: Record<FinalPart, string> = { decision: 'Рішення', data: 'Дані для обґрунтування', next: 'Наступний крок' };
 
-// ID одиниць: BR-<код>-SC самоперевірка, -PR практика, -L01…L05 уроки, -FINAL фінал
+// Версія в ID відокремлює нові зарахування від історичних одиниць.
 export function unitKind(id: string): UnitKind | null {
-  const m = /^BR-([A-Z]{3})-(SC|PR|L0[1-5]|FINAL)$/.exec(id);
+  const m = /^BR-([A-Z]{3}(?:-A1)?)-(SC|PR|L\d{2}|FINAL)$/.exec(id);
   if (!m) return null;
-  return m[2] === 'SC' ? 'selfcheck' : m[2] === 'PR' ? 'practice' : m[2] === 'FINAL' ? 'final' : 'lesson';
+  const [, code, suffix] = m;
+  if (code.endsWith('-A1') && !isAcademyCode(code)) return null;
+  if (code === 'STA-A1' && (suffix === 'PR' || suffix === 'FINAL')) return null;
+  if (suffix === 'SC') return 'selfcheck';
+  if (suffix === 'PR') return 'practice';
+  if (suffix === 'FINAL') return 'final';
+  const n = Number(suffix.slice(1));
+  return n > 0 && n <= (isAcademyCode(code) ? academyLessonCount(code) : 5) ? 'lesson' : null;
 }
-export const branchCodeOf = (id: string): string | null => /^BR-([A-Z]{3})-/.exec(id)?.[1] ?? null;
-export const lessonIds = (code: string): string[] => [1, 2, 3, 4, 5].map((n) => `BR-${code}-L0${n}`);
+export const branchCodeOf = (id: string): string | null => /^BR-([A-Z]{3}(?:-A1)?)-/.exec(id)?.[1] ?? null;
+export const lessonIds = (code: string): string[] =>
+  Array.from({ length: isAcademyCode(code) ? academyLessonCount(code) : 5 }, (_, index) =>
+    `BR-${code}-L${String(index + 1).padStart(2, '0')}`);
 
 // Нагорода за одиницю гілки. Чотири правила (рішення 17.11):
 // 1) запис, де не відрізнити пропуск від проходження (урок уже є в completed без нашого проходження), — 0 XP і 0 монет;
@@ -59,10 +70,16 @@ export function gradeFinal(steps: GradableStep[], ok: (i: number) => boolean, ch
   return { passed: gaps.length === 0 && !blocked, gaps, blocked };
 }
 
-// Фінал відкрито: пройдено всі 5 уроків або зараховано практику (після самоперевірки)
+// Фінал відкрито після уроків цієї редакції або зарахованої практики цієї редакції.
 export function finalOpen(code: string, completed: string[], prog: BranchProg | undefined): boolean {
-  if (prog?.practice === 'pass') return true;
+  if (prog?.practice === 'pass' && (!isAcademyCode(code) || prog.sc === 'pass')) return true;
   return lessonIds(code).every((id) => completed.includes(id));
+}
+
+export function canOpenBranchUnit(code: string, kind: UnitKind, completed: string[], prog: BranchProg | undefined): boolean {
+  if (kind === 'practice') return prog?.sc === 'pass';
+  if (kind === 'final') return finalOpen(code, completed, prog);
+  return true;
 }
 
 // Наступна одиниця для кнопки «Далі» в гілці
@@ -95,11 +112,13 @@ export function mergeBranchProg(local: unknown, server: unknown): Record<string,
 
 // «Корони» для стадій аватара (замість контрольних старого курсу): за кожну гілку до двох —
 // усі 5 уроків або зарахована практика; зарахований фінал
-export function branchCrowns(completed: string[], codes: string[]): number {
+export function branchCrowns(completed: string[], codes: string[], progress?: Record<string, BranchProg>): number {
   let n = 0;
   for (const c of codes) {
-    if (lessonIds(c).every((id) => completed.includes(id)) || completed.includes(`BR-${c}-PR`)) n++;
-    if (completed.includes(`BR-${c}-FINAL`)) n++;
+    const prefix = `${c}-A1`;
+    if (lessonIds(c).every((id) => completed.includes(id)) || completed.includes(`BR-${c}-PR`) ||
+      (isAcademyCode(prefix) && finalOpen(prefix, completed, progress?.[prefix]))) n++;
+    if (completed.includes(`BR-${c}-FINAL`) || completed.includes(`BR-${prefix}-FINAL`)) n++;
   }
   return n;
 }

@@ -297,7 +297,7 @@ export default function Results() {
             }}
           />
           {/* етап E: карта Києва показує, що пройдено й що відкрилось */}
-          {ref && passed && <Button title="🗺 Карта: що відкрилось" ghost onPress={() => router.replace({ pathname: '/map/[code]', params: { code: ref.branch.code, done: id } })} />}
+          {ref && ref.branch.code !== 'STA-A1' && passed && <Button title="🗺 Карта: що відкрилось" ghost onPress={() => router.replace({ pathname: '/map/[code]', params: { code: ref.branch.code, done: id } })} />}
           {next && !ref && <Button title="До гілки" ghost onPress={() => router.dismissTo(hub)} />}
         </View>
       )}

@@ -6,7 +6,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { shuffleQuestion } from '../../src/data/shuffle';
 import { unitById } from '../../src/data/branches';
 import type { BStep } from '../../src/data/branch';
-import { branchReward, gradeFinal } from '../../src/data/branchRules';
+import { branchReward, canOpenBranchUnit, gradeFinal } from '../../src/data/branchRules';
+import { isAcademyCode } from '../../src/data/academyIds';
+import { kbGet } from '../../src/data/kb';
 import { lessonPlace, resumeFor } from '../../src/data/place';
 import { useStore, ENERGY_PER_LESSON, AnswerResult } from '../../src/store';
 import { Theme, useStyles, useTheme } from '../../src/theme';
@@ -55,6 +57,17 @@ function TimerRow({ leftRef, limit, answered }: { leftRef: React.MutableRefObjec
 }
 
 export default function LessonScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const ref = unitById(id);
+  const complete = useStore((s) => s.completed);
+  const progress = useStore((s) => ref ? s.branchProg[ref.branch.code] : undefined);
+  if (ref && isAcademyCode(ref.branch.code) && !canOpenBranchUnit(ref.branch.code, ref.kind, complete, progress)) {
+    return <Redirect href={`/branch/${ref.branch.code}`} />;
+  }
+  return <Lesson key={id} />;
+}
+
+function Lesson() {
   const C = useTheme();
   const styles = useStyles(makeStyles);
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -72,6 +85,8 @@ export default function LessonScreen() {
   const ref = useMemo(() => unitById(id), [id]);
   const kind = ref?.kind;
   const code = ref?.branch.code ?? '';
+  const academy = isAcademyCode(code);
+  const freeCheck = kind === 'selfcheck' || (academy && kind === 'practice');
   const hub = `/branch/${code}` as const;
   const isDiagnostic = false;
   const isCheckpoint = false;
@@ -215,7 +230,10 @@ export default function LessonScreen() {
 
   function onCheck() {
     if (answered || selected === null || (step.type !== 'choice' && step.type !== 'fill')) return;
-    chosenRef.current[idx] = selected;
+    const unshuffled = lsn.steps[idx];
+    chosenRef.current[idx] = academy && (unshuffled.type === 'choice' || unshuffled.type === 'fill')
+      ? unshuffled.options.indexOf(step.options[selected])
+      : selected;
     setAnswered(true);
     record(selected === step.answer);
   }
@@ -249,9 +267,11 @@ export default function LessonScreen() {
       // Точність (leaderboard_accuracy): усі перевірювані завдання гілок, самоперевірки, практики й фіналів
       recordAnswers(resultsRef.current, { rated: true });
       track('lesson_complete', { lesson: lsn.id, correct, errors });
-      if (kind !== 'selfcheck') spendEnergy(ENERGY_PER_LESSON);
+      if (!freeCheck) spendEnergy(ENERGY_PER_LESSON);
 
-      const okAt = (i: number) => !resultsRef.current.some((r) => r.idx === i && !r.ok);
+      const okAt = (i: number) => academy
+        ? resultsRef.current.some((r) => r.idx === i && r.ok)
+        : !resultsRef.current.some((r) => r.idx === i && !r.ok);
       const qIdx = steps.map((s, i) => (s.type === 'teach' || s.type === 'reflect' ? -1 : i)).filter((i) => i >= 0);
       const firstWrong = qIdx.find((i) => !okAt(i));
       const allOk = firstWrong === undefined;
@@ -266,12 +286,12 @@ export default function LessonScreen() {
       if (kind === 'practice') {
         const w = firstWrong !== undefined ? steps[firstWrong] : undefined;
         setBranchProg(code, allOk ? { practice: 'pass', prSee: undefined, prWhy: undefined, started: true } : { practice: 'fail', prSee: w?.see, prWhy: (w as { explain?: string } | undefined)?.explain, started: true });
-        if (!allOk) return router.dismissTo(hub);
+        if (academy || !allOk) return router.dismissTo(hub);
       }
       // Фінал: рішення, дані й наступний крок оцінюються окремо; «запускати» без допуску блокує зарахування
       let passed = true;
       if (kind === 'final') {
-        const g = gradeFinal(steps as never, okAt, chosenRef.current);
+        const g = gradeFinal(academy ? lsn.steps : steps, okAt, chosenRef.current);
         passed = g.passed;
         setBranchProg(code, { finalGaps: g.gaps, blocked: g.blocked, started: true });
         if (!passed) return router.dismissTo(hub);
@@ -332,6 +352,15 @@ export default function LessonScreen() {
     setTimedOut(false);
     setShieldHit(false);
     setHidden(null);
+  }
+
+  function openReference(cardId: string) {
+    setPlace({
+      kind: 'lesson', id: lsn.id, idx, total,
+      results: [...resultsRef.current], chosen: { ...chosenRef.current },
+      correct, errors, title: lsn.title, at: Date.now(),
+    }, code);
+    router.push({ pathname: '/kb/[id]', params: { id: cardId } });
   }
 
   const mood = isTeach
@@ -413,6 +442,14 @@ export default function LessonScreen() {
             </View>
             <Text style={styles.teachTitle}>{step.title}</Text>
             <Markdown text={step.body} />
+            {academy && idx === 0 && ref?.unit.kb.map((cardId) => {
+              const article = kbGet(cardId, 'uk');
+              return article ? (
+                <Pressable key={cardId} onPress={() => openReference(cardId)} style={styles.hintBtn} accessibilityRole="link">
+                  <Text style={styles.hintTxt}>«База» · {article.title}</Text>
+                </Pressable>
+              ) : null;
+            })}
             {step.cards && (
               <View style={styles.cards}>
                 {step.cards.map((c, i) => (
@@ -476,7 +513,7 @@ export default function LessonScreen() {
                 <Text style={styles.reflectHintTxt}>🦝 {step.hint}</Text>
               </View>
             )}
-            {!answered && hintsLeft > 0 && (step.type === 'choice' || step.type === 'fill') && hidden === null && (
+            {!answered && !(academy && freeCheck) && hintsLeft > 0 && (step.type === 'choice' || step.type === 'fill') && hidden === null && (
               <Pressable onPress={useHintNow} style={styles.hintBtn}>
                 <Text style={styles.hintTxt}>💡 Прибрати варіант ({hintsLeft})</Text>
               </Pressable>

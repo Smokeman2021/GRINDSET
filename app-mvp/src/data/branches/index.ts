@@ -1,6 +1,7 @@
 // Реєстр восьми гілок (порядок карток на екрані вибору) і доступ до одиниць за ID.
 import type { BStep, Branch, Unit } from '../branch.ts';
-import { lessonsWord, unitKind, type UnitKind } from '../branchRules.ts';
+import { branchCodeOf, lessonsWord, unitKind, type UnitKind } from '../branchRules.ts';
+import { ACADEMY } from '../academy/courses.ts';
 import { TOV } from './tov.ts';
 import { SRV } from './srv.ts';
 import { INF } from './inf.ts';
@@ -13,7 +14,7 @@ import { ADT } from './adt.ts';
 export const BRANCHES: Branch[] = [TOV, SRV, INF, NUT, DAT, GAM, CRY, ADT];
 
 export function getBranch(code: string | undefined): Branch | undefined {
-  return BRANCHES.find((b) => b.code === code);
+  return ACADEMY.find((b) => b.code === code) ?? BRANCHES.find((b) => b.code === code);
 }
 
 export type UnitRef = { branch: Branch; kind: UnitKind; unit: Unit };
@@ -23,7 +24,7 @@ export function unitById(id: string | undefined): UnitRef | undefined {
   if (!id) return undefined;
   const kind = unitKind(id);
   if (!kind) return undefined;
-  const branch = getBranch(id.slice(3, 6));
+  const branch = getBranch(branchCodeOf(id) ?? undefined);
   if (!branch) return undefined;
   if (kind === 'selfcheck') return { branch, kind, unit: { id, title: `Самоперевірка · ${branch.title}`, steps: branch.selfcheck, kb: [], ready: true } };
   if (kind === 'practice') return { branch, kind, unit: branch.practice };

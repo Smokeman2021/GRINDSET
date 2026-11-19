@@ -75,9 +75,13 @@ export default function BranchMap() {
   const bob = useRef(new Animated.Value(0)).current;
 
   const W = Math.min(winW, 560);
-  const H = Math.round(W * 1.7);
   const ready = b ? readyLessonIds(b) : [];
   const pins = useMemo(() => (b ? branchPins(b.code, completed, prog, ready, !!b.final?.ready) : []), [b, completed, prog]); // eslint-disable-line react-hooks/exhaustive-deps
+  const positions = useMemo(() => pins.length <= PINS.length ? PINS : pins.map((_, i) => ({
+    x: [0.22, 0.52, 0.75, 0.49][i % 4],
+    y: 0.93 - 0.82 * i / (pins.length - 1),
+  })), [pins.length]);
+  const H = Math.round(W * (positions.length > PINS.length ? 2.65 : 1.7));
   // що відкрилось після щойно пройденої одиниці
   const opened = useMemo(() => {
     if (!b || !done) return [];
@@ -93,10 +97,10 @@ export default function BranchMap() {
     return () => l.stop();
   }, [bob]);
   useEffect(() => {
-    const y = PINS[hereIdx].y * H - winH / 2 + 120;
+    const y = positions[hereIdx].y * H - winH / 2 + 120;
     const t = setTimeout(() => scroll.current?.scrollTo({ y: Math.max(0, y), animated: false }), 30);
     return () => clearTimeout(t);
-  }, [hereIdx, H, winH]);
+  }, [hereIdx, H, winH, positions]);
 
   if (!b) {
     return (
@@ -110,13 +114,14 @@ export default function BranchMap() {
   const hub = `/branch/${b.code}` as const;
   const titleOf = (id: string) => unitById(id)?.unit.title ?? id;
   const open = (id: string) => {
-    if (strictEnergy && energy < ENERGY_PER_LESSON && !completed.includes(id)) return router.navigate('/shop');
+    const freePractice = b.code.endsWith('-A1') && id.endsWith('-PR');
+    if (strictEnergy && energy < ENERGY_PER_LESSON && !completed.includes(id) && !freePractice) return router.navigate('/shop');
     useStore.getState().setBranchProg(b.code, { started: true });
-    if (shouldShow(useStore.getState().seenScenes, sceneKey(id))) return router.push({ pathname: '/scene/[id]', params: { id } });
+    if (b.code !== 'STA-A1' && shouldShow(useStore.getState().seenScenes, sceneKey(id))) return router.push({ pathname: '/scene/[id]', params: { id } });
     if (id === b.final?.id && b.final.sim === 'leads') return router.push('/leads');
     router.push(`/lesson/${id}`);
   };
-  const pts = PINS.map((p) => ({ x: p.x * W, y: p.y * H }));
+  const pts = positions.slice(0, pins.length).map((p) => ({ x: p.x * W, y: p.y * H }));
   // пройдена частина маршруту: суцільний префікс пройдених точок (не тягнемо зелене через непройдені)
   const firstNotDone = pins.findIndex((p) => p.state !== 'done');
   const doneUpto = firstNotDone < 0 ? pins.length : firstNotDone;
@@ -157,7 +162,7 @@ export default function BranchMap() {
           </Svg>
 
           {pins.map((p, i) => {
-            const pos = PINS[i];
+            const pos = positions[i];
             const locked = p.state === 'locked';
             const fresh = opened.some((o) => o.id === p.id);
             const color = p.state === 'done' ? '#36e27a' : p.state === 'next' ? '#ffc93c' : locked ? '#b4ab94' : '#7fb3ff';

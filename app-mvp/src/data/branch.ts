@@ -2,8 +2,9 @@
 // рушій кроків спільний (екран app/lesson/[id].tsx). Старий курс (модулі 01–10) сюди не імпортується.
 import type { Step } from './lessons';
 import type { FinalPart } from './branchRules.ts';
+import type { AcademyCode, VerticalCode } from './academyIds.ts';
 
-export type BranchCode = 'TOV' | 'SRV' | 'INF' | 'NUT' | 'DAT' | 'GAM' | 'CRY' | 'ADT';
+export type BranchCode = VerticalCode | AcademyCode;
 
 // Додаткові поля кроку гілки
 export type StepExtra = {

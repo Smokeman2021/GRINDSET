@@ -81,5 +81,5 @@ test('старого курсу в зібраному бандлі немає, �
   for (const f of fs.readdirSync(gen).filter((x) => /^m\d\d\.json$/.test(x))) oldTitles.push(...JSON.parse(fs.readFileSync(path.join(gen, f), 'utf8')).lessons.slice(0, 2).map((l: { title: string }) => l.title).filter((t: string) => t.length >= 12));
   const leaked = oldTitles.filter((t) => b.includes(`'${t}'`) || b.includes(`"${t}"`));
   assert.deepEqual(leaked, []);
-  for (const s of ['Обери вертикаль', 'Практика: втрати по етапах CRM', 'BR-ADT-PR']) assert.ok(b.includes(s), s);
+  for (const s of ['Академія', 'Практика: втрати по етапах CRM', 'BR-ADT-PR', 'BR-TOV-A1-L09']) assert.ok(b.includes(s), s);
 });

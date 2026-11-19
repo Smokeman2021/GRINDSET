@@ -6,7 +6,8 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBranch, readyLessonIds } from '../../src/data/branches';
-import { finalOpen, nextUnit, PART_LABEL } from '../../src/data/branchRules';
+import { finalOpen, lessonsWord, nextUnit, PART_LABEL, unitKind } from '../../src/data/branchRules';
+import { isAcademyCode } from '../../src/data/academyIds';
 import { ENERGY_PER_LESSON, useStore } from '../../src/store';
 import { Markdown } from '../../src/components/Markdown';
 import { Button } from '../../src/components/Button';
@@ -40,19 +41,23 @@ export default function BranchScreen() {
   }
 
   const ready = readyLessonIds(b);
+  const academy = isAcademyCode(b.code);
+  const foundation = b.code === 'STA-A1';
   const started = !!prog?.started || [...b.lessons.map((l) => l.id), b.practice.id].some((id) => completed.includes(id));
   const showIntro = !started || introOpen;
   const isFinalOpen = finalOpen(b.code, completed, prog);
   const finalDone = completed.includes(`BR-${b.code}-FINAL`);
   const next = nextUnit(b.code, completed, prog, ready, !!b.final?.ready);
   const open = (id: string) => {
-    if (strictEnergy && energy < ENERGY_PER_LESSON && !completed.includes(id) && !id.endsWith('-SC')) {
+    const kind = unitKind(id);
+    const freeCheck = kind === 'selfcheck' || (academy && kind === 'practice');
+    if (strictEnergy && energy < ENERGY_PER_LESSON && !completed.includes(id) && !freeCheck) {
       router.navigate('/shop');
       return;
     }
     useStore.getState().setBranchProg(b.code, { started: true });
     // сцена подорожі перед одиницею (ТЗ 006, 3.1): перший раз; повторно — одразу завдання
-    if (shouldShow(useStore.getState().seenScenes, sceneKey(id))) return router.push({ pathname: '/scene/[id]', params: { id } });
+    if (!foundation && shouldShow(useStore.getState().seenScenes, sceneKey(id))) return router.push({ pathname: '/scene/[id]', params: { id } });
     // фінал товарки — тренажер «Ліди» (етап D): власний екран
     if (id === b.final?.id && b.final.sim === 'leads') return router.push('/leads');
     router.push(`/lesson/${id}`);
@@ -79,17 +84,20 @@ export default function BranchScreen() {
         {lang !== 'uk' && <Text style={styles.note}>Гілка доступна українською. Мову застосунку не змінюємо.</Text>}
         {b.regulated && <Text style={[styles.note, { color: C.goldTxt }]}>Регульована вертикаль · фінал: рішення про допуск, без запуску</Text>}
         {/* етап E: кожна одиниця гілки — точка на карті Києва */}
-        <Pressable onPress={() => router.push({ pathname: '/map/[code]', params: { code: b.code } })} style={styles.mapBtn} accessibilityRole="button" accessibilityLabel="Карта Києва">
+        {!foundation && <Pressable onPress={() => router.push({ pathname: '/map/[code]', params: { code: b.code } })} style={styles.mapBtn} accessibilityRole="button" accessibilityLabel="Карта Києва">
           <Text style={styles.mapBtnTxt}>🗺 Карта Києва · {b.title}</Text>
           <Text style={styles.mapBtnSub}>уроки, практика й фінал як заклади на карті</Text>
-        </Pressable>
+        </Pressable>}
+        {b.code === 'TOV-A1' && <Button title="Потренуватися в кабінеті «Ліди»" ghost onPress={() => router.push('/leads')} />}
+        {academy && !foundation && completed.some((id) => id.startsWith(`BR-${b.code.slice(0, 3)}-`) && !id.includes('-A1-')) && (
+          <Button title="Попередній маршрут і прогрес" ghost onPress={() => router.push(`/branch/${b.code.slice(0, 3)}`)} />
+        )}
 
         {showIntro ? (
           <View style={styles.card}>
             <Text style={styles.kicker}>ВСТУП · ЩО НА ТЕБЕ ЧЕКАЄ</Text>
             <Markdown text={b.intro} />
-            <View style={{ height: 8 }} />
-            <Markdown text={b.wgb} />
+            {!!b.wgb && <Markdown text={b.wgb} />}
             <Pressable onPress={() => router.push({ pathname: '/kb/[id]', params: { id: b.kbCard } })} style={styles.linkBtn} accessibilityRole="link">
               <Text style={styles.link}>Детальніше про вертикаль →</Text>
             </Pressable>
@@ -104,7 +112,7 @@ export default function BranchScreen() {
         {!prog?.sc && (
           <View style={{ gap: 10 }}>
             <Button title="Почати з основ" onPress={() => open(b.lessons[0].id)} disabled={!b.lessons[0].ready} />
-            <Button title="Перевірити себе · 2 завдання" ghost onPress={() => open(`BR-${b.code}-SC`)} />
+            <Button title={`Перевірити себе · ${b.selfcheck.length} завдання`} ghost onPress={() => open(`BR-${b.code}-SC`)} />
             {!b.lessons[0].ready && <Text style={styles.muted}>Уроки цієї гілки ще конвертуються у форми з перевіркою; самоперевірка й практика вже працюють.</Text>}
           </View>
         )}
@@ -112,11 +120,11 @@ export default function BranchScreen() {
         {/* Результат самоперевірки */}
         {prog?.sc === 'pass' && !prog.practice && (
           <View style={[styles.card, { borderColor: C.accent }]}>
-            <Text style={styles.kicker}>САМОПЕРЕВІРКА · ОБИДВА ВІРНО</Text>
-            <Text style={styles.body}>Можна почати з першого уроку або одразу перейти до практики: одне коротке завдання на навичку, якої не було в двох питаннях. Пропущені уроки лишаються непройденими й без нагород.</Text>
+            <Text style={styles.kicker}>САМОПЕРЕВІРКУ ПРОЙДЕНО</Text>
+            <Text style={styles.body}>{foundation ? 'Можна повторити основи або одразу обрати вертикаль.' : 'Можна почати з першого уроку або перейти до короткої практики. Пропущені уроки лишаються непройденими.'}</Text>
             <View style={{ gap: 10, marginTop: 10 }}>
               <Button title="Почати з першого уроку" ghost onPress={() => open(b.lessons[0].id)} disabled={!b.lessons[0].ready} />
-              <Button title="Перейти до практики" onPress={() => open(b.practice.id)} />
+              {foundation ? <Button title="Обрати вертикаль" onPress={() => router.dismissTo('/home')} /> : <Button title="Перейти до практики" onPress={() => open(b.practice.id)} />}
             </View>
           </View>
         )}
@@ -188,7 +196,7 @@ export default function BranchScreen() {
             </Pressable>
           );
         })}
-        {prog?.sc === 'pass' && (
+        {b.practice.ready && prog?.sc === 'pass' && (
           <Pressable onPress={() => open(b.practice.id)} style={[styles.row, prog.practice !== 'pass' && next === null && { borderColor: C.accent }]}>
             <Text style={[styles.rowNum, prog.practice === 'pass' && { color: C.accentTxt }]}>{prog.practice === 'pass' ? '✓' : '🎯'}</Text>
             <Text style={styles.rowTxt}>{b.practice.title}</Text>
@@ -203,9 +211,11 @@ export default function BranchScreen() {
             <Text style={[styles.rowNum, finalDone && { color: C.accentTxt }]}>{finalDone ? '✓' : '🏁'}</Text>
             <Text style={[styles.rowTxt, (!isFinalOpen || !b.final.ready) && { color: C.disabledTxt }]}>
               Фінал · {b.final.title}
-              {!isFinalOpen ? ' · відкриється після 5 уроків або практики' : b.final.sim && !finalDone && simStep > 0 ? ` · продовжити з кроку ${simStep + 1}` : ''}
+              {!isFinalOpen ? ` · після проходження всіх уроків (${lessonsWord(ready.length)}) або практики` : b.final.sim && !finalDone && simStep > 0 ? ` · продовжити з кроку ${simStep + 1}` : ''}
             </Text>
           </Pressable>
+        ) : foundation ? (
+          <Button title="Обрати вертикаль" ghost onPress={() => router.dismissTo('/home')} />
         ) : (
           <View style={[styles.row, styles.rowGrey]}>
             <Text style={styles.rowNum}>🏁</Text>
@@ -213,7 +223,7 @@ export default function BranchScreen() {
           </View>
         )}
       </ScrollView>
-      <FeedbackSheet visible={feedbackOpen} onClose={() => setFeedbackOpen(false)} context={{ screen: `branch/${b.code}` }} />
+      <FeedbackSheet visible={feedbackOpen} onClose={() => setFeedbackOpen(false)} context={{ screen: `branch/${b.code}`, branch: b.code.slice(0, 3) }} />
     </View>
   );
 }
