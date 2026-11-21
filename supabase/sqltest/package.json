@@ -1,0 +1,13 @@
+{
+  "name": "grindset-sql-tests",
+  "private": true,
+  "type": "module",
+  "description": "Локальний Postgres для автотестів функцій бази (ТЗ-01). Окремий пакет: залежності не потрапляють у збірку застосунку.",
+  "scripts": {
+    "test": "node --no-warnings --test --test-concurrency=1 ./*.test.ts"
+  },
+  "devDependencies": {
+    "embedded-postgres": "17.11.0-beta.19",
+    "pg": "^8.13.1"
+  }
+}

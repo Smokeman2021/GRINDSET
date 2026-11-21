@@ -17,3 +17,20 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+
+scripts/.translate-cache-*.json
+
+# Локальні файли, які не комітимо
+files.zip
+.claude/settings.local.json
+
+# Пакет-джерело контенту й знімок структури продакшн-бази: лише локально, у репозиторій не йдуть (ТЗ 004, B1)
+content/kb-source/
+research/prod-schema.json
+
+# Резервні копії продакшна (ТЗ 007): лише в приватній папці власника поза репозиторієм; страховка, якщо файл випадково опиниться тут
+GRINDSET-backups/
+*.dump
+backup*.csv
+backup*.json
+rollback*.sql

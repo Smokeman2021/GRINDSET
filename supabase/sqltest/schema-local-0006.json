@@ -1,0 +1,986 @@
+{
+  "tables": {
+    "events": {
+      "rls": true,
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "username",
+          "type": "text",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "props",
+          "type": "jsonb",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "build",
+          "type": "integer",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        }
+      ]
+    },
+    "feedback": {
+      "rls": true,
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "username",
+          "type": "text",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "kind",
+          "type": "text",
+          "default": "'bug'::text",
+          "notnull": true
+        },
+        {
+          "name": "screen",
+          "type": "text",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "lesson_id",
+          "type": "text",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "step_idx",
+          "type": "integer",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "body",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "build",
+          "type": "integer",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        }
+      ]
+    },
+    "progress": {
+      "rls": true,
+      "columns": [
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "state",
+          "type": "jsonb",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        },
+        {
+          "name": "answers_total",
+          "type": "integer",
+          "default": "0",
+          "notnull": true
+        },
+        {
+          "name": "answers_correct",
+          "type": "integer",
+          "default": "0",
+          "notnull": true
+        }
+      ]
+    },
+    "keepalive": {
+      "rls": true,
+      "columns": [
+        {
+          "name": "id",
+          "type": "integer",
+          "default": null,
+          "notnull": true
+        }
+      ]
+    },
+    "allowed_users": {
+      "rls": true,
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "default": "gen_random_uuid()",
+          "notnull": true
+        },
+        {
+          "name": "username",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "display_name",
+          "type": "text",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "telegram_id",
+          "type": "bigint",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "default": "'invited'::text",
+          "notnull": true
+        },
+        {
+          "name": "is_admin",
+          "type": "boolean",
+          "default": "false",
+          "notnull": true
+        },
+        {
+          "name": "auth_user_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "active_sid",
+          "type": "text",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "last_login_at",
+          "type": "timestamp with time zone",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        },
+        {
+          "name": "invite_salt",
+          "type": "text",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "invite_hash",
+          "type": "text",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "invite_issued_at",
+          "type": "timestamp with time zone",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "failed_attempts",
+          "type": "integer",
+          "default": "0",
+          "notnull": true
+        },
+        {
+          "name": "locked_until",
+          "type": "timestamp with time zone",
+          "default": null,
+          "notnull": false
+        }
+      ]
+    },
+    "login_throttle": {
+      "rls": true,
+      "columns": [
+        {
+          "name": "key",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "window_start",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        },
+        {
+          "name": "count",
+          "type": "integer",
+          "default": "0",
+          "notnull": true
+        }
+      ]
+    }
+  },
+  "indexes": [
+    "CREATE UNIQUE INDEX allowed_users_auth_user_id_key ON public.allowed_users USING btree (auth_user_id)",
+    "CREATE UNIQUE INDEX allowed_users_pkey ON public.allowed_users USING btree (id)",
+    "CREATE UNIQUE INDEX allowed_users_telegram_id_key ON public.allowed_users USING btree (telegram_id)",
+    "CREATE UNIQUE INDEX allowed_users_username_key ON public.allowed_users USING btree (username)",
+    "CREATE INDEX events_name_idx ON public.events USING btree (name, created_at)",
+    "CREATE UNIQUE INDEX events_pkey ON public.events USING btree (id)",
+    "CREATE UNIQUE INDEX feedback_pkey ON public.feedback USING btree (id)",
+    "CREATE UNIQUE INDEX keepalive_pkey ON public.keepalive USING btree (id)",
+    "CREATE UNIQUE INDEX login_throttle_pkey ON public.login_throttle USING btree (key)",
+    "CREATE UNIQUE INDEX progress_pkey ON public.progress USING btree (user_id)"
+  ],
+  "policies": [
+    {
+      "cmd": "ALL",
+      "name": "allowed_admin_all",
+      "check": "is_admin_user()",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "allowed_users",
+      "using": "is_admin_user()"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "events_admin_read",
+      "check": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "events",
+      "using": "is_admin_user()"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "events_insert",
+      "check": "(is_active_user() AND (user_id = my_allowed_id()))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "events",
+      "using": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "feedback_admin_read",
+      "check": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "feedback",
+      "using": "is_admin_user()"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "feedback_insert",
+      "check": "(is_active_user() AND (user_id = my_allowed_id()))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "feedback",
+      "using": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "keepalive_read",
+      "check": null,
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "table": "keepalive",
+      "using": "true"
+    }
+  ],
+  "triggers": [
+    {
+      "def": "CREATE TRIGGER events_fill_trg BEFORE INSERT ON public.events FOR EACH ROW EXECUTE FUNCTION events_fill()",
+      "name": "events_fill_trg",
+      "table": "events"
+    },
+    {
+      "def": "CREATE TRIGGER feedback_fill_trg BEFORE INSERT ON public.feedback FOR EACH ROW EXECUTE FUNCTION feedback_fill()",
+      "name": "feedback_fill_trg",
+      "table": "feedback"
+    }
+  ],
+  "functions": [
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "def": "CREATE OR REPLACE FUNCTION public.admin_add_tester(p_username text, p_name text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  uname text := lower(regexp_replace(btrim(p_username), '^@', ''));\r\nbegin\r\n  if not public.is_admin_user() then raise exception 'forbidden'; end if;\r\n  if uname !~ '^[a-z0-9_]{3,32}$' then raise exception 'bad_username'; end if;\r\n  insert into public.allowed_users (username, display_name, status)\r\n  values (uname, nullif(btrim(p_name), ''), 'invited')\r\n  on conflict (username) do nothing;\r\n  if not found then raise exception 'already_exists'; end if;\r\nend\r\n$function$\n",
+      "args": "p_username text, p_name text",
+      "name": "admin_add_tester"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "def": "CREATE OR REPLACE FUNCTION public.admin_set_status(p_id uuid, p_status text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if not public.is_admin_user() then raise exception 'forbidden'; end if;\r\n  if p_status not in ('active', 'blocked') then raise exception 'bad_status'; end if;\r\n  if p_id = public.my_allowed_id() then raise exception 'cannot_change_self'; end if;\r\n  update public.allowed_users\r\n     set status = p_status,\r\n         active_sid = case when p_status = 'blocked' then null else active_sid end\r\n   where id = p_id;\r\n  if not found then raise exception 'user_not_found'; end if;\r\nend\r\n$function$\n",
+      "args": "p_id uuid, p_status text",
+      "name": "admin_set_status"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "def": "CREATE OR REPLACE FUNCTION public.admin_testers()\n RETURNS TABLE(id uuid, username text, display_name text, status text, is_admin boolean, last_login_ms bigint, invite_issued_ms bigint)\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if not public.is_admin_user() then raise exception 'forbidden'; end if;\r\n  return query\r\n    select a.id, a.username, a.display_name, a.status, a.is_admin,\r\n           (extract(epoch from a.last_login_at) * 1000)::bigint,\r\n           (extract(epoch from a.invite_issued_at) * 1000)::bigint\r\n    from public.allowed_users a\r\n    order by a.is_admin desc, a.created_at;\r\nend\r\n$function$\n",
+      "args": "",
+      "name": "admin_testers"
+    },
+    {
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "def": "CREATE OR REPLACE FUNCTION public.current_sid()\n RETURNS text\n LANGUAGE sql\n STABLE\nAS $function$\r\n  select nullif(coalesce(nullif(current_setting('request.headers', true), ''), '{}')::json ->> 'x-sid', '')\r\n$function$\n",
+      "args": "",
+      "name": "current_sid"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "def": "CREATE OR REPLACE FUNCTION public.end_session()\n RETURNS void\n LANGUAGE sql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\n  update public.allowed_users set active_sid = null\r\n  where auth_user_id = auth.uid() and active_sid = public.current_sid()\r\n$function$\n",
+      "args": "",
+      "name": "end_session"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "def": "CREATE OR REPLACE FUNCTION public.events_fill()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  a public.allowed_users;\r\nbegin\r\n  select * into a from public.allowed_users where id = public.my_allowed_id();\r\n  if not found then raise exception 'session_replaced'; end if;\r\n  new.user_id := a.id;\r\n  new.username := a.username;\r\n  return new;\r\nend\r\n$function$\n",
+      "args": "",
+      "name": "events_fill"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "def": "CREATE OR REPLACE FUNCTION public.feedback_fill()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  a public.allowed_users;\r\nbegin\r\n  select * into a from public.allowed_users where id = public.my_allowed_id();\r\n  if not found then raise exception 'session_replaced'; end if;\r\n  new.user_id := a.id;\r\n  new.username := a.username;\r\n  new.body := btrim(new.body);\r\n  return new;\r\nend\r\n$function$\n",
+      "args": "",
+      "name": "feedback_fill"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "def": "CREATE OR REPLACE FUNCTION public.is_active_user()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\n  select exists (\r\n    select 1 from public.allowed_users a\r\n    where a.auth_user_id = auth.uid()\r\n      and a.status <> 'blocked'\r\n      and a.active_sid is not null\r\n      and a.active_sid = public.current_sid()\r\n  )\r\n$function$\n",
+      "args": "",
+      "name": "is_active_user"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "def": "CREATE OR REPLACE FUNCTION public.is_admin_user()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\n  select exists (\r\n    select 1 from public.allowed_users a\r\n    where a.auth_user_id = auth.uid()\r\n      and a.is_admin\r\n      and a.status <> 'blocked'\r\n      and a.active_sid is not null\r\n      and a.active_sid = public.current_sid()\r\n  )\r\n$function$\n",
+      "args": "",
+      "name": "is_admin_user"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "def": "CREATE OR REPLACE FUNCTION public.issue_invite(p_username text)\n RETURNS text\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'extensions'\nAS $function$\r\ndeclare\r\n  alphabet constant text := 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';  -- 31 символ\r\n  code  text := '';\r\n  b     int;\r\n  salt  text := encode(gen_random_bytes(16), 'hex');\r\n  uname text := lower(regexp_replace(trim(p_username), '^@', ''));\r\nbegin\r\n  if not (session_user in ('postgres', 'supabase_admin') or auth.role() = 'service_role' or public.is_admin_user()) then\r\n    raise exception 'forbidden';\r\n  end if;\r\n  -- рівномірний вибір символа: відкидаємо байти, що дали б зсув (256 = 31*8 + 8)\r\n  while length(code) < 12 loop\r\n    b := get_byte(gen_random_bytes(1), 0);\r\n    if b < 248 then code := code || substr(alphabet, (b % 31) + 1, 1); end if;\r\n  end loop;\r\n  update public.allowed_users\r\n     set invite_salt = salt,\r\n         invite_hash = encode(digest(salt || ':' || code, 'sha256'), 'hex'),\r\n         invite_issued_at = now(),\r\n         failed_attempts = 0,\r\n         locked_until = null\r\n   where username = uname;\r\n  if not found then raise exception 'user_not_found: додай нік у allowed_users'; end if;\r\n  return substr(code, 1, 4) || '-' || substr(code, 5, 4) || '-' || substr(code, 9, 4);\r\nend\r\n$function$\n",
+      "args": "p_username text",
+      "name": "issue_invite"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "def": "CREATE OR REPLACE FUNCTION public.leaderboard_accuracy()\n RETURNS TABLE(name text, accuracy numeric, answers integer, is_me boolean)\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  me uuid := public.my_allowed_id();\r\nbegin\r\n  if me is null then raise exception 'session_replaced'; end if;   -- лише для тестерів з активним сеансом\r\n  return query\r\n    select coalesce(nullif(a.display_name, ''), a.username)::text as name,\r\n           round(p.answers_correct::numeric * 100 / p.answers_total, 1) as accuracy,\r\n           p.answers_total as answers,\r\n           (a.id = me) as is_me\r\n      from public.progress p\r\n      join public.allowed_users a on a.id = p.user_id\r\n     where a.status = 'active'\r\n       and not a.is_admin\r\n       and p.answers_total >= 10\r\n     order by 2 desc, 3 desc, 1 asc   -- номери колонок: імена збігаються зі змінними plpgsql\r\n     limit 100;\r\nend\r\n$function$\n",
+      "args": "",
+      "name": "leaderboard_accuracy"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "def": "CREATE OR REPLACE FUNCTION public.load_progress()\n RETURNS json\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  uid uuid := public.my_allowed_id();\r\n  r   public.progress;\r\nbegin\r\n  if uid is null then raise exception 'session_replaced'; end if;\r\n  select * into r from public.progress where user_id = uid;\r\n  if not found then return null; end if;\r\n  return json_build_object('state', r.state, 'updated_ms', (extract(epoch from r.updated_at) * 1000)::bigint);\r\nend\r\n$function$\n",
+      "args": "",
+      "name": "load_progress"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "def": "CREATE OR REPLACE FUNCTION public.my_allowed_id()\n RETURNS uuid\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\n  select a.id from public.allowed_users a\r\n  where a.auth_user_id = auth.uid()\r\n    and a.status <> 'blocked'\r\n    and a.active_sid is not null\r\n    and a.active_sid = public.current_sid()\r\n$function$\n",
+      "args": "",
+      "name": "my_allowed_id"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "def": "CREATE OR REPLACE FUNCTION public.revoke_user_sessions(p_user uuid)\n RETURNS void\n LANGUAGE sql\n SECURITY DEFINER\n SET search_path TO 'public', 'auth'\nAS $function$\r\n  delete from auth.sessions where user_id = p_user\r\n$function$\n",
+      "args": "p_user uuid",
+      "name": "revoke_user_sessions"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "def": "CREATE OR REPLACE FUNCTION public.save_progress(p_state jsonb)\n RETURNS bigint\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  uid uuid := public.my_allowed_id();\r\n  t   timestamptz := now();\r\n  tot int := 0;\r\n  cor int := 0;\r\nbegin\r\n  if uid is null then raise exception 'session_replaced'; end if;\r\n  if pg_column_size(p_state) > 1000000 then raise exception 'state_too_large'; end if;\r\n  if (p_state ->> 'answersTotal') ~ '^[0-9]{1,8}$' then tot := (p_state ->> 'answersTotal')::int; end if;\r\n  if (p_state ->> 'answersCorrect') ~ '^[0-9]{1,8}$' then cor := (p_state ->> 'answersCorrect')::int; end if;\r\n  cor := least(cor, tot);\r\n  insert into public.progress (user_id, state, updated_at, answers_total, answers_correct) values (uid, p_state, t, tot, cor)\r\n  on conflict (user_id) do update set\r\n    state = excluded.state,\r\n    updated_at = excluded.updated_at,\r\n    answers_total = excluded.answers_total,\r\n    answers_correct = excluded.answers_correct;\r\n  return (extract(epoch from t) * 1000)::bigint;\r\nend\r\n$function$\n",
+      "args": "p_state jsonb",
+      "name": "save_progress"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "def": "CREATE OR REPLACE FUNCTION public.session_me()\n RETURNS json\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\n  select json_build_object(\r\n    'id', a.id,\r\n    'telegram_id', a.telegram_id,\r\n    'username', a.username,\r\n    'display_name', a.display_name,\r\n    'is_admin', a.is_admin,\r\n    'session_ok', (a.status <> 'blocked' and a.active_sid is not null and a.active_sid = public.current_sid())\r\n  )\r\n  from public.allowed_users a\r\n  where a.auth_user_id = auth.uid()\r\n  limit 1\r\n$function$\n",
+      "args": "",
+      "name": "session_me"
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "def": "CREATE OR REPLACE FUNCTION public.throttle_hit(p_key text, p_limit integer, p_window_seconds integer)\n RETURNS boolean\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  c int;\r\nbegin\r\n  insert into public.login_throttle as t (key, window_start, count) values (p_key, now(), 1)\r\n  on conflict (key) do update set\r\n    count = case when t.window_start < now() - make_interval(secs => p_window_seconds) then 1 else t.count + 1 end,\r\n    window_start = case when t.window_start < now() - make_interval(secs => p_window_seconds) then now() else t.window_start end\r\n  returning count into c;\r\n  -- прибираємо старі записи (раз на ~100 викликів), щоб таблиця не росла\r\n  if random() < 0.01 then delete from public.login_throttle where window_start < now() - interval '1 day'; end if;\r\n  return c <= p_limit;\r\nend\r\n$function$\n",
+      "args": "p_key text, p_limit integer, p_window_seconds integer",
+      "name": "throttle_hit"
+    }
+  ],
+  "pg_version": "17.11",
+  "constraints": [
+    {
+      "def": "FOREIGN KEY (auth_user_id) REFERENCES auth.users(id) ON DELETE SET NULL",
+      "name": "allowed_users_auth_user_id_fkey",
+      "table": "allowed_users"
+    },
+    {
+      "def": "UNIQUE (auth_user_id)",
+      "name": "allowed_users_auth_user_id_key",
+      "table": "allowed_users"
+    },
+    {
+      "def": "PRIMARY KEY (id)",
+      "name": "allowed_users_pkey",
+      "table": "allowed_users"
+    },
+    {
+      "def": "CHECK ((status = ANY (ARRAY['invited'::text, 'active'::text, 'blocked'::text])))",
+      "name": "allowed_users_status_check",
+      "table": "allowed_users"
+    },
+    {
+      "def": "UNIQUE (telegram_id)",
+      "name": "allowed_users_telegram_id_key",
+      "table": "allowed_users"
+    },
+    {
+      "def": "UNIQUE (username)",
+      "name": "allowed_users_username_key",
+      "table": "allowed_users"
+    },
+    {
+      "def": "CHECK ((name = ANY (ARRAY['session_start'::text, 'lesson_start'::text, 'lesson_complete'::text, 'lesson_exit'::text])))",
+      "name": "events_name_ok",
+      "table": "events"
+    },
+    {
+      "def": "PRIMARY KEY (id)",
+      "name": "events_pkey",
+      "table": "events"
+    },
+    {
+      "def": "CHECK (((props IS NULL) OR (pg_column_size(props) < 2000)))",
+      "name": "events_props_small",
+      "table": "events"
+    },
+    {
+      "def": "FOREIGN KEY (user_id) REFERENCES allowed_users(id) ON DELETE SET NULL",
+      "name": "events_user_id_fkey",
+      "table": "events"
+    },
+    {
+      "def": "CHECK (((char_length(body) >= 1) AND (char_length(body) <= 2000)))",
+      "name": "feedback_body_check",
+      "table": "feedback"
+    },
+    {
+      "def": "CHECK ((kind = ANY (ARRAY['bug'::text, 'idea'::text])))",
+      "name": "feedback_kind_check",
+      "table": "feedback"
+    },
+    {
+      "def": "PRIMARY KEY (id)",
+      "name": "feedback_pkey",
+      "table": "feedback"
+    },
+    {
+      "def": "FOREIGN KEY (user_id) REFERENCES allowed_users(id) ON DELETE SET NULL",
+      "name": "feedback_user_id_fkey",
+      "table": "feedback"
+    },
+    {
+      "def": "PRIMARY KEY (id)",
+      "name": "keepalive_pkey",
+      "table": "keepalive"
+    },
+    {
+      "def": "PRIMARY KEY (key)",
+      "name": "login_throttle_pkey",
+      "table": "login_throttle"
+    },
+    {
+      "def": "PRIMARY KEY (user_id)",
+      "name": "progress_pkey",
+      "table": "progress"
+    },
+    {
+      "def": "FOREIGN KEY (user_id) REFERENCES allowed_users(id) ON DELETE CASCADE",
+      "name": "progress_user_id_fkey",
+      "table": "progress"
+    }
+  ],
+  "table_grants": [
+    {
+      "priv": "DELETE",
+      "table": "allowed_users",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "INSERT",
+      "table": "allowed_users",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "REFERENCES",
+      "table": "allowed_users",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "SELECT",
+      "table": "allowed_users",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "TRIGGER",
+      "table": "allowed_users",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "TRUNCATE",
+      "table": "allowed_users",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "UPDATE",
+      "table": "allowed_users",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "DELETE",
+      "table": "allowed_users",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "INSERT",
+      "table": "allowed_users",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "REFERENCES",
+      "table": "allowed_users",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "SELECT",
+      "table": "allowed_users",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "TRIGGER",
+      "table": "allowed_users",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "TRUNCATE",
+      "table": "allowed_users",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "UPDATE",
+      "table": "allowed_users",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "DELETE",
+      "table": "events",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "INSERT",
+      "table": "events",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "REFERENCES",
+      "table": "events",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "SELECT",
+      "table": "events",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "TRIGGER",
+      "table": "events",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "TRUNCATE",
+      "table": "events",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "UPDATE",
+      "table": "events",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "DELETE",
+      "table": "events",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "INSERT",
+      "table": "events",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "REFERENCES",
+      "table": "events",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "SELECT",
+      "table": "events",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "TRIGGER",
+      "table": "events",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "TRUNCATE",
+      "table": "events",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "UPDATE",
+      "table": "events",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "DELETE",
+      "table": "feedback",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "INSERT",
+      "table": "feedback",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "REFERENCES",
+      "table": "feedback",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "SELECT",
+      "table": "feedback",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "TRIGGER",
+      "table": "feedback",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "TRUNCATE",
+      "table": "feedback",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "UPDATE",
+      "table": "feedback",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "DELETE",
+      "table": "feedback",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "INSERT",
+      "table": "feedback",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "REFERENCES",
+      "table": "feedback",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "SELECT",
+      "table": "feedback",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "TRIGGER",
+      "table": "feedback",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "TRUNCATE",
+      "table": "feedback",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "UPDATE",
+      "table": "feedback",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "DELETE",
+      "table": "keepalive",
+      "grantee": "anon"
+    },
+    {
+      "priv": "INSERT",
+      "table": "keepalive",
+      "grantee": "anon"
+    },
+    {
+      "priv": "REFERENCES",
+      "table": "keepalive",
+      "grantee": "anon"
+    },
+    {
+      "priv": "SELECT",
+      "table": "keepalive",
+      "grantee": "anon"
+    },
+    {
+      "priv": "TRIGGER",
+      "table": "keepalive",
+      "grantee": "anon"
+    },
+    {
+      "priv": "TRUNCATE",
+      "table": "keepalive",
+      "grantee": "anon"
+    },
+    {
+      "priv": "UPDATE",
+      "table": "keepalive",
+      "grantee": "anon"
+    },
+    {
+      "priv": "DELETE",
+      "table": "keepalive",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "INSERT",
+      "table": "keepalive",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "REFERENCES",
+      "table": "keepalive",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "SELECT",
+      "table": "keepalive",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "TRIGGER",
+      "table": "keepalive",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "TRUNCATE",
+      "table": "keepalive",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "UPDATE",
+      "table": "keepalive",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "DELETE",
+      "table": "keepalive",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "INSERT",
+      "table": "keepalive",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "REFERENCES",
+      "table": "keepalive",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "SELECT",
+      "table": "keepalive",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "TRIGGER",
+      "table": "keepalive",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "TRUNCATE",
+      "table": "keepalive",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "UPDATE",
+      "table": "keepalive",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "DELETE",
+      "table": "login_throttle",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "INSERT",
+      "table": "login_throttle",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "REFERENCES",
+      "table": "login_throttle",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "SELECT",
+      "table": "login_throttle",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "TRIGGER",
+      "table": "login_throttle",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "TRUNCATE",
+      "table": "login_throttle",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "UPDATE",
+      "table": "login_throttle",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "DELETE",
+      "table": "progress",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "INSERT",
+      "table": "progress",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "REFERENCES",
+      "table": "progress",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "SELECT",
+      "table": "progress",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "TRIGGER",
+      "table": "progress",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "TRUNCATE",
+      "table": "progress",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "UPDATE",
+      "table": "progress",
+      "grantee": "authenticated"
+    },
+    {
+      "priv": "DELETE",
+      "table": "progress",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "INSERT",
+      "table": "progress",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "REFERENCES",
+      "table": "progress",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "SELECT",
+      "table": "progress",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "TRIGGER",
+      "table": "progress",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "TRUNCATE",
+      "table": "progress",
+      "grantee": "service_role"
+    },
+    {
+      "priv": "UPDATE",
+      "table": "progress",
+      "grantee": "service_role"
+    }
+  ]
+}

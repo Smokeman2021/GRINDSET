@@ -2,32 +2,41 @@
   "expo": {
     "name": "GRINDSET",
     "slug": "grindset",
+    "description": "Навчання арбітражу трафіку у форматі гри",
     "version": "0.1.0",
     "scheme": "grindset",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": true,
-    "splash": {
-      "backgroundColor": "#0d0f14",
-      "resizeMode": "contain"
-    },
+    "icon": "./assets/app-icon.png",
     "ios": {
       "supportsTablet": false
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0d0f14"
+        "foregroundImage": "./assets/app-icon.png",
+        "backgroundColor": "#36e27a"
       }
     },
     "web": {
-      "bundler": "metro"
+      "bundler": "metro",
+      "name": "GRINDSET",
+      "shortName": "GRINDSET"
     },
     "plugins": [
       "expo-router",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "GRINDSET використовує твоє фото як аватар гравця."
+        }
+      ],
+      "expo-font",
+      "expo-status-bar",
+      "expo-audio"
     ],
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": false
     }
   }
 }
