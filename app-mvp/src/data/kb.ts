@@ -4,12 +4,13 @@ import META from './generated/kb/meta.ts';
 import UK from './generated/kb/texts.uk.ts';
 import RU from './generated/kb/texts.ru.ts';
 import EN from './generated/kb/texts.en.ts';
+import { handbookLessons, handbookReferences } from './academy/handbookData.ts';
 import type { Lang } from '../i18n/strings';
 import { parseNum } from './numInput.ts';
 
-export type KbSection = 'guides' | 'glossary' | 'software' | 'tools' | 'templates';
+export type KbSection = 'handbook' | 'guides' | 'glossary' | 'software' | 'tools' | 'templates';
 export type KbTask = 'offer' | 'measure' | 'creative' | 'cabinet' | 'geo' | 'risk';
-export type KbVertical = 'tov' | 'srv' | 'inf' | 'nut' | 'dat' | 'gam' | 'cry' | 'adt';
+export type KbVertical = 'sta' | 'tov' | 'srv' | 'inf' | 'nut' | 'dat' | 'gam' | 'cry' | 'adt' | 'mob' | 'swp' | 'ttk';
 export type KbKind = 'card' | 'case' | 'vertical' | 'template' | 'exercise' | 'method' | 'read-report' | 'guide' | 'branch';
 
 export type KbField =
@@ -17,15 +18,46 @@ export type KbField =
   | { id: string; type: 'choice'; label: string; options: string[]; correct: number }
   | { id: string; type: 'multi'; label: string; options: string[]; correct: number[] };
 
-export type KbMeta = { id: string; kind: KbKind; section: KbSection; verticals: (KbVertical | 'all')[]; tasks: KbTask[]; labels: string[]; starter: boolean; langs: Lang[] };
+type HandbookMeta = { groupId: string; groupTitle: string; sourceId?: string };
+export type KbMeta = { id: string; kind: KbKind; section: KbSection; verticals: (KbVertical | 'all')[]; tasks: KbTask[]; labels: string[]; starter: boolean; langs: Lang[]; handbook?: HandbookMeta };
 type KbText = { title: string; body: string; solution?: string; exercise?: { fields: KbField[]; criteria: string[] } };
 export type KbArticle = KbMeta & KbText & { lang: Lang; fallback: boolean };
 
 const ITEMS = (META as { items: KbMeta[] }).items;
 const TEXTS: Record<Lang, Record<string, KbText>> = { uk: UK as Record<string, KbText>, ru: RU as Record<string, KbText>, en: EN as Record<string, KbText> };
 const BY_ID = new Map(ITEMS.map((m) => [m.id, m]));
+const HANDBOOK = new Map<string, { meta: KbMeta; text: KbText; terms: readonly string[]; searchText?: string }>();
+
+function addHandbook(
+  id: string,
+  title: string,
+  body: string,
+  section: KbSection,
+  handbook: HandbookMeta,
+  vertical: KbVertical | 'all' = 'all',
+  terms: readonly string[] = [],
+) {
+  const kind = section === 'templates' ? 'template' : 'guide';
+  const meta: KbMeta = { id, kind, section, verticals: [vertical], tasks: [], labels: [], starter: false, langs: ['uk'], handbook };
+  HANDBOOK.set(id, { meta, text: { title, body }, terms });
+}
+
+// The course and the library render exactly the same reading. Practice and solutions stay in the lesson player.
+for (const { id, title, reading, groupId, groupTitle, sourceId, track, terms } of handbookLessons) {
+  if (reading.trim()) {
+    addHandbook(id, title, reading, 'handbook', { groupId, groupTitle, sourceId }, track.toLowerCase() as KbVertical, terms);
+  }
+}
+
+for (const { id, title, body, kind } of handbookReferences) {
+  const section = kind === 'template' ? 'templates' : kind === 'glossary' ? 'glossary' : 'handbook';
+  addHandbook(id, title, body, section, { groupId: 'reference', groupTitle: 'Додатки посібника' });
+}
+
+const ALL_ITEMS = [...ITEMS, ...Array.from(HANDBOOK.values(), ({ meta }) => meta)];
 
 export const KB_SECTIONS: { id: KbSection; title: string; icon: string }[] = [
+  { id: 'handbook', title: 'Посібник', icon: '📖' },
   { id: 'guides', title: 'Гайди', icon: '📘' },
   { id: 'glossary', title: 'Глосарій', icon: '🔤' },
   { id: 'software', title: 'Софт', icon: '🧰' },
@@ -50,6 +82,13 @@ export const KB_VERTICALS: { id: KbVertical; title: string }[] = [
   { id: 'cry', title: 'Крипта' },
   { id: 'adt', title: 'Адалт' },
 ];
+export const HANDBOOK_VERTICALS: { id: KbVertical; title: string }[] = [
+  { id: 'sta', title: 'Старт' },
+  ...KB_VERTICALS.filter(({ id }) => id !== 'srv'),
+  { id: 'mob', title: 'Мобайл' },
+  { id: 'swp', title: 'Підписки й розіграші' },
+  { id: 'ttk', title: 'TikTok' },
+];
 export const KB_KIND_LABEL: Partial<Record<KbKind, string>> = { case: 'Кейс', exercise: 'Вправа', method: 'Методичка', template: 'Шаблон', vertical: 'Вертикаль', 'read-report': 'Вправа' };
 
 // Мітки джерела даних (ТЗ 004, B10). Правило майданчика — лише з content/policy-facts.json (етап C2), тут його немає.
@@ -63,11 +102,14 @@ export function labelText(l: string): string {
   return l;
 }
 
+// IDs covered by content/kb-include.json. The student-edition handbook has its own source manifest.
 export const kbIds = (): string[] => ITEMS.map((m) => m.id);
-export const kbMeta = (id: string): KbMeta | undefined => BY_ID.get(id);
+export const kbMeta = (id: string): KbMeta | undefined => HANDBOOK.get(id)?.meta ?? BY_ID.get(id);
 
 // Стаття мовою інтерфейсу; немає перекладу → українська з позначкою fallback (екран показує «Відкрито українською»)
 export function kbGet(id: string, lang: Lang): KbArticle | null {
+  const handbook = HANDBOOK.get(id);
+  if (handbook) return { ...handbook.meta, ...handbook.text, lang: 'uk', fallback: lang !== 'uk' };
   const m = BY_ID.get(id);
   if (!m) return null;
   const own = TEXTS[lang]?.[id];
@@ -76,16 +118,23 @@ export function kbGet(id: string, lang: Lang): KbArticle | null {
   return { ...m, ...t, lang: own ? lang : 'uk', fallback: !own && lang !== 'uk' };
 }
 
-export type KbFilter = { section?: KbSection; vertical?: KbVertical | null; task?: KbTask | null; query?: string };
+export type KbFilter = { section?: KbSection; vertical?: KbVertical | null; task?: KbTask | null; query?: string; handbookOnly?: boolean };
 const norm = (s: string) => s.toLowerCase().replace(/ё/g, 'е').replace(/[’'`]/g, "'");
+
+function searchText(article: KbArticle): string {
+  const entry = HANDBOOK.get(article.id);
+  const text = `${article.id} ${article.title} ${article.body}`;
+  if (!entry) return norm(text);
+  return entry.searchText ??= norm(`${text} ${article.handbook?.groupTitle ?? ''} ${entry.terms.join(' ')}`);
+}
 
 // Пошук: заголовок, текст і (для глосарію — окремо на екрані) терміни. Розбір і еталони не шукаються, щоб не підказувати.
 export function kbList(lang: Lang, f: KbFilter = {}): KbArticle[] {
   const q = f.query ? norm(f.query.trim()) : '';
-  return ITEMS.filter((m) => (!f.section || m.section === f.section) && (!f.vertical || m.verticals.includes('all') || m.verticals.includes(f.vertical)) && (!f.task || m.tasks.includes(f.task)))
+  return ALL_ITEMS.filter((m) => (!f.handbookOnly || m.handbook) && (!f.section || m.section === f.section) && (!f.vertical || m.verticals.includes('all') || m.verticals.includes(f.vertical)) && (!f.task || m.tasks.includes(f.task)))
     .map((m) => kbGet(m.id, lang))
     .filter((a): a is KbArticle => !!a)
-    .filter((a) => !q || norm(`${a.id} ${a.title} ${a.body}`).includes(q))
+    .filter((a) => !q || searchText(a).includes(q))
     .sort((a, b) => {
       if (!q) return 0;
       const ta = norm(`${a.id} ${a.title}`).includes(q) ? 0 : 1;

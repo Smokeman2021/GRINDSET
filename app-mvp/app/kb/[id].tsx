@@ -53,8 +53,9 @@ export default function KbArticleScreen() {
           <Text style={styles.backTxt}>{ret === '1' && retTo ? `← Повернутись: ${retTo.title}` : '← Назад'}</Text>
         </Pressable>
         <Text style={styles.kicker}>
-          {a.id}
-          {KB_KIND_LABEL[a.kind] ? ` · ${KB_KIND_LABEL[a.kind]}` : ''}
+          {a.handbook
+            ? `${a.handbook.groupTitle}${a.handbook.sourceId ? ` · ${a.handbook.sourceId}` : ''}`
+            : `${a.id}${KB_KIND_LABEL[a.kind] ? ` · ${KB_KIND_LABEL[a.kind]}` : ''}`}
         </Text>
         <Text style={styles.title}>{a.title}</Text>
         {a.fallback && <Text style={styles.fallback}>Перекладу цією мовою ще немає: відкрито українською.</Text>}
@@ -68,7 +69,7 @@ export default function KbArticleScreen() {
           </View>
         )}
 
-        {a.kind === 'template' ? <Template id={a.id} body={a.body} /> : <Markdown text={a.body} />}
+        {a.kind === 'template' && !a.handbook ? <Template id={a.id} body={a.body} /> : <Markdown text={a.body} handbook={!!a.handbook} />}
 
         {a.exercise ? <Exercise id={a.id} fields={a.exercise.fields} criteria={a.exercise.criteria} etalon={a.solution ?? ''} /> : a.solution ? <Solution text={a.solution} /> : null}
       </ScrollView>

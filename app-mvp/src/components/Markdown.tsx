@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextStyle, ScrollView, Modal, Pressable } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, TextStyle, ScrollView, Modal, Pressable, Image, Linking } from 'react-native';
+import { Asset } from 'expo-asset';
 import { useRouter } from 'expo-router';
+import { handbookReferences } from '../data/academy/handbookData';
+import { handbookImages } from '../data/academy/handbookImages';
 import { Theme, useStyles } from '../theme';
 import { findTerm, Term, TERM_RE } from '../data/glossary';
 
@@ -10,9 +13,28 @@ type Block =
   | { t: 'ul'; items: string[] }
   | { t: 'ol'; items: string[] }
   | { t: 'code'; text: string }
+  | { t: 'diagram'; alt: string; name: string }
   | { t: 'table'; rows: string[][] };
 
 const isSeparatorRow = (cells: string[]) => cells.every((c) => /^:?-{2,}:?$/.test(c.trim()));
+
+const normalizeTerm = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
+const handbookTerms = new Map<string, Term>();
+for (const { id, title, body } of handbookReferences) {
+  if (!id.startsWith('HB-TERM-')) continue;
+  const [def, alternatives] = body.split('\n\n');
+  const synonyms = alternatives?.match(/^\*\*Також:\*\*\s*(.+)$/)?.[1].split(/\s*[,;]\s*/) ?? [];
+  for (const alias of [title, ...synonyms]) {
+    const key = normalizeTerm(alias);
+    if (key.length >= 2 && !handbookTerms.has(key)) handbookTerms.set(key, { id, title, match: key, def, article: id });
+  }
+}
+const termPatterns = Array.from(handbookTerms.keys())
+  .sort((a, b) => b.length - a.length)
+  .map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/ /g, '\\s+'));
+const handbookTermRe = termPatterns.length
+  ? new RegExp(`(?<![\\p{L}\\p{N}_])(?:${termPatterns.join('|')})(?![\\p{L}\\p{N}_])`, 'iu')
+  : null;
 
 function parse(src: string): Block[] {
   const lines = src.replace(/\r\n/g, '\n').split('\n');
@@ -25,10 +47,14 @@ function parse(src: string): Block[] {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
-    const heading = /^(#{1,3})\s+(.*)$/.exec(trimmed);
+    const heading = /^(#{1,6})\s+(.*)$/.exec(trimmed);
+    const diagram = /^!\[([^\]]*)\]\(handbook:([\w.-]+\.png)\)$/.exec(trimmed);
     if (heading) {
       flush();
-      blocks.push({ t: 'h', level: heading[1].length as 1 | 2 | 3, text: heading[2] });
+      blocks.push({ t: 'h', level: Math.min(heading[1].length, 3) as 1 | 2 | 3, text: heading[2] });
+    } else if (diagram) {
+      flush();
+      blocks.push({ t: 'diagram', alt: diagram[1], name: diagram[2] });
     } else if (trimmed.startsWith('```')) {
       flush();
       const code: string[] = [];
@@ -44,7 +70,7 @@ function parse(src: string): Block[] {
         i++;
       }
       i--;
-      blocks.push({ t: 'table', rows });
+      if (rows.length) blocks.push({ t: 'table', rows });
     } else if (/^[-*] /.test(trimmed)) {
       flush();
       const items: string[] = [];
@@ -68,7 +94,7 @@ function parse(src: string): Block[] {
 }
 
 // **жирний**, *курсив*, `код`, [→ Бібліотека: X]
-type Ctx = { onRef?: (label: string) => void; onTerm?: (t: Term) => void; seen: Set<string>; styles: ReturnType<typeof makeStyles> };
+type Ctx = { onRef?: (label: string) => void; onArticle: (id: string) => void; onTerm?: (t: Term) => void; handbook: boolean; seen: Set<string>; styles: ReturnType<typeof makeStyles> };
 
 // Звичайний текст: перше згадування терміна з глосарію підсвічується і відкриває пояснення
 function plain(text: string, base: TextStyle, ctx: Ctx, keyPrefix: string): React.ReactNode[] {
@@ -76,12 +102,12 @@ function plain(text: string, base: TextStyle, ctx: Ctx, keyPrefix: string): Reac
   let rest = text;
   let n = 0;
   while (rest) {
-    const m = TERM_RE.exec(rest);
+    const m = ctx.handbook ? handbookTermRe?.exec(rest) : TERM_RE.exec(rest);
     if (!m) {
       out.push(rest);
       break;
     }
-    const term = findTerm(m[0]);
+    const term = ctx.handbook ? handbookTerms.get(normalizeTerm(m[0])) : findTerm(m[0]);
     const end = m.index + m[0].length;
     if (!term || ctx.seen.has(term.id)) {
       out.push(rest.slice(0, end));
@@ -101,13 +127,22 @@ function plain(text: string, base: TextStyle, ctx: Ctx, keyPrefix: string): Reac
 }
 
 function inline(text: string, base: TextStyle, ctx: Ctx) {
-  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*\n]+\*|`[^`]+`|\[→[^\]]+\])/g);
+  const parts = text.split(/(\[[^\]\n]+\]\((?:https:\/\/[^\s)]+|handbook:HB-[\p{L}\p{N}_.-]+)\)|\*\*[^*]+\*\*|\*[^*\n]+\*|`[^`]+`|\[→[^\]]+\])/gu);
   return parts.map((part, i) => {
     if (!part) return null;
+    const link = /^\[([^\]\n]+)\]\((https:\/\/[^\s)]+|handbook:HB-[\p{L}\p{N}_.-]+)\)$/u.exec(part);
+    if (link) {
+      const [, label, url] = link;
+      const open = () => {
+        if (url.startsWith('handbook:')) ctx.onArticle(url.slice('handbook:'.length));
+        else void Linking.openURL(url).catch(() => undefined);
+      };
+      return <Text key={i} style={[base, ctx.styles.ref]} accessibilityRole="link" onPress={open}>{label}</Text>;
+    }
     if (part.startsWith('**') && part.endsWith('**') && part.length > 4)
       return (
         <Text key={i} style={[base, ctx.styles.bold]}>
-          {part.slice(2, -2)}
+          {ctx.handbook ? plain(part.slice(2, -2), { ...base, ...ctx.styles.bold }, ctx, `bold-${i}`) : part.slice(2, -2)}
         </Text>
       );
     if (part.startsWith('`') && part.endsWith('`'))
@@ -132,13 +167,14 @@ function inline(text: string, base: TextStyle, ctx: Ctx) {
   });
 }
 
-export function Markdown({ text, small }: { text: string; small?: boolean }) {
+export function Markdown({ text, small, handbook = false }: { text: string; small?: boolean; handbook?: boolean }) {
   const styles = useStyles(makeStyles);
   const router = useRouter();
   const goRef = (label: string) => router.navigate({ pathname: '/library', params: { cat: label } });
+  const goArticle = (id: string) => router.push({ pathname: '/kb/[id]', params: { id } });
   const [popup, setPopup] = useState<Term | null>(null);
-  const ctx: Ctx = { onRef: goRef, onTerm: setPopup, seen: new Set(), styles };
-  const blocks = parse(text);
+  const ctx: Ctx = { onRef: goRef, onArticle: goArticle, onTerm: setPopup, handbook, seen: new Set(), styles };
+  const blocks = useMemo(() => parse(text), [text]);
   const pStyle = small ? [styles.p, styles.pSm] : styles.p;
   const liStyle = small ? [styles.liTxt, styles.liSm] : styles.liTxt;
   return (
@@ -157,6 +193,14 @@ export function Markdown({ text, small }: { text: string; small?: boolean }) {
               <Text style={styles.code}>{b.text}</Text>
             </View>
           );
+        if (b.t === 'diagram') {
+          const source = handbookImages[b.name];
+          if (!source) return b.alt ? <Text key={i} style={pStyle}>{b.alt}</Text> : null;
+          const { width, height } = Asset.fromModule(source);
+          return (
+            <Image key={i} source={source} resizeMode="contain" accessible accessibilityLabel={b.alt || 'Схема з посібника'} style={[styles.diagram, { aspectRatio: width && height ? width / height : 1.5 }]} />
+          );
+        }
         if (b.t === 'table') {
           const cols = Math.max(...b.rows.map((r) => r.length));
           // 4+ колонок: ширина за змістом і горизонтальна прокрутка, щоб слова не рвались по літерах
@@ -252,6 +296,7 @@ const makeStyles = (C: Theme) => StyleSheet.create({
   italic: { fontStyle: 'italic', color: C.muted },
   mono: { fontFamily: 'monospace', backgroundColor: C.panel2 },
   ref: { color: C.blueTxt, fontWeight: '700' },
+  diagram: { width: '100%', marginBottom: 14 },
   list: { marginBottom: 10 },
   li: { flexDirection: 'row', gap: 8, marginBottom: 6, paddingRight: 8 },
   bullet: { color: C.accentTxt, fontSize: 16, lineHeight: 24, minWidth: 18, fontWeight: '800' },

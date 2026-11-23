@@ -12,7 +12,7 @@ export type LinkCtx = {
 export type LinkResult = { kind: 'none' } | { kind: 'open'; href: string } | { kind: 'invalid'; why: 'kb' | 'lesson' | 'branch' | 'route' };
 
 // Статичні екрани, які можна відкрити з адреси напряму. results, onboarding, diagnostic, login — ні (потребують контексту дії).
-const STATIC = new Set(['/home', '/library', '/shop', '/league', '/profile', '/settings', '/accuracy', '/character', '/leads', '/numbers', '/bm', '/plan', '/sim', '/adsim']);
+const STATIC = new Set(['/home', '/library', '/shop', '/league', '/profile', '/settings', '/accuracy', '/character', '/leads', '/numbers', '/bm', '/plan', '/sim', '/adsim', '/handbook-sim', '/handbook-exam']);
 const NEVER = new Set(['/', '', '/index', '/login', '/onboarding', '/diagnostic', '/results', '/unavailable']);
 const ID_RE = /^[A-Za-z0-9_.:-]{1,64}$/;
 

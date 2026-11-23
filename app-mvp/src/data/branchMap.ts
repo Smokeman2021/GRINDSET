@@ -1,7 +1,7 @@
 // Карта Києва гілки (ТЗ 004, етап E): кожна одиниця гілки — точка на карті. Порядок: уроки 1–5, практика, фінал.
 // Локації — з подорожі Києвом (src/art/levels.ts, LOCS); тут лише ID, щоб файл лишався чистим для автотестів.
-import { finalOpen, lessonIds, nextUnit, type BranchProg } from './branchRules.ts';
-import { isAcademyCode } from './academyIds.ts';
+import { canOpenBranchUnit, finalOpen, lessonIds, nextUnit, type BranchProg } from './branchRules.ts';
+import { isAcademyCode, isHandbookCode } from './academyIds.ts';
 
 // Локація кожної точки гілки: L01…L05, практика, фінал (тематично під вертикаль)
 export const BRANCH_ROUTE: Record<string, string[]> = {
@@ -34,14 +34,21 @@ export function branchPins(code: string, completed: string[], prog: BranchProg |
   const firstOpen = lessons.find((id) => readyLessons.includes(id) && !completed.includes(id)) ?? null;
   const next = nextUnit(code, completed, prog, readyLessons, hasFinal) ?? firstOpen;
   const st = (id: string, open: boolean): PinState => (completed.includes(id) ? 'done' : id === next ? 'next' : open ? 'open' : 'locked');
-  const pins: MapPin[] = lessons.map((id, i) => ({ id, n: i + 1, kind: 'lesson', locId: route[i], state: st(id, readyLessons.includes(id)), why: readyLessons.includes(id) ? undefined : 'урок ще не готовий' }));
+  const pins: MapPin[] = lessons.map((id, i) => {
+    const ready = readyLessons.includes(id);
+    const open = ready && canOpenBranchUnit(code, 'lesson', completed, prog, id);
+    return { id, n: i + 1, kind: 'lesson', locId: route[i], state: st(id, open), why: open ? undefined : ready ? 'відкриється після уроків розділу' : 'урок ще не готовий' };
+  });
   if (code === 'STA-A1') return pins;
-  const pr = `BR-${code}-PR`;
-  const practiceDone = isAcademyCode(code) && prog?.practice === 'pass';
-  pins.push({ id: pr, n: lessons.length + 1, kind: 'practice', locId: route[lessons.length], state: practiceDone ? 'done' : st(pr, prog?.sc === 'pass'), why: prog?.sc === 'pass' ? undefined : 'відкриється після самоперевірки' });
+  const hasPractice = !isHandbookCode(code);
+  if (hasPractice) {
+    const pr = `BR-${code}-PR`;
+    const practiceDone = isAcademyCode(code) && prog?.practice === 'pass';
+    pins.push({ id: pr, n: lessons.length + 1, kind: 'practice', locId: route[lessons.length], state: practiceDone ? 'done' : st(pr, prog?.sc === 'pass'), why: prog?.sc === 'pass' ? undefined : 'відкриється після самоперевірки' });
+  }
   const fin = `BR-${code}-FINAL`;
   const unlocked = finalOpen(code, completed, prog);
-  pins.push({ id: fin, n: lessons.length + 2, kind: 'final', locId: route[lessons.length + 1], state: hasFinal ? st(fin, unlocked) : 'locked', why: hasFinal ? (unlocked ? undefined : 'відкриється після всіх уроків або практики') : 'фінал ще не готовий' });
+  pins.push({ id: fin, n: lessons.length + (hasPractice ? 2 : 1), kind: 'final', locId: route[lessons.length + 1], state: hasFinal ? st(fin, unlocked) : 'locked', why: hasFinal ? (unlocked ? undefined : hasPractice ? 'відкриється після всіх уроків або практики' : 'відкриється після всіх уроків') : 'фінал ще не готовий' });
   return pins;
 }
 

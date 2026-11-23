@@ -2,6 +2,7 @@
 import type { BStep, Branch, Unit } from '../branch.ts';
 import { branchCodeOf, lessonsWord, unitKind, type UnitKind } from '../branchRules.ts';
 import { ACADEMY } from '../academy/courses.ts';
+import { HANDBOOK } from '../academy/handbookCourses.ts';
 import { TOV } from './tov.ts';
 import { SRV } from './srv.ts';
 import { INF } from './inf.ts';
@@ -14,7 +15,7 @@ import { ADT } from './adt.ts';
 export const BRANCHES: Branch[] = [TOV, SRV, INF, NUT, DAT, GAM, CRY, ADT];
 
 export function getBranch(code: string | undefined): Branch | undefined {
-  return ACADEMY.find((b) => b.code === code) ?? BRANCHES.find((b) => b.code === code);
+  return HANDBOOK.find((b) => b.code === code) ?? ACADEMY.find((b) => b.code === code) ?? BRANCHES.find((b) => b.code === code);
 }
 
 export type UnitRef = { branch: Branch; kind: UnitKind; unit: Unit };
@@ -26,8 +27,8 @@ export function unitById(id: string | undefined): UnitRef | undefined {
   if (!kind) return undefined;
   const branch = getBranch(branchCodeOf(id) ?? undefined);
   if (!branch) return undefined;
-  if (kind === 'selfcheck') return { branch, kind, unit: { id, title: `Самоперевірка · ${branch.title}`, steps: branch.selfcheck, kb: [], ready: true } };
-  if (kind === 'practice') return { branch, kind, unit: branch.practice };
+  if (kind === 'selfcheck') return branch.selfcheck.length ? { branch, kind, unit: { id, title: `Самоперевірка · ${branch.title}`, steps: branch.selfcheck, kb: [], ready: true } } : undefined;
+  if (kind === 'practice') return branch.practice.ready ? { branch, kind, unit: branch.practice } : undefined;
   if (kind === 'final') return branch.final ? { branch, kind, unit: branch.final } : undefined;
   const unit = branch.lessons.find((l) => l.id === id);
   return unit ? { branch, kind, unit } : undefined;
@@ -37,7 +38,8 @@ export const readyLessonIds = (b: Branch): string[] => b.lessons.filter((l) => l
 
 // Фактичний обсяг гілки для картки: «Вступ · Самоперевірка · 5 уроків · Фінал»
 export function volumeLabel(b: Branch): string {
-  const parts = ['Вступ', 'Самоперевірка'];
+  const parts = ['Вступ'];
+  if (b.selfcheck.length) parts.push('Самоперевірка');
   const n = readyLessonIds(b).length;
   if (n > 0) parts.push(lessonsWord(n));
   if (b.final?.ready) parts.push('Фінал');

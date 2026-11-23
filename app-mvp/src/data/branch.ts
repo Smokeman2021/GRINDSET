@@ -2,9 +2,9 @@
 // рушій кроків спільний (екран app/lesson/[id].tsx). Старий курс (модулі 01–10) сюди не імпортується.
 import type { Step } from './lessons';
 import type { FinalPart } from './branchRules.ts';
-import type { AcademyCode, VerticalCode } from './academyIds.ts';
+import type { AcademyCode, HandbookCode, VerticalCode } from './academyIds.ts';
 
-export type BranchCode = VerticalCode | AcademyCode;
+export type BranchCode = VerticalCode | AcademyCode | HandbookCode;
 
 // Додаткові поля кроку гілки
 export type StepExtra = {
@@ -24,6 +24,8 @@ export type Unit = {
   steps: BStep[];
   kb: string[]; // картки «Бази» за ID
   ready: boolean; // конвертовано у форми з перевіркою
+  boss?: boolean;
+  handbookSource?: string;
   sim?: 'leads'; // одиниця — тренажер (власний екран /leads), а не кроки уроку
 };
 

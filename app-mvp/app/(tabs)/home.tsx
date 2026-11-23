@@ -4,9 +4,10 @@ import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getBranch, readyLessonIds, unitById, volumeLabel } from '../../src/data/branches';
-import { ACADEMY } from '../../src/data/academy/courses';
+import { getBranch, readyLessonIds, unitById } from '../../src/data/branches';
+import { ACADEMY_HOME, HANDBOOK_SPECIALIZATIONS } from '../../src/data/academy/handbookCourses';
 import { continueTarget } from '../../src/data/place';
+import { dueKeys, parseKey } from '../../src/data/srs';
 import { GOAL_XP, useStore } from '../../src/store';
 import { homeSay } from '../../src/data/phrases';
 import { GrindykSay } from '../../src/components/GrindykSay';
@@ -19,7 +20,7 @@ export default function Home() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const completed = useStore((s) => s.completed);
-  const lang = useStore((s) => s.lang);
+  const srs = useStore((s) => s.srs);
   const { energy, xpToday, dailyGoal, daysAway, refreshEnergy } = useStore();
   useFocusEffect(
     React.useCallback(() => {
@@ -29,7 +30,7 @@ export default function Home() {
   const placeBox = useStore((s) => s.placeBox);
   const branchProg = useStore((s) => s.branchProg);
   // «Продовжити» (етап E): останнє місце або наступна одиниця останньої гілки
-  const cont = continueTarget(placeBox, {
+  const candidate = continueTarget(placeBox, {
     completed,
     branchProg,
     ready: (c) => { const b = getBranch(c); return b ? readyLessonIds(b) : []; },
@@ -37,15 +38,20 @@ export default function Home() {
     title: (id) => { const r = unitById(id); return r ? `${r.branch.title} · ${r.unit.title}` : undefined; },
     branchTitle: (c) => getBranch(c)?.title,
   });
+  const cont = candidate?.kind === 'lesson' && candidate.id.includes('-A2-')
+    || candidate?.kind === 'kb' && candidate.id.startsWith('HB-')
+    || candidate?.kind === 'branch' && candidate.code.endsWith('-A2') ? candidate : null;
   const goContinue = () => {
     if (!cont) return;
-    if (cont.kind === 'sim') return router.push('/leads');
     if (cont.kind === 'kb') return router.push({ pathname: '/kb/[id]', params: { id: cont.id, ret: '1' } });
     if (cont.kind === 'branch') return router.push({ pathname: '/branch/[code]', params: { code: cont.code } });
     const r = unitById(cont.id);
     if (r?.unit.sim === 'leads') return router.push('/leads');
     router.push(`/lesson/${cont.id}`);
   };
+  const openBranch = (code: string) => router.push({ pathname: '/branch/[code]', params: { code } });
+  const due = [...new Set(dueKeys(srs).map((key) => parseKey(key).lessonId))]
+    .filter((id) => id.includes('-A2-') && completed.includes(id));
   const talk = useMemo(() => homeSay({ daysAway, energy, goalDone: xpToday >= GOAL_XP[dailyGoal], fresh: true }), [daysAway, energy, xpToday, dailyGoal]);
 
   return (
@@ -61,35 +67,52 @@ export default function Home() {
             </Text>
             {cont.kind === 'lesson' && cont.step ? <Text style={styles.contSub}>з місця, де зупинився: {cont.step}</Text> : null}
             {cont.kind === 'lesson' && !cont.step ? <Text style={styles.contSub}>наступне завдання гілки</Text> : null}
-            {cont.kind === 'sim' ? <Text style={styles.contSub}>тренажер, {cont.step}</Text> : null}
             {cont.kind === 'kb' ? <Text style={styles.contSub}>{cont.back ? `стаття, потім повернення: ${cont.back}` : 'стаття «Бази»'}</Text> : null}
             {cont.kind === 'branch' ? <Text style={styles.contSub}>гілку пройдено · карта Києва</Text> : null}
           </Pressable>
         )}
+        {due.length > 0 && (
+          <Pressable onPress={() => router.push(`/lesson/${due[0]}`)} style={styles.cont} accessibilityRole="button">
+            <Text style={styles.contKick}>ПОВТОРЕННЯ · {due.length}</Text>
+            <Text style={styles.contTitle}>{unitById(due[0])?.unit.title ?? 'Повторити матеріал'}</Text>
+          </Pressable>
+        )}
         <Text style={styles.h1}>Академія</Text>
-        <Text style={styles.muted}>Пройди «Старт» або одразу обери вертикаль.</Text>
+        <Pressable onPress={() => openBranch(ACADEMY_HOME[0].code)} style={styles.start} accessibilityRole="button" accessibilityLabel="Старт · безкоштовно">
+          <Text style={styles.startIcon}>{ACADEMY_HOME[0].emoji}</Text>
+          <View style={styles.startText}>
+            <Text style={styles.startTitle}>Старт</Text>
+            <Text style={styles.startLabel}>Безкоштовно</Text>
+          </View>
+        </Pressable>
+        <Pressable onPress={() => router.push('/handbook-sim')} style={styles.specialty} accessibilityRole="button">
+          <Text style={styles.specialtyIcon}>🧪</Text><Text style={styles.title}>Пісочниця</Text>
+        </Pressable>
         <View style={styles.grid}>
-          {ACADEMY.map((b) => {
-            const units = [...readyLessonIds(b), ...(b.final ? [b.final.id] : [])];
-            const done = units.filter((id) => completed.includes(id)).length;
+          {ACADEMY_HOME.slice(1).map((b, i) => {
             return (
               <Pressable
                 key={b.code}
-                onPress={() => router.push({ pathname: '/branch/[code]', params: { code: b.code } })}
-                style={({ pressed }) => [styles.card, pressed && { transform: [{ translateY: 2 }], borderBottomWidth: 2 }]}
+                onPress={() => openBranch(b.code)}
+                style={({ pressed }) => [styles.card, i % 2 === 1 && styles.cardAlt, pressed && { transform: [{ scale: 0.98 }] }]}
                 accessibilityRole="button"
-                accessibilityLabel={`${b.title}. ${volumeLabel(b)}`}
+                accessibilityLabel={b.title}
               >
                 <Text style={styles.emoji}>{b.emoji}</Text>
                 <Text style={styles.title}>{b.title}</Text>
-                <Text style={styles.vol}>{volumeLabel(b)}</Text>
-                {b.regulated && <Text style={styles.reg}>фінал: рішення про допуск, без запуску</Text>}
-                {done > 0 && <Text style={styles.done}>✓ {done} з {units.length}</Text>}
-                {lang !== 'uk' && <Text style={styles.ua}>Відкрити українською</Text>}
               </Pressable>
             );
           })}
         </View>
+        <Text style={styles.h1}>Спеціалізації</Text>
+        {HANDBOOK_SPECIALIZATIONS.map((b) => (
+          <Pressable key={b.code} onPress={() => openBranch(b.code)} style={styles.specialty} accessibilityRole="button">
+            <Text style={styles.specialtyIcon}>{b.emoji}</Text><Text style={styles.title}>{b.title}</Text>
+          </Pressable>
+        ))}
+        <Pressable onPress={() => router.push('/handbook-exam')} style={styles.specialty} accessibilityRole="button">
+          <Text style={styles.specialtyIcon}>📝</Text><Text style={styles.title}>Підсумковий іспит</Text>
+        </Pressable>
       </ScrollView>
     </View>
   );
@@ -103,23 +126,29 @@ const makeStyles = (C: Theme) =>
     contKick: { color: C.accentTxt, fontSize: 11, fontWeight: '900', letterSpacing: 1 },
     contTitle: { color: C.txt, fontSize: 17, fontWeight: '900' },
     contSub: { color: C.muted, fontSize: 12, fontWeight: '700' },
-    muted: { color: C.muted, fontSize: 13 },
+    start: { flexDirection: 'row', alignItems: 'center', gap: 16, minHeight: 94, borderRadius: 18, padding: 16, backgroundColor: C.accentTint, borderWidth: 2, borderColor: C.accent },
+    startIcon: { fontSize: 37 },
+    startText: { flex: 1 },
+    startTitle: { color: C.txt, fontSize: 23, fontWeight: '900' },
+    startLabel: { color: C.accentTxt, fontSize: 13, fontWeight: '800', marginTop: 3 },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
     card: {
       flexBasis: '47%',
       flexGrow: 1,
+      aspectRatio: 1,
       backgroundColor: C.panel,
       borderRadius: 16,
       padding: 12,
       borderWidth: 2,
       borderBottomWidth: 5,
       borderColor: C.line,
-      gap: 4,
+      justifyContent: 'flex-end',
+      alignItems: 'flex-start',
+      gap: 12,
     },
-    emoji: { fontSize: 30 },
+    cardAlt: { backgroundColor: C.accentTint },
+    emoji: { fontSize: 46 },
     title: { color: C.txt, fontSize: 17, fontWeight: '900' },
-    vol: { color: C.muted, fontSize: 12, fontWeight: '700' },
-    reg: { color: C.goldTxt, fontSize: 11, fontWeight: '700' },
-    done: { color: C.accentTxt, fontSize: 12, fontWeight: '800' },
-    ua: { color: C.blueTxt, fontSize: 12, fontWeight: '800' },
+    specialty: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 13, borderRadius: 12, backgroundColor: C.panel, borderWidth: 1, borderColor: C.line },
+    specialtyIcon: { fontSize: 20 },
   });

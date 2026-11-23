@@ -6,8 +6,8 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getBranch, readyLessonIds } from '../../src/data/branches';
-import { finalOpen, lessonsWord, nextUnit, PART_LABEL, unitKind } from '../../src/data/branchRules';
-import { isAcademyCode } from '../../src/data/academyIds';
+import { canOpenBranchUnit, finalOpen, lessonsWord, nextUnit, PART_LABEL, unitKind } from '../../src/data/branchRules';
+import { isAcademyCode, isHandbookCode } from '../../src/data/academyIds';
 import { ENERGY_PER_LESSON, useStore } from '../../src/store';
 import { Markdown } from '../../src/components/Markdown';
 import { Button } from '../../src/components/Button';
@@ -30,6 +30,7 @@ export default function BranchScreen() {
   const simStep = useStore((s) => s.simLeads?.step ?? 0);
   const [introOpen, setIntroOpen] = React.useState(false);
   const [feedbackOpen, setFeedbackOpen] = React.useState(false);
+  const [expandedGroups, setExpandedGroups] = React.useState<Record<string, boolean>>({});
 
   if (!b) {
     return (
@@ -43,22 +44,25 @@ export default function BranchScreen() {
   const ready = readyLessonIds(b);
   const expanded = b.lessons.some((lesson, index) => lesson.module && lesson.module.id === b.lessons[index - 1]?.module?.id);
   const academy = isAcademyCode(b.code);
-  const foundation = b.code === 'STA-A1';
+  const handbook = isHandbookCode(b.code);
+  const foundation = b.code.startsWith('STA-');
   const started = !!prog?.started || [...b.lessons.map((l) => l.id), b.practice.id].some((id) => completed.includes(id));
   const showIntro = !started || introOpen;
   const isFinalOpen = finalOpen(b.code, completed, prog);
   const finalDone = completed.includes(`BR-${b.code}-FINAL`);
   const next = nextUnit(b.code, completed, prog, ready, !!b.final?.ready);
+  const nextGroup = b.lessons.find((unit) => unit.id === next)?.module?.id ?? b.lessons[0]?.module?.id;
   const open = (id: string) => {
     const kind = unitKind(id);
+    if (!kind || (handbook && !canOpenBranchUnit(b.code, kind, completed, prog, id))) return;
     const freeCheck = kind === 'selfcheck' || (academy && kind === 'practice');
-    if (strictEnergy && energy < ENERGY_PER_LESSON && !completed.includes(id) && !freeCheck) {
+    if (!handbook && strictEnergy && energy < ENERGY_PER_LESSON && !completed.includes(id) && !freeCheck) {
       router.navigate('/shop');
       return;
     }
     useStore.getState().setBranchProg(b.code, { started: true });
     // сцена подорожі перед одиницею (ТЗ 006, 3.1): перший раз; повторно — одразу завдання
-    if (!foundation && shouldShow(useStore.getState().seenScenes, sceneKey(id))) return router.push({ pathname: '/scene/[id]', params: { id } });
+    if (!foundation && !handbook && shouldShow(useStore.getState().seenScenes, sceneKey(id))) return router.push({ pathname: '/scene/[id]', params: { id } });
     // фінал товарки — тренажер «Ліди» (етап D): власний екран
     if (id === b.final?.id && b.final.sim === 'leads') return router.push('/leads');
     router.push(`/lesson/${id}`);
@@ -90,7 +94,7 @@ export default function BranchScreen() {
           <Text style={styles.mapBtnSub}>уроки, практика й фінал як заклади на карті</Text>
         </Pressable>}
         {b.code === 'TOV-A1' && <Button title="Потренуватися в кабінеті «Ліди»" ghost onPress={() => router.push('/leads')} />}
-        {academy && !foundation && completed.some((id) => id.startsWith(`BR-${b.code.slice(0, 3)}-`) && !id.includes('-A1-')) && (
+        {academy && !handbook && !foundation && completed.some((id) => id.startsWith(`BR-${b.code.slice(0, 3)}-`) && !id.includes('-A1-') && !id.includes('-A2-')) && (
           <Button title="Попередній маршрут і прогрес" ghost onPress={() => router.push(`/branch/${b.code.slice(0, 3)}`)} />
         )}
 
@@ -112,8 +116,8 @@ export default function BranchScreen() {
         {/* Два входи */}
         {!prog?.sc && (
           <View style={{ gap: 10 }}>
-            <Button title="Почати з основ" onPress={() => open(b.lessons[0].id)} disabled={!b.lessons[0].ready} />
-            <Button title={`Перевірити себе · ${b.selfcheck.length} завдання`} ghost onPress={() => open(`BR-${b.code}-SC`)} />
+            <Button title={handbook && started ? 'Продовжити' : 'Почати з основ'} onPress={() => open((handbook && next) || b.lessons[0].id)} disabled={!b.lessons[0].ready} />
+            {b.selfcheck.length > 0 && <Button title={`Перевірити себе · ${b.selfcheck.length} завдання`} ghost onPress={() => open(`BR-${b.code}-SC`)} />}
             {!b.lessons[0].ready && <Text style={styles.muted}>Уроки цієї гілки ще конвертуються у форми з перевіркою; самоперевірка й практика вже працюють.</Text>}
           </View>
         )}
@@ -182,21 +186,30 @@ export default function BranchScreen() {
         {b.lessons.map((l, i) => {
           const done = completed.includes(l.id);
           const isNext = next === l.id;
-          const firstInModule = expanded && l.module && (i === 0 || b.lessons[i - 1].module?.id !== l.module.id);
+          const group = l.module;
+          const firstInModule = (expanded || handbook) && group && (i === 0 || b.lessons[i - 1].module?.id !== group.id);
+          const groupOpen = !handbook || !group || (expandedGroups[group.id] ?? group.id === nextGroup);
+          const blocked = l.boss && !canOpenBranchUnit(b.code, 'lesson', completed, prog, l.id);
           return (
             <React.Fragment key={l.id}>
-            {firstInModule && <Text style={styles.section}>{l.module?.title}</Text>}
-            <Pressable
-              disabled={!l.ready}
+            {firstInModule && (handbook ? (
+              <Pressable style={styles.row} accessibilityRole="button" accessibilityState={{ expanded: groupOpen }} onPress={() => setExpandedGroups((previous) => ({ ...previous, [group.id]: !groupOpen }))}>
+                <Text style={styles.rowNum}>{groupOpen ? '−' : '+'}</Text>
+                <Text style={styles.rowTxt}>{group.title}</Text>
+                <Text style={styles.rowTag}>{b.lessons.filter((entry) => entry.module?.id === group.id && completed.includes(entry.id)).length}/{b.lessons.filter((entry) => entry.module?.id === group.id).length}</Text>
+              </Pressable>
+            ) : <Text style={styles.section}>{group.title}</Text>)}
+            {groupOpen && <Pressable
+              disabled={!l.ready || blocked}
               onPress={() => open(l.id)}
-              style={[styles.row, !l.ready && styles.rowGrey, isNext && { borderColor: C.accent }]}
+              style={[styles.row, (!l.ready || blocked) && styles.rowGrey, isNext && { borderColor: C.accent }]}
               accessibilityRole="button"
-              accessibilityState={{ disabled: !l.ready }}
+              accessibilityState={{ disabled: !l.ready || blocked }}
             >
-              <Text style={[styles.rowNum, done && { color: C.accentTxt }]}>{done ? '✓' : i + 1}</Text>
-              <Text style={[styles.rowTxt, !l.ready && { color: C.disabledTxt }]}>{firstInModule ? 'Огляд модуля' : l.title}</Text>
+              <Text style={[styles.rowNum, done && { color: C.accentTxt }]}>{done ? '✓' : l.boss ? '🏁' : i + 1}</Text>
+              <Text style={[styles.rowTxt, (!l.ready || blocked) && { color: C.disabledTxt }]}>{firstInModule && !handbook ? 'Огляд модуля' : l.title}{blocked ? ' · після уроків розділу' : ''}</Text>
               {done && <Text style={styles.rowTag}>🔁</Text>}
-            </Pressable>
+            </Pressable>}
             </React.Fragment>
           );
         })}
@@ -215,7 +228,7 @@ export default function BranchScreen() {
             <Text style={[styles.rowNum, finalDone && { color: C.accentTxt }]}>{finalDone ? '✓' : '🏁'}</Text>
             <Text style={[styles.rowTxt, (!isFinalOpen || !b.final.ready) && { color: C.disabledTxt }]}>
               Фінал · {b.final.title}
-              {!isFinalOpen ? ` · після проходження всіх уроків (${lessonsWord(ready.length)}) або практики` : b.final.sim && !finalDone && simStep > 0 ? ` · продовжити з кроку ${simStep + 1}` : ''}
+              {!isFinalOpen ? ` · після проходження всіх уроків (${lessonsWord(ready.length)})${b.practice.ready ? ' або практики' : ''}` : b.final.sim && !finalDone && simStep > 0 ? ` · продовжити з кроку ${simStep + 1}` : ''}
             </Text>
           </Pressable>
         ) : foundation ? (

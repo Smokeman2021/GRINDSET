@@ -7,7 +7,8 @@ import { shuffleQuestion } from '../../src/data/shuffle';
 import { unitById } from '../../src/data/branches';
 import type { BStep } from '../../src/data/branch';
 import { branchReward, canOpenBranchUnit, gradeFinal } from '../../src/data/branchRules';
-import { isAcademyCode } from '../../src/data/academyIds';
+import { isAcademyCode, isHandbookCode } from '../../src/data/academyIds';
+import { handbookPractice } from '../../src/data/academy/handbookPractice';
 import { kbGet } from '../../src/data/kb';
 import { lessonPlace, resumeFor } from '../../src/data/place';
 import { useStore, ENERGY_PER_LESSON, AnswerResult } from '../../src/store';
@@ -61,7 +62,7 @@ export default function LessonScreen() {
   const ref = unitById(id);
   const complete = useStore((s) => s.completed);
   const progress = useStore((s) => ref ? s.branchProg[ref.branch.code] : undefined);
-  if (ref && isAcademyCode(ref.branch.code) && !canOpenBranchUnit(ref.branch.code, ref.kind, complete, progress)) {
+  if (ref && isAcademyCode(ref.branch.code) && !canOpenBranchUnit(ref.branch.code, ref.kind, complete, progress, id)) {
     return <Redirect href={`/branch/${ref.branch.code}`} />;
   }
   return <Lesson key={id} />;
@@ -86,13 +87,24 @@ function Lesson() {
   const kind = ref?.kind;
   const code = ref?.branch.code ?? '';
   const academy = isAcademyCode(code);
+  const handbook = isHandbookCode(code) && (kind === 'lesson' || kind === 'final');
   const freeCheck = kind === 'selfcheck' || (academy && kind === 'practice');
   const hub = `/branch/${code}` as const;
   const isDiagnostic = false;
   const isCheckpoint = false;
   const isQuiz = false;
   // один обʼєкт на маршрут: інакше варіанти перемішувались би на кожному рендері
-  const lesson = useMemo(() => (ref && ref.unit.ready && ref.unit.steps.length ? { ...ref.unit, minutes: 5 } : undefined), [ref]);
+  const lesson = useMemo(() => {
+    if (!ref?.unit.ready || !ref.unit.steps.length) return undefined;
+    const state = useStore.getState();
+    const unit = ref.unit;
+    if (unit.handbookSource === '0.1' && state.completed.includes(unit.id)) {
+      const reviewed = state.srs[`${unit.id}#2`];
+      const variant = reviewed ? Math.max(1, Math.floor(reviewed.due / 86_400_000) % 17) : 1;
+      return { ...unit, steps: [unit.steps[0], ...handbookPractice(unit.handbookSource, variant)], minutes: 5 };
+    }
+    return { ...unit, minutes: 5 };
+  }, [ref]);
   const alreadyDone = lesson ? completed.includes(lesson.id) : false;
 
   const steps: BStep[] = useMemo(() => {
@@ -109,6 +121,7 @@ function Lesson() {
   const chosenRef = useRef<Record<number, number>>(resume?.chosen ?? {});
 
   const [idx, setIdx] = useState(resume?.idx ?? 0);
+  const [retryBoss, setRetryBoss] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
   const [extCorrect, setExtCorrect] = useState<boolean | null>(null); // результат завдань з власним інтерфейсом
@@ -178,7 +191,7 @@ function Lesson() {
   // Головна кнопка (src/data/lessonFlow.ts): у завдань із власною «Перевірити» (пари, порядок, поля…) до перевірки її немає — обійти не можна.
   // У Telegram головна кнопка екрана це MainButton Telegram (власну тоді ховаємо)
   const main = mainButton({ type: step.type, answered, selected: selected !== null, last: idx + 1 >= total, quizStart: isQuiz && idx === 0 });
-  const mainTitle = main.kind === 'hidden' ? '' : MAIN_TITLE[main.kind];
+  const mainTitle = main.kind === 'hidden' ? '' : handbook && isTeach && idx === 0 ? 'До практики' : MAIN_TITLE[main.kind];
   const mainDisabled = main.kind === 'hidden' || !main.enabled;
   const tgMain = useTgMainButton({ text: mainTitle || 'Далі', onPress: needsCheck ? onCheck : onContinue, enabled: !mainDisabled, visible: main.kind !== 'hidden' });
 
@@ -205,7 +218,7 @@ function Lesson() {
       if (limit) setSpeedPts((p) => p + Math.round(5 * (leftRef.current / limit)));
     } else {
       setErrors((e) => e + 1);
-      if (combo > 0 && takeComboShield()) {
+      if (!handbook && combo > 0 && takeComboShield()) {
         setShieldHit(true); // захист із магазину зберіг комбо
       } else {
         setCombo(0);
@@ -267,7 +280,7 @@ function Lesson() {
       // Точність (leaderboard_accuracy): усі перевірювані завдання гілок, самоперевірки, практики й фіналів
       recordAnswers(resultsRef.current, { rated: true });
       track('lesson_complete', { lesson: lsn.id, correct, errors });
-      if (!freeCheck) spendEnergy(ENERGY_PER_LESSON);
+      if (!freeCheck && !handbook) spendEnergy(ENERGY_PER_LESSON);
 
       const okAt = (i: number) => academy
         ? resultsRef.current.some((r) => r.idx === i && r.ok)
@@ -290,14 +303,22 @@ function Lesson() {
       }
       // Фінал: рішення, дані й наступний крок оцінюються окремо; «запускати» без допуску блокує зарахування
       let passed = true;
-      if (kind === 'final') {
+      if (kind === 'final' || (handbook && ref?.unit.boss)) {
         const g = gradeFinal(academy ? lsn.steps : steps, okAt, chosenRef.current);
-        passed = g.passed;
-        setBranchProg(code, { finalGaps: g.gaps, blocked: g.blocked, started: true });
-        if (!passed) return router.dismissTo(hub);
+        passed = g.passed && (!handbook || (qIdx.length > 0 && allOk));
+        if (kind === 'final') setBranchProg(code, { finalGaps: g.gaps, blocked: g.blocked, started: true });
+        if (!passed) {
+          if (handbook) {
+            restart();
+            setRetryBoss(true);
+          }
+          if (kind === 'final') return router.dismissTo(hub);
+          return;
+        }
       }
 
-      const baseCoins = kind === 'final' ? 40 : 20;
+      const precision = qIdx.length ? (qIdx.length - errors) / qIdx.length : 0;
+      const baseCoins = handbook ? Math.round((ref?.unit.boss ? 40 : 20) * Math.max(0, precision)) : kind === 'final' ? 40 : 20;
       const baseXp = kind === 'final' ? 50 : 10;
       const r = branchReward({
         kind: kind ?? 'lesson',
@@ -416,7 +437,7 @@ function Lesson() {
           ? `🧭 САМОПЕРЕВІРКА · ${ref?.branch.title} · без нагороди`
           : alreadyDone
           ? '🔁 ПОВТОРЕННЯ · без нагороди (уже зараховано)'
-          : kind === 'final'
+          : kind === 'final' || ref?.unit.boss
           ? `🏁 ФІНАЛ · рішення, дані, наступний крок${ref?.branch.regulated ? ' · без запуску' : ''}`
           : kind === 'practice'
           ? `🎯 ПРАКТИКА · ${ref?.branch.title}`
@@ -432,16 +453,17 @@ function Lesson() {
         </View>
       )}
       {limit > 0 && <TimerRow key={idx} leftRef={leftRef} limit={limit} answered={answered} />}
+      {retryBoss && idx === 0 && <Text style={[styles.mode, { color: C.goldTxt }]}>Фінал ще не зараховано. Звір рішення з брифом і повтори практику.</Text>}
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+      <ScrollView key={idx} contentContainerStyle={{ paddingBottom: 20 }}>
         {isTeach ? (
           <>
-            <Text style={[styles.layer, { color: C.goldTxt }]}>{ref ? 'БРИФ' : 'ТЕОРІЯ'}</Text>
-            <View style={styles.teachHero}>
+            <Text style={[styles.layer, { color: C.goldTxt }]}>{handbook && idx === 0 ? 'ПОСІБНИК' : ref ? 'БРИФ' : 'ТЕОРІЯ'}</Text>
+            {(!handbook || idx !== 0) && <View style={styles.teachHero}>
               <Grindyk mood="think" size={64} />
-            </View>
+            </View>}
             <Text style={styles.teachTitle}>{step.title}</Text>
-            <Markdown text={step.body} />
+            <Markdown text={step.body} handbook={handbook} />
             {academy && idx === 0 && ref?.unit.kb.map((cardId) => {
               const article = kbGet(cardId, 'uk');
               return article ? (

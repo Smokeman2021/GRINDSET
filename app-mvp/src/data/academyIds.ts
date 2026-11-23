@@ -3,9 +3,44 @@ export type VerticalCode = typeof VERTICAL_CODES[number];
 export const ACADEMY_CODES = ['STA', ...VERTICAL_CODES] as const;
 export type AcademyTrack = typeof ACADEMY_CODES[number];
 export type AcademyCode = `${AcademyTrack}-A1`;
+import { handbookLessons } from './academy/handbookData.ts';
 
-export function isAcademyCode(code: string): code is AcademyCode {
+export const HANDBOOK_TRACKS = ['STA', 'TOV', 'INF', 'NUT', 'DAT', 'GAM', 'CRY', 'ADT', 'MOB', 'SWP', 'TTK'] as const;
+export type HandbookTrack = typeof HANDBOOK_TRACKS[number];
+export type HandbookCode = `${HandbookTrack}-A2`;
+
+export function isHandbookCode(code: string): code is HandbookCode {
+  return HANDBOOK_TRACKS.some((track) => code === `${track}-A2`);
+}
+
+export function isAcademyCodeV1(code: string): code is AcademyCode {
   return ACADEMY_CODES.some((track) => code === `${track}-A1`);
+}
+
+export function isAcademyCode(code: string): code is AcademyCode | HandbookCode {
+  return isHandbookCode(code) || isAcademyCodeV1(code);
+}
+
+const handbookFinals = new Map<string, string>();
+for (const entry of handbookLessons) {
+  if (entry.isFinal) handbookFinals.set(entry.track, entry.id);
+}
+
+export function handbookRouteId(entry: { id: string; track: string }): string {
+  return `BR-${entry.track}-A2-${handbookFinals.get(entry.track) === entry.id ? 'FINAL' : entry.id}`;
+}
+
+export function handbookLessonIds(code: HandbookCode): string[] {
+  const track = code.slice(0, 3);
+  return handbookLessons.filter((entry) => entry.track === track && entry.id !== handbookFinals.get(track)).map(handbookRouteId);
+}
+
+export function handbookBossPrerequisites(code: string, id: string): string[] {
+  if (!isHandbookCode(code) || !id.startsWith(`BR-${code}-HB-`)) return [];
+  const index = handbookLessons.findIndex((entry) => entry.isFinal && handbookRouteId(entry) === id);
+  if (index < 0) return [];
+  const boss = handbookLessons[index];
+  return handbookLessons.slice(0, index).filter((entry) => entry.track === boss.track && entry.groupId === boss.groupId).map(handbookRouteId);
 }
 
 export function academyModuleCount(code: AcademyCode): number {

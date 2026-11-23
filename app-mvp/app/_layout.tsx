@@ -27,6 +27,8 @@ const PROTECTED_ROUTES = [
   'onboarding',
   'diagnostic',
   'lesson/[id]',
+  'handbook-sim',
+  'handbook-exam',
   'results',
   'settings',
   'accuracy',
