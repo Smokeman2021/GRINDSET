@@ -11,7 +11,7 @@ let alice: TestUser;
 const lessons = HANDBOOK.flatMap((branch) => branch.lessons.filter((u) => u.ready).map((u) => u.id)).sort();
 
 before(async () => {
-  db = await startDb();
+  db = await startDb({ upTo: 13 });
   await db.admin.query("select public.set_progress_write_mode('v2')");
   alice = await db.newUser('scoring');
 });

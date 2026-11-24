@@ -156,8 +156,12 @@ export class SupabaseBackend implements CloudBackend {
       if (this.missing(error)) return null;
       this.fail(error);
     }
-    const roster = data as { week_start: string; players: { name: string; points: number; is_me: boolean }[] };
-    return { weekStart: roster.week_start, players: roster.players.map(({ name, points, is_me }) => ({ name, points, isMe: is_me })) };
+    const roster = data as { week_start: string; scoring_enabled?: boolean; players: { name: string; points: number; is_me: boolean }[] };
+    return {
+      weekStart: roster.week_start,
+      scoringEnabled: roster.scoring_enabled === true,
+      players: roster.players.map(({ name, points, is_me }) => ({ name, points, isMe: is_me })),
+    };
   }
 
   // Відгук: автора й нік підставляє тригер feedback_fill на сервері (migrations/0004), тож їх тут не передаємо

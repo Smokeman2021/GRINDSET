@@ -11,6 +11,8 @@ import { useT } from '../../src/i18n';
 import { Theme, useStyles, useTheme } from '../../src/theme';
 
 type ViewState = { state: 'loading' | 'offline' | 'pending' | 'error' } | { state: 'ready'; roster: LeagueRoster };
+const pointWords: Partial<Record<Intl.LDMLPluralRule, string>> = { one: 'бал', few: 'бали' };
+const pointPlural = new Intl.PluralRules('uk');
 
 export default function League() {
   const C = useTheme();
@@ -51,7 +53,11 @@ export default function League() {
         <View style={styles.hero}>
           <Text style={styles.title}>Тижнева ліга</Text>
           {week && <Text style={styles.muted}>Тиждень від {week} · учасників: {players.length}</Text>}
-          <Text style={styles.muted}>Тут видно всіх учасників, зокрема тих, хто ще має 0 балів. Нарахування балів готуємо.</Text>
+          {screen.state === 'ready' && (
+            <Text style={styles.muted}>
+              {screen.roster.scoringEnabled ? '1 бал за перше проходження уроку після ввімкнення заліку.' : 'Тут видно всіх учасників, зокрема тих, хто ще має 0 балів.'}
+            </Text>
+          )}
         </View>
 
         {screen.state === 'loading' && <ActivityIndicator color={C.accent} accessibilityLabel="Завантажуємо учасників" />}
@@ -71,7 +77,7 @@ export default function League() {
             {players.map((player, index) => (
               <View key={`${player.name}-${index}`} style={[styles.row, player.isMe && styles.me]}>
                 <Text style={styles.name} numberOfLines={1}>{player.name}{player.isMe ? ' (ти)' : ''}</Text>
-                <Text style={styles.points}>{player.points} балів</Text>
+                <Text style={styles.points}>{player.points} {pointWords[pointPlural.select(player.points)] ?? 'балів'}</Text>
               </View>
             ))}
           </View>

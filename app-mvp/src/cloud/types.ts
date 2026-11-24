@@ -23,7 +23,7 @@ export type SessionCheck = 'ok' | 'replaced' | 'signed_out';
 
 // Рядок рейтингу точності: лише публічне (імʼя, відсоток, кількість відповідей, позначка «це я»)
 export type AccuracyRow = { name: string; accuracy: number; answers: number; isMe: boolean };
-export type LeagueRoster = { weekStart: string; players: { name: string; points: number; isMe: boolean }[] };
+export type LeagueRoster = { weekStart: string; scoringEnabled: boolean; players: { name: string; points: number; isMe: boolean }[] };
 
 // Відгук тестера (кнопка «Повідомити про помилку / запропонувати»)
 export type FeedbackKind = 'bug' | 'idea' | 'comment' | 'proposal'; // 'idea' — старий вид (до збірки 26)

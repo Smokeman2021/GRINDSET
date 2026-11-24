@@ -282,6 +282,7 @@ export class MockBackend implements CloudBackend {
     const { allowed, progress } = await readDb();
     return {
       weekStart: weekStartStr(),
+      scoringEnabled: false,
       players: allowed.filter((r) => r.status === 'active' && !r.is_service)
         .map((r) => {
           const savedName = progress[r.id]?.state?.playerName;

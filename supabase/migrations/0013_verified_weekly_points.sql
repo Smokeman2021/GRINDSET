@@ -190,6 +190,12 @@ begin
     )
     select jsonb_build_object(
       'week_start', current_week,
+      'scoring_enabled', exists (
+        select 1 from pg_catalog.pg_trigger t
+         where t.tgrelid = 'public.progress_ops'::regclass
+           and t.tgname = 'credit_pilot_league_lesson'
+           and t.tgenabled in ('O', 'A')
+      ),
       'players', coalesce(jsonb_agg(
         jsonb_build_object('name', participant.name, 'points', participant.points, 'is_me', participant.id = viewer_id)
         order by participant.points desc, lower(participant.name), participant.id
