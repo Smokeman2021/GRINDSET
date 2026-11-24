@@ -1,8 +1,9 @@
-import { ACADEMY_CODES, HANDBOOK_TRACKS, handbookRouteId, type HandbookTrack } from '../academyIds.ts';
+import { ACADEMY_CODES, ACADEMY_LESSONS, HANDBOOK_TRACKS, handbookRouteId, type HandbookTrack } from '../academyIds.ts';
 import { brief, unit, type Branch, type Unit } from '../branch.ts';
 import { ACADEMY } from './courses.ts';
-import { handbookLessons, type HandbookLesson } from './handbookData.ts';
+import type { HandbookLesson } from './handbookData.ts';
 import { handbookPractice } from './handbookPractice.ts';
+import { servicesQuickPractice, servicesSelfcheck, servicesSteps } from './servicesLearning.ts';
 
 const SPECIALIZATIONS = {
   MOB: { title: 'Мобайл', emoji: '📱', scenario: 'Залучення й події в мобільних застосунках' },
@@ -13,6 +14,7 @@ const SPECIALIZATIONS = {
 const COURSE_DESCRIPTIONS: Record<HandbookTrack, string> = {
   STA: 'Як працює реклама, хто кому платить і як порахувати результат.',
   TOV: 'Реклама товарів: від заявки до оплаченого замовлення.',
+  SRV: 'Реклама послуг: від заявки до виконаної й оплаченої роботи.',
   INF: 'Реклама курсів: від знайомства до покупки й повернень.',
   NUT: 'Товари для здоров’я: реклама, перевірка обіцянок і замовлення.',
   DAT: 'Сервіси знайомств: від реєстрації до активності й оплати.',
@@ -28,7 +30,7 @@ const previous = new Map(ACADEMY.map((branch) => [branch.code, branch]));
 
 function handbookUnit(entry: HandbookLesson): Unit {
   const id = handbookRouteId(entry);
-  const steps = handbookPractice(entry.sourceId);
+  const steps = entry.track === 'SRV' ? servicesSteps(entry.sourceId) : handbookPractice(entry.sourceId);
   return {
     ...unit(id, entry.title, [entry.id], [brief(entry.title, entry.reading), ...steps]),
     module: { id: entry.groupId, title: entry.groupTitle },
@@ -41,7 +43,7 @@ function toBranch(track: HandbookTrack): Branch & { description: string } {
   const code = `${track}-A2` as const;
   const original = previous.get(`${track}-A1` as Branch['code']);
   const specialty = track in SPECIALIZATIONS ? SPECIALIZATIONS[track as keyof typeof SPECIALIZATIONS] : null;
-  const entries = handbookLessons.filter((entry) => entry.track === track);
+  const entries = ACADEMY_LESSONS.filter((entry) => entry.track === track);
   const reading = entries.map(handbookUnit);
   if (!reading.length) throw new Error(`Відсутній курс посібника: ${track}`);
   const final = reading.find((item) => item.id === `BR-${code}-FINAL`) ?? null;
@@ -53,12 +55,14 @@ function toBranch(track: HandbookTrack): Branch & { description: string } {
     emoji: original?.emoji ?? specialty?.emoji ?? '📗',
     scenario: original?.scenario ?? specialty?.scenario ?? 'Посібник і практика',
     intro: first.preview,
-    kbCard: first.id,
+    kbCard: track === 'SRV' ? 'HB-SRV-BRIEF' : first.id,
     regulated: original?.regulated ?? track === 'SWP',
     wgb: '',
     lessons: reading.filter((item) => item !== final),
-    selfcheck: [],
-    practice: { id: `BR-${code}-PR`, title: '', steps: [], kb: [], ready: false },
+    selfcheck: track === 'SRV' ? servicesSelfcheck : [],
+    practice: track === 'SRV'
+      ? unit(`BR-${code}-PR`, 'Практика перед фіналом', ['HB-SRV-TRACKING'], servicesQuickPractice)
+      : { id: `BR-${code}-PR`, title: '', steps: [], kb: [], ready: false },
     final,
   };
 }

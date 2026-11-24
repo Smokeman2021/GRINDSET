@@ -4,8 +4,10 @@ export const ACADEMY_CODES = ['STA', ...VERTICAL_CODES] as const;
 export type AcademyTrack = typeof ACADEMY_CODES[number];
 export type AcademyCode = `${AcademyTrack}-A1`;
 import { handbookLessons } from './academy/handbookData.ts';
+import { servicesLessons } from './academy/servicesLearning.ts';
 
-export const HANDBOOK_TRACKS = ['STA', 'TOV', 'INF', 'NUT', 'DAT', 'GAM', 'CRY', 'ADT', 'MOB', 'SWP', 'TTK'] as const;
+export const ACADEMY_LESSONS = [...handbookLessons, ...servicesLessons];
+export const HANDBOOK_TRACKS = ['STA', 'TOV', 'SRV', 'INF', 'NUT', 'DAT', 'GAM', 'CRY', 'ADT', 'MOB', 'SWP', 'TTK'] as const;
 export type HandbookTrack = typeof HANDBOOK_TRACKS[number];
 export type HandbookCode = `${HandbookTrack}-A2`;
 
@@ -22,7 +24,7 @@ export function isAcademyCode(code: string): code is AcademyCode | HandbookCode 
 }
 
 const handbookFinals = new Map<string, string>();
-for (const entry of handbookLessons) {
+for (const entry of ACADEMY_LESSONS) {
   if (entry.isFinal) handbookFinals.set(entry.track, entry.id);
 }
 
@@ -32,15 +34,15 @@ export function handbookRouteId(entry: { id: string; track: string }): string {
 
 export function handbookLessonIds(code: HandbookCode): string[] {
   const track = code.slice(0, 3);
-  return handbookLessons.filter((entry) => entry.track === track && entry.id !== handbookFinals.get(track)).map(handbookRouteId);
+  return ACADEMY_LESSONS.filter((entry) => entry.track === track && entry.id !== handbookFinals.get(track)).map(handbookRouteId);
 }
 
 export function handbookBossPrerequisites(code: string, id: string): string[] {
   if (!isHandbookCode(code) || !id.startsWith(`BR-${code}-HB-`)) return [];
-  const index = handbookLessons.findIndex((entry) => entry.isFinal && handbookRouteId(entry) === id);
+  const index = ACADEMY_LESSONS.findIndex((entry) => entry.isFinal && handbookRouteId(entry) === id);
   if (index < 0) return [];
-  const boss = handbookLessons[index];
-  return handbookLessons.slice(0, index).filter((entry) => entry.track === boss.track && entry.groupId === boss.groupId).map(handbookRouteId);
+  const boss = ACADEMY_LESSONS[index];
+  return ACADEMY_LESSONS.slice(0, index).filter((entry) => entry.track === boss.track && entry.groupId === boss.groupId).map(handbookRouteId);
 }
 
 export function academyModuleCount(code: AcademyCode): number {

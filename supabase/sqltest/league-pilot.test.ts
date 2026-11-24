@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test, { after, before } from 'node:test';
+import { HANDBOOK_TRACKS, handbookLessonIds } from '../../app-mvp/src/data/academyIds.ts';
 import { startDb, type Db, type TestUser } from './harness.ts';
 
 type Roster = { scoring_enabled: boolean; players: { points: number; is_me: boolean }[] };
@@ -60,6 +61,26 @@ test('a reset and restore do not replay old credits, and a new accepted lesson e
   assert.equal(await points(user), 0);
   assert.equal((await save(user, [complete('after-restore', 'BR-STA-A2-HB-0.6')], 2)).ops[0].status, 'applied');
   assert.equal(await points(user), 1);
+});
+
+test('adding Services preserves league scores and covers exactly the current regular lessons', async () => {
+  const previousPoints = await points(user);
+  await db.applyMigration('0015_services_weekly_points.sql');
+  assert.equal(await points(user), previousPoints);
+
+  const expected = HANDBOOK_TRACKS.flatMap((track) => handbookLessonIds(`${track}-A2`)).sort();
+  const { rows } = await db.admin.query<{ lesson_id: string }>('select lesson_id from public.league_eligible_lessons');
+  assert.deepEqual(rows.map(({ lesson_id }) => lesson_id).sort(), expected);
+
+  const member = await db.newUser('services');
+  const [lesson] = handbookLessonIds('SRV-A2');
+  await save(member, [
+    complete('services-lesson', lesson),
+    complete('services-lesson-repeat', lesson),
+    complete('services-practice', 'BR-SRV-A2-PR'),
+    complete('services-final', 'BR-SRV-A2-FINAL'),
+  ]);
+  assert.equal(await points(member), 1);
 });
 
 test('pause disables the displayed scoring flag and subsequent completions add no points', async () => {

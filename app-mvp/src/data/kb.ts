@@ -4,7 +4,9 @@ import META from './generated/kb/meta.ts';
 import UK from './generated/kb/texts.uk.ts';
 import RU from './generated/kb/texts.ru.ts';
 import EN from './generated/kb/texts.en.ts';
-import { handbookLessons, handbookReferences } from './academy/handbookData.ts';
+import { handbookReferences } from './academy/handbookData.ts';
+import { ACADEMY_LESSONS } from './academyIds.ts';
+import { servicesReferences } from './academy/servicesLearning.ts';
 import type { Lang } from '../i18n/strings';
 import { parseNum } from './numInput.ts';
 
@@ -43,7 +45,7 @@ function addHandbook(
 }
 
 // The course and the library render exactly the same reading. Practice and solutions stay in the lesson player.
-for (const { id, title, reading, groupId, groupTitle, sourceId, track, terms } of handbookLessons) {
+for (const { id, title, reading, groupId, groupTitle, sourceId, track, terms } of ACADEMY_LESSONS) {
   if (reading.trim()) {
     addHandbook(id, title, reading, 'handbook', { groupId, groupTitle, sourceId }, track.toLowerCase() as KbVertical, terms);
   }
@@ -52,6 +54,9 @@ for (const { id, title, reading, groupId, groupTitle, sourceId, track, terms } o
 for (const { id, title, body, kind } of handbookReferences) {
   const section = kind === 'template' ? 'templates' : kind === 'glossary' ? 'glossary' : 'handbook';
   addHandbook(id, title, body, section, { groupId: 'reference', groupTitle: 'Додатки посібника' });
+}
+for (const { id, title, body, kind } of servicesReferences) {
+  addHandbook(id, title, body, kind === 'template' ? 'templates' : 'glossary', { groupId: 'SRV-reference', groupTitle: 'Довідки «Послуг»' }, 'srv');
 }
 
 const ALL_ITEMS = [...ITEMS, ...Array.from(HANDBOOK.values(), ({ meta }) => meta)];
@@ -84,7 +89,7 @@ export const KB_VERTICALS: { id: KbVertical; title: string }[] = [
 ];
 export const HANDBOOK_VERTICALS: { id: KbVertical; title: string }[] = [
   { id: 'sta', title: 'Старт' },
-  ...KB_VERTICALS.filter(({ id }) => id !== 'srv'),
+  ...KB_VERTICALS,
   { id: 'mob', title: 'Мобайл' },
   { id: 'swp', title: 'Підписки й розіграші' },
   { id: 'ttk', title: 'TikTok' },

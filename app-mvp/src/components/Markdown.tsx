@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TextStyle, ScrollView, Modal, Pressable, Image,
 import { Asset } from 'expo-asset';
 import { useRouter } from 'expo-router';
 import { handbookReferences } from '../data/academy/handbookData';
+import { servicesReferences } from '../data/academy/servicesLearning';
 import { handbookImages } from '../data/academy/handbookImages';
 import { Theme, useStyles } from '../theme';
 import { findTerm, Term, TERM_RE } from '../data/glossary';
@@ -20,7 +21,7 @@ const isSeparatorRow = (cells: string[]) => cells.every((c) => /^:?-{2,}:?$/.tes
 
 const normalizeTerm = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
 const handbookTerms = new Map<string, Term>();
-for (const { id, title, body } of handbookReferences) {
+for (const { id, title, body } of [...handbookReferences, ...servicesReferences]) {
   if (!id.startsWith('HB-TERM-')) continue;
   const [def, alternatives] = body.split('\n\n');
   const synonyms = alternatives?.match(/^\*\*Також:\*\*\s*(.+)$/)?.[1].split(/\s*[,;]\s*/) ?? [];

@@ -6,6 +6,7 @@ import { handbookLessons, handbookReferences, handbookSandboxCases } from '../..
 import { sandboxRun } from '../../app-mvp/src/data/academy/handbookSandbox.ts';
 import { canOpenBranchUnit, finalOpen, gradeFinal, unitKind } from '../../app-mvp/src/data/branchRules.ts';
 import { unitById } from '../../app-mvp/src/data/branches/index.ts';
+import { branchPins } from '../../app-mvp/src/data/branchMap.ts';
 import { kbGet, kbList } from '../../app-mvp/src/data/kb.ts';
 
 test('the complete handbook has playable units and a canonical, answer-free reading view', () => {
@@ -34,11 +35,11 @@ test('the complete handbook has playable units and a canonical, answer-free read
 });
 
 test('the new path preserves the old path and recognizes chapter-specific boss unlocks', () => {
-  assert.equal(ACADEMY_HOME.length, 8);
+  assert.equal(ACADEMY_HOME.length, 9);
   assert.equal(HANDBOOK_SPECIALIZATIONS.length, 3);
   assert.ok(ACADEMY_HOME.every(({ code }) => code.endsWith('-A2')));
   assert.ok(kbList('uk', { handbookOnly: true }).every(({ id }) => id.startsWith('HB-')));
-  assert.equal(kbList('uk', { handbookOnly: true }).length, 194);
+  assert.equal(kbList('uk', { handbookOnly: true }).length, 237);
   assert.ok(unitById('BR-STA-A1-L01'));
   for (const branch of HANDBOOK) {
     assert.ok(branch.final?.id && !finalOpen(branch.code, ['BR-STA-A1-L01'], undefined), branch.code);
@@ -51,6 +52,35 @@ test('the new path preserves the old path and recognizes chapter-specific boss u
   const boss = start.lessons[bossIndex];
   assert.equal(canOpenBranchUnit(start.code, 'lesson', [], undefined, boss.id), false);
   assert.equal(canOpenBranchUnit(start.code, 'lesson', start.lessons.slice(0, bossIndex).map(({ id }) => id), undefined, boss.id), true);
+});
+
+test('the Services course has both routes, ten modules, source-linked readings and a gated final', () => {
+  const branch = HANDBOOK.find(({ code }) => code === 'SRV-A2');
+  assert.ok(branch?.final);
+  assert.equal(branch.lessons.length, 36);
+  assert.equal(new Set(branch.lessons.map((lesson) => lesson.module?.id)).size, 10);
+  assert.ok(ACADEMY_HOME.includes(branch));
+  assert.equal(branch.selfcheck.length, 2);
+  assert.ok(branch.practice.ready);
+  assert.ok(branch.selfcheck.every((step) => unitById(step.see)?.branch.code === branch.code));
+  assert.equal(finalOpen(branch.code, [], { sc: 'pass' }), false);
+  assert.equal(finalOpen(branch.code, [], { sc: 'pass', practice: 'pass' }), true);
+  const pins = branchPins(branch.code, [], { sc: 'pass' }, branch.lessons.map(({ id }) => id), true);
+  assert.equal(pins.find(({ kind }) => kind === 'practice')?.state, 'open');
+  assert.match(pins.at(-1)?.why ?? '', /або практики/);
+  const types = new Set<string>();
+  for (const unit of branch.lessons) {
+    assert.equal(unitById(unit.id)?.unit, unit);
+    assert.equal(unit.steps[0].type, 'teach');
+    assert.ok(unit.steps.length >= 2);
+    assert.equal(kbGet(unit.kb[0], 'uk')?.solution, undefined);
+    assert.equal(kbGet(unit.kb[0], 'uk')?.verticals[0], 'srv');
+    unit.steps.forEach(({ type }) => types.add(type));
+  }
+  assert.deepEqual(types, new Set(['teach', 'choice', 'numeric', 'match', 'multi', 'order']));
+  assert.deepEqual(new Set(branch.final.steps.flatMap((step) => step.part ? [step.part] : [])), new Set(['decision', 'data', 'next']));
+  assert.equal(gradeFinal(branch.final.steps, () => true, {}).passed, true);
+  assert.equal(gradeFinal(branch.final.steps, (i) => i !== 2, {}).passed, false);
 });
 
 test('the eleven sandbox scenarios separate accrual, contribution and cash', () => {

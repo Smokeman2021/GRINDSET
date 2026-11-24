@@ -40,7 +40,7 @@ export function branchPins(code: string, completed: string[], prog: BranchProg |
     return { id, n: i + 1, kind: 'lesson', locId: route[i], state: st(id, open), why: open ? undefined : ready ? 'відкриється після уроків розділу' : 'урок ще не готовий' };
   });
   if (code === 'STA-A1') return pins;
-  const hasPractice = !isHandbookCode(code);
+  const hasPractice = !isHandbookCode(code) || code === 'SRV-A2';
   if (hasPractice) {
     const pr = `BR-${code}-PR`;
     const practiceDone = isAcademyCode(code) && prog?.practice === 'pass';
