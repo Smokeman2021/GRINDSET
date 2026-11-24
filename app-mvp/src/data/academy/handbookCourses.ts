@@ -9,6 +9,21 @@ const SPECIALIZATIONS = {
   SWP: { title: 'Підписки та розіграші', emoji: '🎟️', scenario: 'Умови продукту, списання й перевірка допуску' },
   TTK: { title: 'TikTok Ads', emoji: '🎬', scenario: 'Окремий курс з реклами у TikTok' },
 };
+
+const COURSE_DESCRIPTIONS: Record<HandbookTrack, string> = {
+  STA: 'Як працює реклама, хто кому платить і як порахувати результат.',
+  TOV: 'Реклама товарів: від заявки до оплаченого замовлення.',
+  INF: 'Реклама курсів: від знайомства до покупки й повернень.',
+  NUT: 'Товари для здоров’я: реклама, перевірка обіцянок і замовлення.',
+  DAT: 'Сервіси знайомств: від реєстрації до активності й оплати.',
+  GAM: 'Азартні ігри: правила реклами, депозити й виплати.',
+  CRY: 'Криптосервіси: правила реклами, перевірка особи й оплата.',
+  ADT: 'Продукти 18+: правила реклами, підписки й повернення.',
+  MOB: 'Реклама застосунків: від встановлення до цільової дії.',
+  SWP: 'Як перевіряти умови підписок, списань і розіграшів.',
+  TTK: 'Як підготувати, запустити й оцінити рекламу в TikTok.',
+};
+
 const previous = new Map(ACADEMY.map((branch) => [branch.code, branch]));
 
 function handbookUnit(entry: HandbookLesson): Unit {
@@ -22,7 +37,7 @@ function handbookUnit(entry: HandbookLesson): Unit {
   };
 }
 
-function toBranch(track: HandbookTrack): Branch {
+function toBranch(track: HandbookTrack): Branch & { description: string } {
   const code = `${track}-A2` as const;
   const original = previous.get(`${track}-A1` as Branch['code']);
   const specialty = track in SPECIALIZATIONS ? SPECIALIZATIONS[track as keyof typeof SPECIALIZATIONS] : null;
@@ -34,6 +49,7 @@ function toBranch(track: HandbookTrack): Branch {
   return {
     code,
     title: original?.title ?? specialty?.title ?? track,
+    description: COURSE_DESCRIPTIONS[track],
     emoji: original?.emoji ?? specialty?.emoji ?? '📗',
     scenario: original?.scenario ?? specialty?.scenario ?? 'Посібник і практика',
     intro: first.preview,

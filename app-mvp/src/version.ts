@@ -1,6 +1,6 @@
 // Номер збірки інтерфейсу. Збільшуємо при КОЖНІЙ видимій зміні й дописуємо рядок у CHANGELOG.
 // Гравець бачить цей номер у Профілі й Налаштуваннях — так одразу зрозуміло, чи телефон отримав нову версію.
-export const UI_BUILD = 32;
+export const UI_BUILD = 33;
 
 // Службові позначки збірки (b{N}, «збірка N · час», «Що нового») бачить лише розробник: у dev-збірці й Expo Go
 export const SHOW_BUILD: boolean = typeof __DEV__ !== 'undefined' && __DEV__;
@@ -8,6 +8,11 @@ export const SHOW_BUILD: boolean = typeof __DEV__ !== 'undefined' && __DEV__;
 export const LOADED_AT = new Date();
 
 export const CHANGELOG: { build: number; date: string; items: string[] }[] = [
+  {
+    build: 33,
+    date: '2026-11-24',
+    items: ['Короткі описи курсів, спеціалізацій, пісочниці та іспиту на картках Академії'],
+  },
   {
     build: 32,
     date: '2026-11-23',

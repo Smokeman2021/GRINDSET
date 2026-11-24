@@ -1,5 +1,3 @@
-// «Уроки» (ТЗ 004, C1): вибір вертикалі. Старий курс (модулі 01–10) з інтерфейсу прибрано: головна веде лише у вісім гілок.
-// Подорож Києвом з уроками гілок як точками на карті — етап E (файли src/art/Journey* лишаються в репозиторії).
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -13,6 +11,10 @@ import { homeSay } from '../../src/data/phrases';
 import { GrindykSay } from '../../src/components/GrindykSay';
 import { UnsyncedNote } from '../../src/components/UnsyncedNote';
 import { Theme, useStyles, useTheme } from '../../src/theme';
+
+const [start, ...verticals] = ACADEMY_HOME;
+const sandboxDescription = 'Тестуй рішення на навчальних даних без витрат.';
+const examDescription = 'Перевір себе на нових кейсах із розбором.';
 
 export default function Home() {
   const C = useTheme();
@@ -78,40 +80,55 @@ export default function Home() {
           </Pressable>
         )}
         <Text style={styles.h1}>Академія</Text>
-        <Pressable onPress={() => openBranch(ACADEMY_HOME[0].code)} style={styles.start} accessibilityRole="button" accessibilityLabel="Старт · безкоштовно">
-          <Text style={styles.startIcon}>{ACADEMY_HOME[0].emoji}</Text>
+        <Pressable onPress={() => openBranch(start.code)} style={styles.start} accessibilityRole="button" accessibilityLabel="Старт · безкоштовно" accessibilityHint={start.description}>
+          <Text style={styles.startIcon}>{start.emoji}</Text>
           <View style={styles.startText}>
-            <Text style={styles.startTitle}>Старт</Text>
+            <Text style={styles.startTitle}>{start.title}</Text>
             <Text style={styles.startLabel}>Безкоштовно</Text>
+            <Text style={styles.description}>{start.description}</Text>
           </View>
         </Pressable>
-        <Pressable onPress={() => router.push('/handbook-sim')} style={styles.specialty} accessibilityRole="button">
-          <Text style={styles.specialtyIcon}>🧪</Text><Text style={styles.title}>Пісочниця</Text>
+        <Pressable onPress={() => router.push('/handbook-sim')} style={styles.specialty} accessibilityRole="button" accessibilityLabel="Пісочниця" accessibilityHint={sandboxDescription}>
+          <Text style={styles.specialtyIcon}>🧪</Text>
+          <View style={styles.specialtyText}>
+            <Text style={styles.title}>Пісочниця</Text>
+            <Text style={styles.description}>{sandboxDescription}</Text>
+          </View>
         </Pressable>
         <View style={styles.grid}>
-          {ACADEMY_HOME.slice(1).map((b, i) => {
-            return (
-              <Pressable
-                key={b.code}
-                onPress={() => openBranch(b.code)}
-                style={({ pressed }) => [styles.card, i % 2 === 1 && styles.cardAlt, pressed && { transform: [{ scale: 0.98 }] }]}
-                accessibilityRole="button"
-                accessibilityLabel={b.title}
-              >
-                <Text style={styles.emoji}>{b.emoji}</Text>
+          {verticals.map((b, i) => (
+            <Pressable
+              key={b.code}
+              onPress={() => openBranch(b.code)}
+              style={({ pressed }) => [styles.card, i % 2 === 1 && styles.cardAlt, pressed && { transform: [{ scale: 0.98 }] }]}
+              accessibilityRole="button"
+              accessibilityLabel={b.title}
+              accessibilityHint={b.description}
+            >
+              <Text style={styles.emoji}>{b.emoji}</Text>
+              <View style={styles.cardText}>
                 <Text style={styles.title}>{b.title}</Text>
-              </Pressable>
-            );
-          })}
+                <Text style={styles.description}>{b.description}</Text>
+              </View>
+            </Pressable>
+          ))}
         </View>
         <Text style={styles.h1}>Спеціалізації</Text>
         {HANDBOOK_SPECIALIZATIONS.map((b) => (
-          <Pressable key={b.code} onPress={() => openBranch(b.code)} style={styles.specialty} accessibilityRole="button">
-            <Text style={styles.specialtyIcon}>{b.emoji}</Text><Text style={styles.title}>{b.title}</Text>
+          <Pressable key={b.code} onPress={() => openBranch(b.code)} style={styles.specialty} accessibilityRole="button" accessibilityLabel={b.title} accessibilityHint={b.description}>
+            <Text style={styles.specialtyIcon}>{b.emoji}</Text>
+            <View style={styles.specialtyText}>
+              <Text style={styles.title}>{b.title}</Text>
+              <Text style={styles.description}>{b.description}</Text>
+            </View>
           </Pressable>
         ))}
-        <Pressable onPress={() => router.push('/handbook-exam')} style={styles.specialty} accessibilityRole="button">
-          <Text style={styles.specialtyIcon}>📝</Text><Text style={styles.title}>Підсумковий іспит</Text>
+        <Pressable onPress={() => router.push('/handbook-exam')} style={styles.specialty} accessibilityRole="button" accessibilityLabel="Підсумковий іспит" accessibilityHint={examDescription}>
+          <Text style={styles.specialtyIcon}>📝</Text>
+          <View style={styles.specialtyText}>
+            <Text style={styles.title}>Підсумковий іспит</Text>
+            <Text style={styles.description}>{examDescription}</Text>
+          </View>
         </Pressable>
       </ScrollView>
     </View>
@@ -128,14 +145,14 @@ const makeStyles = (C: Theme) =>
     contSub: { color: C.muted, fontSize: 12, fontWeight: '700' },
     start: { flexDirection: 'row', alignItems: 'center', gap: 16, minHeight: 94, borderRadius: 18, padding: 16, backgroundColor: C.accentTint, borderWidth: 2, borderColor: C.accent },
     startIcon: { fontSize: 37 },
-    startText: { flex: 1 },
+    startText: { flex: 1, gap: 4 },
     startTitle: { color: C.txt, fontSize: 23, fontWeight: '900' },
-    startLabel: { color: C.accentTxt, fontSize: 13, fontWeight: '800', marginTop: 3 },
+    startLabel: { color: C.accentTxt, fontSize: 13, fontWeight: '800' },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
     card: {
       flexBasis: '47%',
       flexGrow: 1,
-      aspectRatio: 1,
+      minHeight: 144,
       backgroundColor: C.panel,
       borderRadius: 16,
       padding: 12,
@@ -144,11 +161,14 @@ const makeStyles = (C: Theme) =>
       borderColor: C.line,
       justifyContent: 'flex-end',
       alignItems: 'flex-start',
-      gap: 12,
+      gap: 8,
     },
     cardAlt: { backgroundColor: C.accentTint },
-    emoji: { fontSize: 46 },
+    cardText: { alignSelf: 'stretch', gap: 4 },
+    emoji: { fontSize: 34 },
     title: { color: C.txt, fontSize: 17, fontWeight: '900' },
+    description: { color: C.muted, fontSize: 13, lineHeight: 18 },
     specialty: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 13, borderRadius: 12, backgroundColor: C.panel, borderWidth: 1, borderColor: C.line },
+    specialtyText: { flex: 1, gap: 4 },
     specialtyIcon: { fontSize: 20 },
   });
