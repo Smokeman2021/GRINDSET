@@ -6,7 +6,7 @@ import { UI_BUILD } from '../version';
 import { coreOf } from './shared/progressOps';
 import type { Core, LoadV2, Op, OpResult, SaveV2 } from './shared/progressOps';
 import { feedbackContext, legacyPayload } from './shared/feedbackQueue';
-import type { AccuracyRow, CloudBackend, CloudUser, FeedbackInput, FeedbackStatus, EventRow, FeedbackRow, LoginFailure, LoginInput, LoginResult, ServerProgress, SessionCheck, TesterRow } from './types';
+import type { AccuracyRow, CloudBackend, CloudUser, FeedbackInput, FeedbackStatus, EventRow, FeedbackRow, LeagueRoster, LoginFailure, LoginInput, LoginResult, ServerProgress, SessionCheck, TesterRow } from './types';
 
 const SID_KEY = 'grindset-cloud-sid';
 
@@ -148,6 +148,16 @@ export class SupabaseBackend implements CloudBackend {
       answers: Number(r.answers),
       isMe: !!r.is_me,
     }));
+  }
+
+  async weeklyRoster(): Promise<LeagueRoster | null> {
+    const { data, error } = await this.client.rpc('weekly_league_roster');
+    if (error) {
+      if (this.missing(error)) return null;
+      this.fail(error);
+    }
+    const roster = data as { week_start: string; players: { name: string; points: number; is_me: boolean }[] };
+    return { weekStart: roster.week_start, players: roster.players.map(({ name, points, is_me }) => ({ name, points, isMe: is_me })) };
   }
 
   // Відгук: автора й нік підставляє тригер feedback_fill на сервері (migrations/0004), тож їх тут не передаємо

@@ -1,168 +1,100 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { getBackend } from '../../src/cloud/backend';
+import { useCloud } from '../../src/cloud/cloudStore';
+import type { LeagueRoster } from '../../src/cloud/types';
+import { Glow } from '../../src/components/Glow';
 import { TopBar } from '../../src/components/TopBar';
-import { GrindykSay } from '../../src/components/GrindykSay';
-import { DEMOTE_BOTTOM, LEAGUE_SIZE, PROMOTE_TOP, rankOf, standings, TIERS, weekFraction } from '../../src/data/league';
-import { useStore } from '../../src/store';
-import { say, PhraseKind } from '../../src/data/phrases';
 import { useT } from '../../src/i18n';
 import { Theme, useStyles, useTheme } from '../../src/theme';
-import { Glow } from '../../src/components/Glow';
-import { CLOUD_MODE } from '../../src/cloud/config';
+
+type ViewState = { state: 'loading' | 'offline' | 'pending' | 'error' } | { state: 'ready'; roster: LeagueRoster };
 
 export default function League() {
   const C = useTheme();
   const styles = useStyles(makeStyles);
   const insets = useSafeAreaInsets();
-  const { tier, weekId, weekXp, playerName, lastWeek, checkStreak } = useStore();
-  const tr = useT();
   const router = useRouter();
-  const [tick, setTick] = useState(0);
+  const t = useT();
+  const [screen, setScreen] = useState<ViewState>({ state: 'loading' });
+  const [refresh, setRefresh] = useState(0);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      checkStreak(); // якщо почався новий тиждень, підіб'є підсумки
-      setTick((t) => t + 1);
-    }, [checkStreak])
-  );
+  useFocusEffect(useCallback(() => {
+    const backend = getBackend();
+    if (!backend) {
+      setScreen({ state: 'offline' });
+      return;
+    }
+    let active = true;
+    setScreen({ state: 'loading' });
+    backend.weeklyRoster().then(
+      (roster) => { if (active) setScreen(roster ? { state: 'ready', roster } : { state: 'pending' }); },
+      (error) => {
+        if (!active) return;
+        if (error instanceof Error && error.message === 'replaced') void useCloud.getState().verify();
+        setScreen({ state: 'error' });
+      },
+    );
+    return () => { active = false; };
+  }, [refresh]));
 
-  const frac = weekFraction(weekId);
-  const list = useMemo(
-    () => standings(weekId, tier, playerName, weekXp, frac),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [weekId, tier, playerName, weekXp, tick]
-  );
-  const rank = rankOf(list);
-  const t = TIERS[tier];
-
-  const kind: PhraseKind = rank === 1
-      ? 'leagueTop'
-      : tier < TIERS.length - 1 && rank <= PROMOTE_TOP
-      ? 'leagueZone'
-      : tier > 0 && rank > LEAGUE_SIZE - DEMOTE_BOTTOM
-      ? 'leagueBottom'
-      : 'leagueMid';
-  const [talk, setTalk] = useState(() => say(kind));
-  const daysLeft = Math.max(0, Math.ceil(7 * (1 - frac)));
+  const players = screen.state === 'ready' ? screen.roster.players : [];
+  const week = screen.state === 'ready' ? screen.roster.weekStart.slice(5).split('-').reverse().join('.') : null;
 
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
+    <View style={styles.root}>
       <Glow />
-      <TopBar title={tr('titleLeague')} />
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 30 }}>
-        {CLOUD_MODE !== 'off' && (
-          <Pressable onPress={() => router.push('/accuracy')} style={styles.accCard}>
-            <Text style={styles.accIcon}>🎯</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.accTitle}>Рейтинг точності</Text>
-              <Text style={styles.accSub}>Хто відповідає точніше: змагання реальних тестерів</Text>
-            </View>
-            <Text style={styles.accGo}>›</Text>
-          </Pressable>
-        )}
-        <View style={[styles.hero, { borderColor: t.color }]}>
-          <Text style={styles.heroIcon}>{t.icon}</Text>
-          <Text style={[styles.heroTier, { color: t.color }]}>Ліга «{t.name}»</Text>
-          <Text style={styles.heroSub}>
-            Твоє місце: {rank} із {LEAGUE_SIZE} · залишилось {daysLeft} дн.
-          </Text>
-          <Text style={styles.zoneHint}>
-            {tier < TIERS.length - 1 ? `Топ-${PROMOTE_TOP} піднімається. ` : 'Це найвища ліга. '}
-            {tier > 0 ? `Останні ${DEMOTE_BOTTOM} опускаються.` : ''}
-          </Text>
+      <TopBar title={t('titleLeague')} />
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 30, gap: 16 }}>
+        <View style={styles.hero}>
+          <Text style={styles.title}>Тижнева ліга</Text>
+          {week && <Text style={styles.muted}>Тиждень від {week} · учасників: {players.length}</Text>}
+          <Text style={styles.muted}>Тут видно всіх учасників, зокрема тих, хто ще має 0 балів. Нарахування балів готуємо.</Text>
         </View>
 
-        {lastWeek && (
-          <View style={[styles.banner, lastWeek.outcome === 'up' ? styles.bannerUp : lastWeek.outcome === 'down' ? styles.bannerDown : null]}>
-            <Text style={styles.bannerTxt}>
-              Минулий тиждень: {lastWeek.rank} місце ·{' '}
-              {lastWeek.outcome === 'up' ? '⬆️ підвищення' : lastWeek.outcome === 'down' ? '⬇️ пониження' : 'залишився в лізі'}
-            </Text>
+        {screen.state === 'loading' && <ActivityIndicator color={C.accent} accessibilityLabel="Завантажуємо учасників" />}
+        {screen.state === 'pending' && <Text style={styles.muted}>Список учасників ще підключається.</Text>}
+        {screen.state === 'offline' && <Text style={styles.muted}>Список учасників доступний після входу в GRINDSET.</Text>}
+        {screen.state === 'error' && (
+          <View style={styles.list}>
+            <Text style={styles.muted}>Не вдалося завантажити учасників.</Text>
+            <Pressable accessibilityRole="button" onPress={() => setRefresh((n) => n + 1)} style={styles.action}>
+              <Text style={styles.link}>Спробувати ще раз</Text>
+            </Pressable>
           </View>
         )}
 
-        <View style={{ marginTop: 8 }}>
-          <GrindykSay text={talk.text} pose={talk.pose} height={110} onPress={() => setTalk(say(kind))} />
-        </View>
-
-        <View style={styles.list}>
-          {list.map((r, i) => {
-            const pos = i + 1;
-            const up = tier < TIERS.length - 1 && pos <= PROMOTE_TOP;
-            const down = tier > 0 && pos > LEAGUE_SIZE - DEMOTE_BOTTOM;
-            return (
-              <View key={r.name + i} style={[styles.row, r.me && styles.rowMe]}>
-                <Text style={[styles.pos, up && { color: C.accentTxt }, down && { color: C.redTxt }]}>{pos}</Text>
-                <View style={[styles.dot, r.me && { backgroundColor: C.accent }]}>
-                  <Text style={styles.dotTxt}>{r.name.charAt(0).toUpperCase()}</Text>
-                </View>
-                <Text style={[styles.name, r.me && { color: C.accentTxt }]} numberOfLines={1}>
-                  {r.name}
-                  {r.me ? ' (ти)' : ''}
-                </Text>
-                <Text style={styles.xp}>{r.xp} XP</Text>
+        {screen.state === 'ready' && (players.length ? (
+          <View style={styles.list}>
+            {players.map((player, index) => (
+              <View key={`${player.name}-${index}`} style={[styles.row, player.isMe && styles.me]}>
+                <Text style={styles.name} numberOfLines={1}>{player.name}{player.isMe ? ' (ти)' : ''}</Text>
+                <Text style={styles.points}>{player.points} балів</Text>
               </View>
-            );
-          })}
-        </View>
+            ))}
+          </View>
+        ) : <Text style={styles.muted}>Поки немає активних учасників.</Text>)}
 
-        <Text style={styles.foot}>
-          Онлайн-суперників ще нема, тому боти в лізі симульовані. Коли з'явиться сервер, тут будуть живі гравці.
-        </Text>
+        <Pressable accessibilityRole="button" onPress={() => router.push('/accuracy')} style={styles.action}>
+          <Text style={styles.link}>Моя точність ›</Text>
+        </Pressable>
       </ScrollView>
     </View>
   );
 }
 
 const makeStyles = (C: Theme) => StyleSheet.create({
-  accCard: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.panel, borderRadius: 16, borderWidth: 2, borderBottomWidth: 5, borderColor: C.accent, padding: 14, marginBottom: 14 },
-  accIcon: { fontSize: 30 },
-  accTitle: { color: C.txt, fontWeight: '900', fontSize: 16 },
-  accSub: { color: C.muted, fontSize: 12, marginTop: 2 },
-  accGo: { color: C.accentTxt, fontSize: 26, fontWeight: '900' },
-  hero: {
-    alignItems: 'center',
-    backgroundColor: C.panel,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderBottomWidth: 5,
-    padding: 18,
-  },
-  heroIcon: { fontSize: 48 },
-  heroTier: { fontSize: 22, fontWeight: '900', marginTop: 4 },
-  heroSub: { color: C.txt, fontWeight: '700', marginTop: 6 },
-  zoneHint: { color: C.muted, fontSize: 12, marginTop: 6, textAlign: 'center' },
-  banner: {
-    marginTop: 12,
-    backgroundColor: C.panel2,
-    borderRadius: 12,
-    padding: 10,
-    borderWidth: 2,
-    borderColor: C.line,
-  },
-  bannerUp: { borderColor: C.accent },
-  bannerDown: { borderColor: C.red },
-  bannerTxt: { color: C.txt, fontWeight: '700', fontSize: 13, textAlign: 'center' },
-  list: { marginTop: 4 },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: C.panel,
-    borderRadius: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    marginBottom: 6,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  rowMe: { borderColor: C.accent, backgroundColor: C.chip },
-  pos: { width: 24, color: C.muted, fontWeight: '900', fontSize: 15, textAlign: 'center' },
-  dot: { width: 34, height: 34, borderRadius: 17, backgroundColor: C.panel2, alignItems: 'center', justifyContent: 'center' },
-  dotTxt: { color: C.txt, fontWeight: '900' },
-  name: { flex: 1, color: C.txt, fontWeight: '700', fontSize: 15 },
-  xp: { color: C.blueTxt, fontWeight: '800' },
-  foot: { color: C.muted, fontSize: 12, textAlign: 'center', marginTop: 16 },
+  root: { flex: 1, backgroundColor: C.bg },
+  hero: { padding: 16, borderRadius: 16, borderWidth: 1, borderColor: C.line, backgroundColor: C.panel, gap: 8 },
+  title: { color: C.txt, fontSize: 22, fontWeight: '900' },
+  muted: { color: C.muted, fontSize: 14, lineHeight: 20 },
+  list: { gap: 8 },
+  row: { padding: 12, minHeight: 48, borderRadius: 12, borderWidth: 1, borderColor: C.line, backgroundColor: C.panel, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  me: { borderColor: C.accent, backgroundColor: C.accentTint },
+  name: { flex: 1, color: C.txt, fontSize: 15, fontWeight: '700' },
+  points: { color: C.blueTxt, fontSize: 14, fontWeight: '800' },
+  action: { padding: 12, borderRadius: 12, backgroundColor: C.panel },
+  link: { color: C.accentTxt, fontSize: 15, fontWeight: '800' },
 });

@@ -3,8 +3,9 @@
 // тією самою логікою (shared/access.ts), що й на справжньому сервері. У збірці зі справжнім Supabase цей код не викликається.
 import { InviteRow, accuracyBoard, checkInvite, formatInviteCode, generateInviteCode, hashInvite, newSid, normalizeInviteCode, normalizeUsername, sessionState } from './shared/access';
 import { UI_BUILD } from '../version';
+import { weekStartStr } from '../data/league';
 import { feedbackContext } from './shared/feedbackQueue';
-import type { AccuracyRow, CloudBackend, CloudUser, FeedbackInput, FeedbackStatus, EventRow, FeedbackRow, LoginInput, LoginResult, SessionCheck, TesterRow } from './types';
+import type { AccuracyRow, CloudBackend, CloudUser, FeedbackInput, FeedbackStatus, EventRow, FeedbackRow, LeagueRoster, LoginInput, LoginResult, SessionCheck, TesterRow } from './types';
 import { localKv, sessionKv } from './storage';
 
 const DB_KEY = 'grindset-mock-server-v2';
@@ -274,6 +275,17 @@ export class MockBackend implements CloudBackend {
         return { name: r.display_name || r.username, status: r.status, isAdmin: r.is_admin, correct: Number(st.answersCorrect) || 0, total: Number(st.answersTotal) || 0, isMe: r.id === me.id };
       })
     );
+  }
+
+  async weeklyRoster(): Promise<LeagueRoster> {
+    const me = await this.mustBeActive();
+    const { allowed } = await readDb();
+    return {
+      weekStart: weekStartStr(),
+      players: allowed.filter((r) => r.status === 'active' && !r.is_service)
+        .map((r) => ({ name: r.display_name.trim() || r.username, points: 0, isMe: r.id === me.id }))
+        .sort((a, b) => a.name.localeCompare(b.name, 'uk')),
+    };
   }
 
   async sendFeedback(input: FeedbackInput): Promise<void> {

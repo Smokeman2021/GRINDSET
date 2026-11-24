@@ -23,6 +23,7 @@ export type SessionCheck = 'ok' | 'replaced' | 'signed_out';
 
 // Рядок рейтингу точності: лише публічне (імʼя, відсоток, кількість відповідей, позначка «це я»)
 export type AccuracyRow = { name: string; accuracy: number; answers: number; isMe: boolean };
+export type LeagueRoster = { weekStart: string; players: { name: string; points: number; isMe: boolean }[] };
 
 // Відгук тестера (кнопка «Повідомити про помилку / запропонувати»)
 export type FeedbackKind = 'bug' | 'idea' | 'comment' | 'proposal'; // 'idea' — старий вид (до збірки 26)
@@ -49,6 +50,7 @@ export interface CloudBackend {
   loadProgressV2(): Promise<LoadV2>;
   saveProgressV2(baseRev: number, ops: Op[], clientState: Record<string, unknown> | null, epoch: number): Promise<SaveV2>;
   accuracyBoard(): Promise<AccuracyRow[]>; // рейтинг точності реальних гравців; кидає Error('replaced'), якщо сеанс замінено
+  weeklyRoster(): Promise<LeagueRoster | null>; // null до появи функції weekly_league_roster
   trackEvent(name: string, props?: Record<string, unknown>): Promise<void>; // мовчки ігнорує помилки: аналітика не повинна ламати урок
   sendFeedback(input: FeedbackInput): Promise<void>; // кидає Error('replaced'), якщо сеанс замінено
   // Лише для адміна (на сервері перевіряє is_admin_user; для не-адміна кидають Error('forbidden'))
