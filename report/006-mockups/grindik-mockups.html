@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Гріндік на екрані завдання · макети А і Б</title>
+<style>
+  /* Макети для вибору (ТЗ 006, 3.3). Не впроваджено в застосунок. Кольори — нічна тема src/theme.ts. */
+  :root { --bg:#0d0f14; --panel:#171b24; --panel2:#1d2230; --line:#252c3a; --txt:#e8ecf2; --muted:#8b94a7; --accent:#36e27a; --accentEdge:#1fa457; --blue:#5aa7ff; --gold:#ffce4d; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #07080b; color: var(--txt); font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .wrap { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; padding: 16px; }
+  .col { width: 100%; max-width: 420px; }
+  .tag { font-weight: 900; letter-spacing: 1px; font-size: 12px; color: var(--gold); margin: 0 0 6px; }
+  .tag small { color: var(--muted); font-weight: 700; letter-spacing: 0; }
+  .phone { position: relative; background: var(--bg); border: 1px solid var(--line); border-radius: 22px; height: 760px; overflow: hidden; display: flex; flex-direction: column; padding: 14px 16px 16px; }
+  .head { display: flex; align-items: center; gap: 12px; }
+  .x { color: var(--muted); font-size: 20px; }
+  .bar { flex: 1; height: 14px; background: #232a38; border-radius: 10px; overflow: hidden; }
+  .bar i { display: block; width: 46%; height: 100%; background: var(--accent); border-radius: 10px; }
+  .mode { color: var(--blue); font-size: 11px; font-weight: 800; letter-spacing: 1px; margin: 10px 0 4px; }
+  .q { font-size: 18px; font-weight: 800; margin: 6px 0 12px; }
+  .opt { background: var(--panel); border: 2px solid var(--line); border-bottom-width: 5px; border-radius: 16px; padding: 13px 14px; margin-bottom: 10px; font-size: 15px; }
+  .opt.sel { border-color: var(--blue); background: #16243a; }
+  .grow { flex: 1; position: relative; }
+  .cta { background: var(--accent); color: #0d0f14; text-align: center; font-weight: 900; border-radius: 16px; padding: 14px; border-bottom: 5px solid var(--accentEdge); font-size: 16px; }
+  /* А: виразний персонаж у вільній зоні між завданням і «Продовжити» */
+  .a-zone { position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: flex-end; gap: 6px; }
+  .a-zone img { height: 100%; max-height: 220px; object-fit: contain; filter: drop-shadow(0 10px 8px rgba(0,0,0,.45)); }
+  .a-bubble { align-self: center; max-width: 58%; background: #f7f1e4; color: #2a2418; border-radius: 16px; padding: 10px 12px; font-weight: 700; font-size: 14px; position: relative; }
+  .a-bubble:after { content: ""; position: absolute; right: -8px; bottom: 18px; border: 8px solid transparent; border-left-color: #f7f1e4; border-right: 0; }
+  .a-shadow { position: absolute; right: 34px; bottom: 0; width: 110px; height: 14px; background: radial-gradient(ellipse at center, rgba(0,0,0,.5), transparent 70%); }
+  /* Б: компактне завдання, наставник зʼявляється при підказці або розборі */
+  .b-hint { display: inline-flex; align-items: center; gap: 6px; color: var(--blue); font-weight: 800; font-size: 13px; border: 2px solid var(--line); border-radius: 12px; padding: 6px 10px; background: var(--panel); }
+  .b-sheet { margin-top: auto; background: var(--panel2); border: 2px solid var(--line); border-radius: 18px; padding: 12px; display: flex; gap: 10px; align-items: flex-end; }
+  .b-sheet img { width: 84px; height: 110px; object-fit: contain; object-position: bottom; flex: none; filter: drop-shadow(0 6px 6px rgba(0,0,0,.4)); }
+  .b-sheet .t b { color: var(--accent); display: block; font-size: 14px; margin-bottom: 2px; }
+  .b-sheet .t { font-size: 14px; }
+  .note { color: var(--muted); font-size: 13px; margin: 8px 2px 0; }
+  .states { display: flex; gap: 8px; margin-top: 8px; }
+  .states span { font-size: 11px; color: var(--muted); border: 1px dashed var(--line); border-radius: 8px; padding: 3px 6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="col">
+    <p class="tag">МАКЕТ А <small>· виразний персонаж у вільній зоні</small></p>
+    <div class="phone">
+      <div class="head"><span class="x">✕</span><div class="bar"><i></i></div><span>🐞</span></div>
+      <div class="mode">📦 ТОВАРКА · УРОК 2 · ПОРАХУЙ МЕЖУ</div>
+      <div class="q">Мережа платить ₴180 за підтверджене замовлення. Що треба знати, щоб порахувати межу CPL?</div>
+      <div class="opt sel">Частку оплачуваних від усіх заявок і змінні витрати</div>
+      <div class="opt">Лише CTR оголошення й ціну кліку за перший день</div>
+      <div class="opt">Кількість заявок за перший день і їхній CPL</div>
+      <div class="grow">
+        <div class="a-zone">
+          <div class="a-bubble">Не поспішай. Спершу знаменник, потім гроші.</div>
+          <img src="pose_point.webp" alt="Гріндік">
+        </div>
+        <div class="a-shadow"></div>
+      </div>
+      <div class="cta" style="margin-top:10px">ПЕРЕВІРИТИ</div>
+    </div>
+    <p class="note">Гріндік стоїть між завданням і кнопкою, на «підлозі» з тінню; репліка змінюється після відповіді (підколка на помилку, похвала на влучну). Коли варіантів багато, зона стискається, персонаж зменшується до 120 px або ховається.</p>
+  </div>
+
+  <div class="col">
+    <p class="tag">МАКЕТ Б <small>· компактне завдання, наставник за потреби</small></p>
+    <div class="phone">
+      <div class="head"><span class="x">✕</span><div class="bar"><i></i></div><span>🐞</span></div>
+      <div class="mode">📦 ТОВАРКА · УРОК 2 · ПОРАХУЙ МЕЖУ</div>
+      <div class="q">Мережа платить ₴180 за підтверджене замовлення. Що треба знати, щоб порахувати межу CPL?</div>
+      <div class="opt">Частку оплачуваних від усіх заявок і змінні витрати</div>
+      <div class="opt sel">Лише CTR оголошення й ціну кліку за перший день</div>
+      <div class="opt">Кількість заявок за перший день і їхній CPL</div>
+      <div><span class="b-hint">💡 Підказка</span></div>
+      <div class="b-sheet">
+        <img src="pose_think.webp" alt="Гріндік">
+        <div class="t"><b>Розбір · Не зовсім</b>CTR — про кліки, а платять за підтверджене замовлення. Потрібна частка оплачуваних і змінні витрати: 180 × частка − витрати.</div>
+      </div>
+      <div class="cta" style="margin-top:10px">ДАЛІ</div>
+    </div>
+    <p class="note">Без підказки й до відповіді Гріндіка на екрані немає, завдання займає весь простір. Він виїжджає знизу в картці підказки або розбору (поза залежить від результату).</p>
+    <div class="states"><span>до відповіді: без Гріндіка</span><span>💡 підказка: картка з Гріндіком</span><span>розбір: картка з Гріндіком</span></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,64 @@
+import type { LoadV2, Op, SaveV2 } from './shared/progressOps';
+
+export type CloudMode = 'off' | 'mock' | 'supabase';
+
+export type CloudUser = {
+  id: string; // id запису в білому списку (стабільний; не залежить від ніка)
+  username: string; // @нік без @: лише для показу й водяного знака
+  name: string;
+  isAdmin: boolean;
+};
+
+// wrong — хибний нік/код (однакова відповідь, щоб не підказувати, чи існує нік); locked — забагато хибних спроб;
+// blocked — доступ вимкнено; too_many — забагато спроб з однієї адреси
+// not_linked — Telegram ще не привʼязано до тестера (треба один раз ввести нік і код)
+// tg_invalid: вхід лише через Telegram, а сервер не прийняв підпис initData (застарів, підроблений, чужий бот)
+export type LoginFailure = 'wrong' | 'locked' | 'blocked' | 'too_many' | 'not_linked' | 'tg_invalid' | 'error';
+// Два способи: нік + код, або лише initData Telegram Mini App (вхід без коду для вже привʼязаного Telegram-акаунта).
+// initData, надіслане разом із кодом, привʼязує Telegram до тестера (один раз).
+export type LoginInput = { username?: string; code?: string; initData?: string };
+export type LoginResult = { ok: true; user: CloudUser } | { ok: false; reason: LoginFailure; attemptsLeft?: number; lockedSeconds?: number };
+
+export type SessionCheck = 'ok' | 'replaced' | 'signed_out';
+
+// Рядок рейтингу точності: лише публічне (імʼя, відсоток, кількість відповідей, позначка «це я»)
+export type AccuracyRow = { name: string; accuracy: number; answers: number; isMe: boolean };
+export type LeagueRoster = { weekStart: string; scoringEnabled: boolean; players: { name: string; points: number; isMe: boolean }[] };
+
+// Відгук тестера (кнопка «Повідомити про помилку / запропонувати»)
+export type FeedbackKind = 'bug' | 'idea' | 'comment' | 'proposal'; // 'idea' — старий вид (до збірки 26)
+export type FeedbackStatus = 'new' | 'queued' | 'done' | 'skip';
+export type FeedbackInput = { kind: FeedbackKind; body: string; screen?: string; lessonId?: string; stepIdx?: number; branch?: string; simStep?: number };
+export type FeedbackRow = { id: number; username: string; kind: FeedbackKind; screen: string; lessonId: string; stepIdx: number | null; branch?: string | null; simStep?: number | null; body: string; build: number | null; createdAt: number; note?: string | null; status?: FeedbackStatus; useful?: boolean };
+
+// Подія мініаналітики (див. shared/analytics.ts)
+export type EventRow = { id: number; username: string; name: string; props: Record<string, unknown> | null; build: number | null; createdAt: number };
+
+// Рядок списку тестерів для екрана /admin (без хеша коду)
+export type TesterRow = { id: string; username: string; name: string; status: 'invited' | 'active' | 'blocked'; isAdmin: boolean; lastLoginAt: number | null; inviteIssuedAt: number | null };
+
+export type ServerProgress = { state: Record<string, unknown>; updatedAt: number };
+
+// Один інтерфейс для імітації (локальної) і справжнього Supabase: решта застосунку про різницю не знає
+export interface CloudBackend {
+  mode: CloudMode;
+  restore(): Promise<CloudUser | null>; // локальна сесія, якщо є (без перевірки на сервері)
+  login(input: LoginInput): Promise<LoginResult>;
+  logout(): Promise<void>;
+  checkSession(): Promise<SessionCheck>;
+  // Прогрес (ТЗ-01): сервер формує ядро з операцій; клієнтський знімок пишеться лише з актуальною версією. Кидають Error('replaced'), якщо сеанс замінено
+  loadProgressV2(): Promise<LoadV2>;
+  saveProgressV2(baseRev: number, ops: Op[], clientState: Record<string, unknown> | null, epoch: number): Promise<SaveV2>;
+  accuracyBoard(): Promise<AccuracyRow[]>; // рейтинг точності реальних гравців; кидає Error('replaced'), якщо сеанс замінено
+  weeklyRoster(): Promise<LeagueRoster | null>; // null до появи функції weekly_league_roster
+  trackEvent(name: string, props?: Record<string, unknown>): Promise<void>; // мовчки ігнорує помилки: аналітика не повинна ламати урок
+  sendFeedback(input: FeedbackInput): Promise<void>; // кидає Error('replaced'), якщо сеанс замінено
+  // Лише для адміна (на сервері перевіряє is_admin_user; для не-адміна кидають Error('forbidden'))
+  adminFeedback(): Promise<FeedbackRow[]>; // з помітками власника (0008); до 0008 — без поміток
+  adminFeedbackReview(id: number, note: string, status: FeedbackStatus, useful: boolean): Promise<void>; // Error('not_ready'), поки 0008 не застосовано
+  adminTesters(): Promise<TesterRow[]>;
+  adminEvents(): Promise<EventRow[]>; // останні 5000 подій
+  adminAddTester(username: string, name: string): Promise<void>; // Error('already_exists' | 'bad_username')
+  adminSetStatus(id: string, status: 'active' | 'blocked'): Promise<void>; // 'blocked' одразу вибиває тестера з сеансу
+  adminIssueInvite(username: string): Promise<string>; // новий код (показується один раз), старий скасовується
+}
