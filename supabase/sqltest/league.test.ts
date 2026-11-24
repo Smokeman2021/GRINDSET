@@ -58,3 +58,28 @@ test('a complete roster is not capped at the older accuracy board limit', async 
   await db.admin.query("insert into public.allowed_users (username, status) select 'extra_' || n, 'active' from generate_series(1, 110) n");
   assert.equal((await list(viewer)).players.length, 113);
 });
+
+test('the roster shows the synced GRINDSET profile name and falls back for blank or invalid values', async () => {
+  await db.admin.query("select public.set_progress_write_mode('v2')");
+  let { rev } = await db.rpc<{ rev: number }>(beginner, 'select public.load_progress_v2()');
+  const saveName = async (playerName: unknown) => {
+    const result = await db.rpc<{ rev: number; client_state_status: string }>(beginner,
+      'select public.save_progress_v2($1::bigint, $2::jsonb, $3::jsonb, 0)',
+      [rev, '[]', JSON.stringify({ onboarded: true, playerName })]);
+    assert.equal(result.client_state_status, 'saved');
+    rev = result.rev;
+  };
+  const visible = async () => (await list(beginner)).players.find((row) => row.is_me)?.name;
+
+  assert.equal(await visible(), 'Видиме ім’я');
+  await saveName('\t  Оля\n Профіль  ');
+  assert.equal(await visible(), 'Оля Профіль');
+  await saveName('Оля');
+  assert.equal(await visible(), 'Оля');
+  await saveName('123456789012345678');
+  assert.equal(await visible(), '12345678901234');
+  await saveName(' \n\t ');
+  assert.equal(await visible(), 'Видиме ім’я');
+  await saveName({ internal: 'invalid' });
+  assert.equal(await visible(), 'Видиме ім’я');
+});

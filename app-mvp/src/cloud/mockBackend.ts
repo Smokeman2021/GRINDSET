@@ -279,11 +279,15 @@ export class MockBackend implements CloudBackend {
 
   async weeklyRoster(): Promise<LeagueRoster> {
     const me = await this.mustBeActive();
-    const { allowed } = await readDb();
+    const { allowed, progress } = await readDb();
     return {
       weekStart: weekStartStr(),
       players: allowed.filter((r) => r.status === 'active' && !r.is_service)
-        .map((r) => ({ name: r.display_name.trim() || r.username, points: 0, isMe: r.id === me.id }))
+        .map((r) => {
+          const savedName = progress[r.id]?.state?.playerName;
+          const profileName = typeof savedName === 'string' ? savedName.replace(/[\s\p{Cc}]+/gu, ' ').trim().slice(0, 14) : '';
+          return { name: profileName || r.display_name.trim() || r.username, points: 0, isMe: r.id === me.id };
+        })
         .sort((a, b) => a.name.localeCompare(b.name, 'uk')),
     };
   }
